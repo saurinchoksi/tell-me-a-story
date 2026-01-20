@@ -1,0 +1,15 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Data (private audio files)
+data/
+
+# IDE
+.vscode/
+.idea/
+
+# Claude context (personal)
+CLAUDE.md
