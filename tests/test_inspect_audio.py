@@ -11,7 +11,7 @@ from inspect_audio import get_audio_info
 
 def test_get_audio_info_returns_dict_for_valid_file():
     """Valid audio file should return a dict with expected keys."""
-    info = get_audio_info("data/00000000-000000.m4a")
+    info = get_audio_info("stories/audio/00000000-000000.m4a")
 
     assert info is not None
     assert "filename" in info
@@ -23,13 +23,13 @@ def test_get_audio_info_returns_dict_for_valid_file():
 
 def test_get_audio_info_returns_none_for_missing_file():
     """Missing file should return None."""
-    info = get_audio_info("data/does_not_exist.m4a")
+    info = get_audio_info("stories/audio/does_not_exist.m4a")
 
     assert info is None
 
 def test_audio_file_has_expected_properties():
     """Our test file should have the properties we observed."""
-    info = get_audio_info("data/00000000-000000.m4a")
+    info = get_audio_info("stories/audio/00000000-000000.m4a")
 
     assert info["sample_rate"] == 48000
     assert info["channels"] == 2

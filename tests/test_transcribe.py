@@ -72,7 +72,7 @@ import pytest
 @pytest.mark.slow
 def test_transcribe_returns_expected_structure():
     """transcribe() should return dict with text, language, segments."""
-    result = transcribe("data/00000000-000000.m4a")
+    result = transcribe("stories/audio/00000000-000000.m4a")
 
     assert "text" in result
     assert "language" in result
@@ -84,7 +84,7 @@ def test_transcribe_returns_expected_structure():
 @pytest.mark.slow
 def test_transcribe_segments_have_timestamps():
     """Each segment should have start, end, and text."""
-    result = transcribe("data/00000000-000000.m4a")
+    result = transcribe("stories/audio/00000000-000000.m4a")
 
     assert len(result["segments"]) > 0
 
