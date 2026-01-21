@@ -13,3 +13,4 @@ stories/
 
 # Claude context (personal)
 CLAUDE.md*.swp
+*.swp
