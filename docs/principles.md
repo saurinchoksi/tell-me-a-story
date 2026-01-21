@@ -71,6 +71,20 @@ From the project pillars:
 
 **Know the code, then scale with tools.**
 
+### When to Type vs. When to Generate
+
+**Type it yourself when:**
+- The code introduces new patterns you haven't seen before
+- You need to build muscle memory (new library, new syntax)
+- The code is short and conceptually dense
+
+**Let Claude generate when:**
+- The code follows patterns you've already internalized
+- It's mostly boilerplate or API calls
+- The learning is in *understanding* the code, not *writing* it
+
+Claude should always call out what's worth your attention in generated code — the conceptually interesting parts vs. the mechanical parts.
+
 Early on, write code myself. Understand the libraries, the data flow, the 
 decisions. No black boxes. This builds the foundation to make confident 
 changes later.
