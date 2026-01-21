@@ -104,4 +104,41 @@ comes from understanding, not from outsourcing understanding.
 
 ---
 
-*Last updated: 2026-01-20*
+## Documentation
+
+**Journal** — Narrative of what happened each session. Decisions, learnings, what's next. Lives in `journal/`.
+
+**Docstrings** — Reference material embedded in code. Document functions as they're written:
+
+```python
+def transcribe(audio_path: str) -> dict:
+    """Transcribe audio file using MLX Whisper.
+    
+    Args:
+        audio_path: Path to the audio file (.m4a, .wav, etc.)
+    
+    Returns:
+        Dict with 'text', 'language', and 'segments' keys.
+    """
+```
+
+Docstrings explain *what* and *how*. Inline comments (sparingly) explain *why* for non-obvious reasoning.
+
+**README** — Keep updated with: what the project does, how to install/run, basic usage.
+
+---
+
+## Future Research
+
+When ready to scale to "Claude Code builds features" phase, research:
+
+- **Claude Code review workflows** — one session writes, another reviews before merge
+- **Sub-agents and orchestration** — Claude Code spawning focused helpers
+- **Skills and custom instructions** — teaching Claude Code project-specific patterns
+- **CLAUDE.md best practices** — project context that persists across sessions
+
+Sources: Anthropic docs/Discord, Claude Code GitHub discussions, Twitter workflows, early adopter blog posts.
+
+---
+
+*Last updated: 2026-01-21*
