@@ -3,9 +3,24 @@
 import mlx_whisper
 
 
-def transcribe(audio_path: str) -> dict:
-    """Transcribe audio file and return result dict."""
-    result = mlx_whisper.transcribe(audio_path)
+def transcribe(audio_path: str, word_timestamps: bool = False, model: str = None) -> dict:
+    """Transcribe audio file and return result dict.
+    
+    Args:
+        audio_path: Path to audio file
+        word_timestamps: If True, include word-level timestamps in segments
+    
+    Returns:
+        Dict with 'text', 'language', 'segments' keys.
+        If word_timestamps=True, each segment also has 'words' list.
+    """
+    
+    kwargs = {"word_timestamps": word_timestamps}
+
+    if model:
+        kwargs["path_or_hf_repo"] = model
+
+    result = mlx_whisper.transcribe(audio_path, **kwargs)
     return result
 
 def save_transcript(result: dict, output_path: str) -> None:

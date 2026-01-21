@@ -93,3 +93,24 @@ def test_transcribe_segments_have_timestamps():
         assert "end" in seg
         assert "text" in seg
         assert seg["end"] > seg["start"]
+
+
+@pytest.mark.slow
+def test_transcribe_with_word_timestamps():
+    """word_timestamps=True should add words array to segments."""
+    result = transcribe("stories/audio/00000000-000000.m4a", word_timestamps=True)
+    
+    # Find a segment with content (some may be empty)
+    seg_with_words = None
+    for seg in result["segments"]:
+        if seg.get("words"):
+            seg_with_words = seg
+            break
+    
+    assert seg_with_words is not None, "Expected at least one segment with words"
+    
+    # Check word structure
+    word = seg_with_words["words"][0]
+    assert "start" in word
+    assert "end" in word
+    assert "word" in word
