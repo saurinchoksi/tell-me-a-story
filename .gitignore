@@ -12,4 +12,4 @@ stories/
 .idea/
 
 # Claude context (personal)
-CLAUDE.md
+CLAUDE.md*.swp
