@@ -24,6 +24,7 @@ def load_pipeline() -> Pipeline:
     if not token:
         raise ValueError("HF_TOKEN environment variable not set")
     
+    print("Loading diarization model (this may take a minute)...")
     pipeline = Pipeline.from_pretrained(
         "pyannote/speaker-diarization-community-1",
         token=token

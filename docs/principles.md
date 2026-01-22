@@ -4,6 +4,12 @@ How I want to approach building this project. These will evolve.
 
 ---
 
+## Simple Over Clever
+
+Prefer simple, easy-to-understand code over "cleaner" architecture that adds complexity. Redundant-but-readable beats elegant-but-tricky. Only accept complexity when there's a clear tradeoff in efficiency, speed, or correctness.
+
+---
+
 ## Patterns Over Tools
 
 Document the *why* separately from the *what*. When I choose a tool, 
@@ -70,6 +76,43 @@ From the project pillars:
 ## Human-First, Tools-Assisted
 
 **Know the code, then scale with tools.**
+
+### Session Flow for Learning
+
+Before writing any code, follow this cadence:
+
+1. **Conceptual overview** — Claude explains the problem, the data structures involved, and the general approach. No code yet.
+
+2. **Discussion** — Choksi asks questions, explores edge cases, challenges assumptions. This is where real understanding happens.
+
+3. **Logic walkthrough** — Claude explains the algorithm step-by-step, often in pseudo-code or plain English. This is where Choksi builds the mental model.
+
+4. **Claude writes the code** — Choksi generally won't be typing code. Claude generates it, then walks through what's interesting vs. mechanical.
+
+5. **Code review** — Discuss the implementation. Choksi asks questions until it feels solid.
+
+5. **Repeat for tests** — Same flow: concept → discuss → decide who writes → review.
+
+The goal is never to feel rushed past understanding. If Claude moves too fast, say so.
+
+### Understanding vs. Typing
+
+Typing code doesn't equal understanding. You can type something and not understand it. You can read something carefully and understand it deeply.
+
+The understanding comes from the mental model — the conceptual discussion, the "wait, why are we doing it this way?" questions, catching confusion before it becomes bugs.
+
+**Where Choksi's time is valuable:**
+- Asking clarifying questions
+- Challenging assumptions
+- Deciding what to build and why
+- Reading code and verifying it matches the mental model
+
+**Where Choksi's time isn't valuable:**
+- Typing `labeled_words.append({`
+
+Copy-paste the code. The job is to *read it and make sure it matches the mental model*. If something looks wrong or confusing, stop and ask.
+
+The skill being built is: *directing and understanding*, not *typing*. That's the 2026 builder skill.
 
 ### When to Type vs. When to Generate
 
