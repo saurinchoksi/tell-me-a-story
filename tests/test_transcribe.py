@@ -72,7 +72,7 @@ import pytest
 @pytest.mark.slow
 def test_transcribe_returns_expected_structure():
     """transcribe() should return dict with text, language, segments."""
-    result = transcribe("pipeline/audio/00000000-000000.m4a")
+    result = transcribe("sessions/audio/00000000-000000.m4a")
 
     assert "text" in result
     assert "language" in result
@@ -84,7 +84,7 @@ def test_transcribe_returns_expected_structure():
 @pytest.mark.slow
 def test_transcribe_segments_have_timestamps():
     """Each segment should have start, end, and text."""
-    result = transcribe("pipeline/audio/00000000-000000.m4a")
+    result = transcribe("sessions/audio/00000000-000000.m4a")
 
     assert len(result["segments"]) > 0
 
@@ -98,7 +98,7 @@ def test_transcribe_segments_have_timestamps():
 @pytest.mark.slow
 def test_transcribe_with_word_timestamps():
     """word_timestamps=True should add words array to segments."""
-    result = transcribe("pipeline/audio/00000000-000000.m4a", word_timestamps=True)
+    result = transcribe("sessions/audio/00000000-000000.m4a", word_timestamps=True)
     
     # Find a segment with content (some may be empty)
     seg_with_words = None
