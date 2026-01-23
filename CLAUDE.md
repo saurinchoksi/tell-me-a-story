@@ -21,7 +21,7 @@ A local-first pipeline for capturing bedtime stories. Records parent-child story
 source venv/bin/activate
 
 # Run full pipeline
-python src/pipeline.py stories/audio/<filename>.m4a
+python src/pipeline.py pipeline/audio/<filename>.m4a
 
 # Run individual modules
 python src/transcribe.py <audio_file>
@@ -63,8 +63,8 @@ Markdown transcripts (human-readable) planned as a future addition.
 
 - Requires `HF_TOKEN` env var for pyannote model access
 - Pyannote struggles with soft/child speech—alignment heuristics compensate
-- Test audio: `stories/audio/00000000-000000.m4a`
-- Private data in `stories/` is gitignored
+- Test audio: `pipeline/audio/00000000-000000.m4a`
+- Private data in `pipeline/` is gitignored
 
 ## Development Principles
 

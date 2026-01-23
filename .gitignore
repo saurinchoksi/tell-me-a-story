@@ -4,8 +4,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Stories (private audio files and transcripts)
-stories/
+# Pipeline (private audio files and transcripts)
+pipeline/
 
 # IDE
 .vscode/
