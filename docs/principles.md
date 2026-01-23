@@ -91,7 +91,7 @@ Before writing any code, follow this cadence:
 
 5. **Code review** — Discuss the implementation. Choksi asks questions until it feels solid.
 
-5. **Repeat for tests** — Same flow: concept → discuss → decide who writes → review.
+6. **Repeat for tests** — Same flow: concept → discuss → logic walkthrough → Claude writes → review.
 
 The goal is never to feel rushed past understanding. If Claude moves too fast, say so.
 
