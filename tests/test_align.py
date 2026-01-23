@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from align import (
+    align,
     align_words_to_speakers,
     group_words_by_speaker,
     merge_unknown_utterances,
@@ -262,3 +263,28 @@ def test_assign_fragment_custom_threshold():
     # Tighter 0.2s threshold — gap is 0.3s, should NOT assign
     result_tight = assign_leading_fragments(utterances, max_gap=0.2)
     assert result_tight[0]["speaker"] is None
+
+
+# --- align (full pipeline) tests ---
+
+def test_align_full_pipeline():
+    """The align() wrapper runs all steps end-to-end."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Hello"},
+        {"start": 0.5, "end": 1.0, "word": " there"},
+        {"start": 1.5, "end": 2.0, "word": " Hi"},
+    ]
+    
+    diarization = [
+        {"start": 0.0, "end": 1.2, "speaker": "SPEAKER_00"},
+        {"start": 1.4, "end": 2.5, "speaker": "SPEAKER_01"},
+    ]
+    
+    result = align(words, diarization)
+    
+    # Should produce two consolidated utterances
+    assert len(result) == 2
+    assert result[0]["speaker"] == "SPEAKER_00"
+    assert result[0]["text"] == "Hello there"
+    assert result[1]["speaker"] == "SPEAKER_01"
+    assert result[1]["text"] == "Hi"

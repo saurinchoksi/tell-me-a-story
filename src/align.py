@@ -1,6 +1,24 @@
 """Align transcription with speaker diarization."""
 
 
+def align(words: list[dict], diarization: list[dict]) -> list[dict]:
+    """Run the full alignment pipeline.
+    
+    Args:
+        words: List of word dicts with 'start', 'end', 'word' keys
+        diarization: List of speaker segments with 'start', 'end', 'speaker' keys
+    
+    Returns:
+        List of consolidated utterances with speaker labels.
+    """
+    labeled = align_words_to_speakers(words, diarization)
+    utterances = group_words_by_speaker(labeled)
+    merged = merge_unknown_utterances(utterances)
+    assigned = assign_leading_fragments(merged)
+    consolidated = consolidate_utterances(assigned)
+    return consolidated
+
+
 def align_words_to_speakers(words: list[dict], diarization: list[dict]) -> list[dict]:
     """Assign a speaker to each word based on timestamp overlap.
     
@@ -182,55 +200,3 @@ def format_transcript(utterances: list[dict]) -> str:
         lines.append(f"[{start:6.1f} - {end:6.1f}] {speaker}: {text}")
     return "\n".join(lines)
 
-
-if __name__ == "__main__":
-    import sys
-    from transcribe import transcribe
-    from diarize import diarize
-
-    if len(sys.argv) < 2:
-        print("Usage: python src/align.py <audio_file>")
-        sys.exit(1)
-
-    audio_file = sys.argv[1]
-
-    print(f"Transcribing: {audio_file}")
-    print("Using large model for better child speech recognition...")
-    result = transcribe(
-        audio_file,
-        word_timestamps=True,
-        model="mlx-community/whisper-large-v3-turbo"
-    )
-
-    print("\nDiarizing (this takes a few minutes)...")
-    segments = diarize(audio_file)
-
-    # Extract words from all transcript segments
-    all_words = []
-    for seg in result["segments"]:
-        if seg.get("words"):
-            all_words.extend(seg["words"])
-
-    print(f"\nAligning {len(all_words)} words to {len(segments)} speaker segments...")
-    labeled = align_words_to_speakers(all_words, segments)
-    utterances = group_words_by_speaker(labeled)
-
-    # Count UNKNOWNs before merge
-    unknown_before = sum(1 for u in utterances if u["speaker"] is None)
-
-    # Merge UNKNOWN utterances sandwiched between same speaker
-    merged = merge_unknown_utterances(utterances)
-
-    # Assign leading fragments to next speaker if close in time
-    assigned = assign_leading_fragments(merged)
-
-    # Consolidate consecutive same-speaker utterances
-    consolidated = consolidate_utterances(assigned)
-
-    # Count UNKNOWNs after processing
-    unknown_after = sum(1 for u in consolidated if u["speaker"] is None)
-
-    print(f"UNKNOWN utterances: {unknown_before} -> {unknown_after} after merge")
-    print(f"Utterances: {len(utterances)} -> {len(consolidated)} after consolidation")
-    print("\n--- Speaker-labeled transcript ---\n")
-    print(format_transcript(consolidated))
