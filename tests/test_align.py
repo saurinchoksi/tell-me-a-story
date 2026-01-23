@@ -9,6 +9,7 @@ from align import (
     align_words_to_speakers,
     group_words_by_speaker,
     merge_unknown_utterances,
+    assign_leading_fragments,
     consolidate_utterances,
     format_transcript,
 )
@@ -171,3 +172,93 @@ def test_format_none_speaker_shows_unknown():
     result = format_transcript(utterances)
     
     assert "UNKNOWN: mystery" in result
+
+
+# --- assign_leading_fragments tests ---
+
+def test_assign_fragment_within_gap():
+    """UNKNOWN close to next utterance gets assigned to that speaker."""
+    utterances = [
+        {"start": 0.0, "end": 1.0, "speaker": None, "text": "That's"},
+        {"start": 1.1, "end": 2.0, "speaker": "SPEAKER_00", "text": "right"},
+    ]
+    
+    result = assign_leading_fragments(utterances)
+    
+    assert result[0]["speaker"] == "SPEAKER_00"
+
+
+def test_assign_fragment_gap_too_large():
+    """UNKNOWN with large gap to next utterance stays UNKNOWN."""
+    utterances = [
+        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um"},
+        {"start": 2.0, "end": 3.0, "speaker": "SPEAKER_00", "text": "hello"},
+    ]
+    
+    result = assign_leading_fragments(utterances)
+    
+    assert result[0]["speaker"] is None
+
+
+def test_assign_fragment_at_end():
+    """UNKNOWN at end of list stays UNKNOWN (no next utterance)."""
+    utterances = [
+        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "hello"},
+        {"start": 1.5, "end": 2.0, "speaker": None, "text": "bye"},
+    ]
+    
+    result = assign_leading_fragments(utterances)
+    
+    assert result[1]["speaker"] is None
+
+
+def test_assign_fragment_next_also_unknown():
+    """UNKNOWN followed by another UNKNOWN stays UNKNOWN."""
+    utterances = [
+        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um"},
+        {"start": 1.1, "end": 2.0, "speaker": None, "text": "uh"},
+        {"start": 2.1, "end": 3.0, "speaker": "SPEAKER_00", "text": "hello"},
+    ]
+    
+    result = assign_leading_fragments(utterances)
+    
+    # First UNKNOWN can't assign to another UNKNOWN
+    assert result[0]["speaker"] is None
+    # Second UNKNOWN can assign to SPEAKER_00
+    assert result[1]["speaker"] == "SPEAKER_00"
+
+
+def test_assign_fragment_empty_input():
+    """Empty input returns empty result."""
+    result = assign_leading_fragments([])
+    assert result == []
+
+
+def test_assign_fragment_no_unknowns():
+    """List with no UNKNOWNs returns unchanged."""
+    utterances = [
+        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "hello"},
+        {"start": 1.0, "end": 2.0, "speaker": "SPEAKER_01", "text": "hi"},
+    ]
+    
+    result = assign_leading_fragments(utterances)
+    
+    assert len(result) == 2
+    assert result[0]["speaker"] == "SPEAKER_00"
+    assert result[1]["speaker"] == "SPEAKER_01"
+
+
+def test_assign_fragment_custom_threshold():
+    """Custom max_gap threshold is respected."""
+    utterances = [
+        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um"},
+        {"start": 1.3, "end": 2.0, "speaker": "SPEAKER_00", "text": "hello"},
+    ]
+    
+    # Default 0.5s threshold — gap is 0.3s, should assign
+    result_default = assign_leading_fragments(utterances)
+    assert result_default[0]["speaker"] == "SPEAKER_00"
+    
+    # Tighter 0.2s threshold — gap is 0.3s, should NOT assign
+    result_tight = assign_leading_fragments(utterances, max_gap=0.2)
+    assert result_tight[0]["speaker"] is None

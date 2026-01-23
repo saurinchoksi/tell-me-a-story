@@ -10,6 +10,7 @@ stories/
 # IDE
 .vscode/
 .idea/
+.claude/
 
 # Claude context (personal)
 CLAUDE.md*.swp

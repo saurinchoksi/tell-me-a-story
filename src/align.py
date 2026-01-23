@@ -91,6 +91,41 @@ def merge_unknown_utterances(utterances: list[dict]) -> list[dict]:
     return result
 
 
+def assign_leading_fragments(utterances: list[dict], max_gap: float = 0.5) -> list[dict]:
+    """Assign UNKNOWN utterances to the next speaker if close in time.
+    
+    When diarization misses the start of a speaker's turn, the opening
+    words get labeled UNKNOWN. If the gap to the next utterance is small,
+    it's likely part of that speaker's turn.
+    
+    Args:
+        utterances: List of utterance dicts
+        max_gap: Maximum gap (seconds) to consider as same turn
+    
+    Returns:
+        New list with leading fragments assigned.
+    """
+    result = []
+    
+    for i, utt in enumerate(utterances):
+        if utt["speaker"] is None and i < len(utterances) - 1:
+            next_utt = utterances[i + 1]
+            gap = next_utt["start"] - utt["end"]
+            
+            if gap <= max_gap and next_utt["speaker"] is not None:
+                result.append({
+                    "start": utt["start"],
+                    "end": utt["end"],
+                    "speaker": next_utt["speaker"],
+                    "text": utt["text"]
+                })
+                continue
+        
+        result.append(utt)
+    
+    return result
+
+
 def consolidate_utterances(utterances: list[dict]) -> list[dict]:
     """Combine consecutive utterances from the same speaker.
     
@@ -186,10 +221,13 @@ if __name__ == "__main__":
     # Merge UNKNOWN utterances sandwiched between same speaker
     merged = merge_unknown_utterances(utterances)
 
-    # Consolidate consecutive same-speaker utterances
-    consolidated = consolidate_utterances(merged)
+    # Assign leading fragments to next speaker if close in time
+    assigned = assign_leading_fragments(merged)
 
-    # Count UNKNOWNs after merge
+    # Consolidate consecutive same-speaker utterances
+    consolidated = consolidate_utterances(assigned)
+
+    # Count UNKNOWNs after processing
     unknown_after = sum(1 for u in consolidated if u["speaker"] is None)
 
     print(f"UNKNOWN utterances: {unknown_before} -> {unknown_after} after merge")
