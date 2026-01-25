@@ -46,6 +46,12 @@ others could use. Architecture decisions now can leave doors open.
 
 ---
 
+## On Stakes
+
+This project serves two purposes that aren't in conflict: preserving something precious, and demonstrating capability that leads to financial security. The depth is what makes it compelling for both. The personal meaning isn't separate from the career positioning—it's what makes the work real.
+
+---
+
 ## Project-Specific Principles
 
 From the project pillars:
@@ -61,6 +67,11 @@ From the project pillars:
 
 - **The Arti Test**: Would I actually use this with my daughter? If no, 
   don't build it.
+
+- **Honest Transcripts**: Mark unclear speech as `[unintelligible]` rather 
+  than deleting or inventing. Preserves truth that something was said; can 
+  be filled in later when memory surfaces. Garbled is better than missing. 
+  Lies are worse than gaps.
 
 ---
 
@@ -198,4 +209,4 @@ Sources: Anthropic docs/Discord, Claude Code GitHub discussions, Twitter workflo
 
 ---
 
-*Last updated: 2026-01-21*
+*Last updated: 2026-01-24*
