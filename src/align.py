@@ -1,6 +1,38 @@
 """Align transcription with speaker diarization."""
 
 
+def filter_zero_duration_words(words: list[dict]) -> list[dict]:
+    """Remove words with zero duration (hallucination signal).
+
+    Whisper sometimes hallucinates words during silence, producing
+    words where start == end. Real speech always has duration.
+
+    Args:
+        words: List of word dicts with 'start', 'end', 'word' keys
+
+    Returns:
+        Filtered list with zero-duration words removed.
+    """
+    return [w for w in words if w["end"] > w["start"]]
+
+
+def filter_low_probability_words(words: list[dict], threshold: float = 0.5) -> list[dict]:
+    """Remove words with low probability (hallucination signal).
+
+    Whisper assigns probability scores to each word. Real speech
+    typically has probability 0.85-1.0, while hallucinations often
+    start with very low probability (< 0.1) during silence.
+
+    Args:
+        words: List of word dicts with 'probability' key
+        threshold: Minimum probability to keep (default 0.5)
+
+    Returns:
+        Filtered list with low-probability words removed.
+    """
+    return [w for w in words if w.get("probability", 1.0) >= threshold]
+
+
 def align(words: list[dict], diarization: list[dict]) -> list[dict]:
     """Run the full alignment pipeline.
     
@@ -11,7 +43,9 @@ def align(words: list[dict], diarization: list[dict]) -> list[dict]:
     Returns:
         List of consolidated utterances with speaker labels.
     """
-    labeled = align_words_to_speakers(words, diarization)
+    filtered = filter_zero_duration_words(words)
+    filtered = filter_low_probability_words(filtered)
+    labeled = align_words_to_speakers(filtered, diarization)
     utterances = group_words_by_speaker(labeled)
     merged = merge_unknown_utterances(utterances)
     assigned = assign_leading_fragments(merged)

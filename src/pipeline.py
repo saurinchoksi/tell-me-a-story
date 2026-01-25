@@ -1,7 +1,7 @@
 """Run the full transcription and alignment pipeline."""
 
 import sys
-from transcribe import transcribe
+from transcribe import transcribe, mark_hallucinated_segments
 from diarize import diarize
 from align import align, format_transcript, group_words_by_speaker
 
@@ -41,7 +41,10 @@ def run_pipeline(audio_path: str, verbose: bool = True) -> dict:
         word_timestamps=True,
         model="mlx-community/whisper-large-v3-turbo"
     )
-    
+
+    # Mark hallucinated segments before extracting words
+    transcript["segments"] = mark_hallucinated_segments(transcript["segments"])
+
     if verbose:
         print("\nDiarizing (this takes a few minutes)...")
     

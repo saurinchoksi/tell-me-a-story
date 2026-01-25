@@ -23,6 +23,47 @@ def transcribe(audio_path: str, word_timestamps: bool = False, model: str = None
     result = mlx_whisper.transcribe(audio_path, **kwargs)
     return result
 
+def mark_hallucinated_segments(
+    segments: list[dict],
+    temp_threshold: float = 1.0,
+    compression_threshold: float = 2.5
+) -> list[dict]:
+    """Mark hallucinated segments as [unintelligible].
+
+    Segments with high temperature or compression ratio are likely
+    hallucinations (model inventing speech during silence). We mark
+    these honestly rather than deleting them.
+
+    Args:
+        segments: List of segment dicts from transcribe()
+        temp_threshold: Temperature at or above this triggers marking
+        compression_threshold: Compression ratio above this triggers marking
+
+    Returns:
+        New list with hallucinated segments marked as [unintelligible].
+    """
+    result = []
+    for seg in segments:
+        temp = seg.get("temperature", 0.0)
+        comp = seg.get("compression_ratio", 1.0)
+
+        if temp >= temp_threshold or comp > compression_threshold:
+            # Mark as unintelligible
+            marked = seg.copy()
+            marked["text"] = " [unintelligible]"
+            marked["words"] = [{
+                "word": " [unintelligible]",
+                "start": seg["start"],
+                "end": seg["end"],
+                "probability": 1.0  # Ensure it passes downstream filters
+            }]
+            result.append(marked)
+        else:
+            result.append(seg)
+
+    return result
+
+
 def save_transcript(result: dict, output_path: str) -> None:
     """Save transcript to a text file."""
     with open(output_path, "w") as f:

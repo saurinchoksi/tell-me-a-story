@@ -8,12 +8,127 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from align import (
     align,
     align_words_to_speakers,
+    filter_zero_duration_words,
+    filter_low_probability_words,
     group_words_by_speaker,
     merge_unknown_utterances,
     assign_leading_fragments,
     consolidate_utterances,
     format_transcript,
 )
+
+
+# --- filter_zero_duration_words tests ---
+
+def test_filter_keeps_normal_words():
+    """Words with duration pass through unchanged."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Hello"},
+        {"start": 0.5, "end": 1.0, "word": " world"},
+    ]
+
+    result = filter_zero_duration_words(words)
+
+    assert len(result) == 2
+    assert result[0]["word"] == " Hello"
+    assert result[1]["word"] == " world"
+
+
+def test_filter_removes_zero_duration():
+    """Words with zero duration are removed."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Hello"},
+        {"start": 0.5, "end": 0.5, "word": " silly"},  # zero duration
+        {"start": 0.5, "end": 1.0, "word": " world"},
+    ]
+
+    result = filter_zero_duration_words(words)
+
+    assert len(result) == 2
+    assert result[0]["word"] == " Hello"
+    assert result[1]["word"] == " world"
+
+
+def test_filter_empty_input():
+    """Empty input returns empty result."""
+    result = filter_zero_duration_words([])
+    assert result == []
+
+
+def test_filter_all_zero_duration():
+    """All zero-duration words results in empty list."""
+    words = [
+        {"start": 1.0, "end": 1.0, "word": " silly"},
+        {"start": 1.0, "end": 1.0, "word": " silly"},
+    ]
+
+    result = filter_zero_duration_words(words)
+
+    assert result == []
+
+
+# --- filter_low_probability_words tests ---
+
+def test_filter_prob_keeps_high_probability():
+    """Words with high probability pass through."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Hello", "probability": 0.95},
+        {"start": 0.5, "end": 1.0, "word": " world", "probability": 0.88},
+    ]
+
+    result = filter_low_probability_words(words)
+
+    assert len(result) == 2
+
+
+def test_filter_prob_removes_low_probability():
+    """Words with low probability are removed."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Hello", "probability": 0.95},
+        {"start": 0.5, "end": 1.0, "word": " silly", "probability": 0.001},
+        {"start": 1.0, "end": 1.5, "word": " world", "probability": 0.88},
+    ]
+
+    result = filter_low_probability_words(words)
+
+    assert len(result) == 2
+    assert result[0]["word"] == " Hello"
+    assert result[1]["word"] == " world"
+
+
+def test_filter_prob_custom_threshold():
+    """Custom threshold is respected."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " um", "probability": 0.6},
+        {"start": 0.5, "end": 1.0, "word": " hello", "probability": 0.9},
+    ]
+
+    # Default threshold 0.5 keeps both
+    result_default = filter_low_probability_words(words)
+    assert len(result_default) == 2
+
+    # Higher threshold removes the 0.6
+    result_strict = filter_low_probability_words(words, threshold=0.7)
+    assert len(result_strict) == 1
+    assert result_strict[0]["word"] == " hello"
+
+
+def test_filter_prob_missing_probability():
+    """Words without probability key are kept (assume valid)."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Hello"},
+        {"start": 0.5, "end": 1.0, "word": " world", "probability": 0.9},
+    ]
+
+    result = filter_low_probability_words(words)
+
+    assert len(result) == 2
+
+
+def test_filter_prob_empty_input():
+    """Empty input returns empty result."""
+    result = filter_low_probability_words([])
+    assert result == []
 
 
 # --- align_words_to_speakers tests ---
