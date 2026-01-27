@@ -74,12 +74,16 @@ def align_words_to_speakers(words: list[dict], diarization: list[dict]) -> list[
                 speaker = seg["speaker"]
                 break
         
-        labeled_words.append({
+        labeled_word = {
             "start": word["start"],
             "end": word["end"],
             "word": word["word"],
             "speaker": speaker
-        })
+        }
+        # Preserve probability if present (used for word-level filtering)
+        if "probability" in word:
+            labeled_word["probability"] = word["probability"]
+        labeled_words.append(labeled_word)
     
     return labeled_words
 
@@ -135,7 +139,8 @@ def merge_unknown_utterances(utterances: list[dict]) -> list[dict]:
                     "start": utt["start"],
                     "end": utt["end"],
                     "speaker": before,
-                    "text": utt["text"]
+                    "text": utt["text"],
+                    "words": utt["words"]
                 })
                 continue
         result.append(utt)
@@ -169,7 +174,8 @@ def assign_leading_fragments(utterances: list[dict], max_gap: float = 0.5) -> li
                     "start": utt["start"],
                     "end": utt["end"],
                     "speaker": next_utt["speaker"],
-                    "text": utt["text"]
+                    "text": utt["text"],
+                    "words": utt["words"]
                 })
                 continue
         
@@ -180,40 +186,51 @@ def assign_leading_fragments(utterances: list[dict], max_gap: float = 0.5) -> li
 
 def consolidate_utterances(utterances: list[dict]) -> list[dict]:
     """Combine consecutive utterances from the same speaker.
-    
+
     Run this after merge_unknown_utterances to collapse fragments.
-    
+
     Args:
         utterances: List of utterance dicts
-    
+
     Returns:
         New list with consecutive same-speaker utterances combined.
     """
     if not utterances:
         return []
-    
+
     result = [utterances[0].copy()]
-    
+    # Deep copy the words list to avoid mutation
+    result[0]["words"] = list(utterances[0].get("words", []))
+
     for utt in utterances[1:]:
         if utt["speaker"] == result[-1]["speaker"]:
             # Same speaker — extend the previous utterance
             result[-1]["end"] = utt["end"]
             result[-1]["text"] += " " + utt["text"]
+            result[-1]["words"].extend(utt.get("words", []))
         else:
             # Different speaker — start new utterance
-            result.append(utt.copy())
-    
+            new_utt = utt.copy()
+            new_utt["words"] = list(utt.get("words", []))
+            result.append(new_utt)
+
     return result
 
 
 def _make_utterance(words: list[dict], speaker: str) -> dict:
     """Create an utterance dict from a list of words."""
     text = "".join(w["word"] for w in words).strip()
+    # Strip speaker key from words (it's on the utterance, not individual words)
+    clean_words = [
+        {k: v for k, v in w.items() if k != "speaker"}
+        for w in words
+    ]
     return {
         "start": words[0]["start"],
         "end": words[-1]["end"],
         "speaker": speaker,
-        "text": text
+        "text": text,
+        "words": clean_words
     }
 
 def format_transcript(utterances: list[dict]) -> str:
