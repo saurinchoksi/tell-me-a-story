@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transcription Validation Player</title>
+  <script src="https://unpkg.com/wavesurfer.js@7"></script>
+  <style>
+    :root {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-tertiary: #0f3460;
+      --text-primary: #eaeaea;
+      --text-secondary: #a0a0a0;
+      --accent: #e94560;
+      --accent-hover: #ff6b6b;
+      --speaker-00: #4ecdc4;
+      --speaker-01: #ff6b6b;
+      --speaker-null: #f4d03f;
+      --word-active: rgba(233, 69, 96, 0.4);
+      --utterance-active: rgba(78, 205, 196, 0.1);
+      --border-color: #2a2a4a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-secondary);
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+    }
+
+    .file-select {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .file-select label {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .file-select select {
+      flex: 1;
+      max-width: 400px;
+      padding: 0.5rem 1rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+
+    .file-select select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* Waveform */
+    #waveform-container {
+      background: var(--bg-secondary);
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    #waveform {
+      height: 100px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+    }
+
+    /* Controls */
+    .controls {
+      background: var(--bg-secondary);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .btn:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .btn-play {
+      min-width: 80px;
+    }
+
+    .time-display {
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .time-display .current {
+      color: var(--text-primary);
+    }
+
+    /* Utterance List */
+    .utterance-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 1.5rem;
+    }
+
+    .utterance {
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .utterance:hover {
+      border-color: var(--accent);
+    }
+
+    .utterance.active {
+      background: var(--utterance-active);
+      border-color: var(--speaker-00);
+    }
+
+    .utterance .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .utterance .speaker {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.125rem 0.5rem;
+      border-radius: 3px;
+    }
+
+    .utterance .speaker.speaker-00 {
+      background: rgba(78, 205, 196, 0.2);
+      color: var(--speaker-00);
+    }
+
+    .utterance .speaker.speaker-01 {
+      background: rgba(255, 107, 107, 0.2);
+      color: var(--speaker-01);
+    }
+
+    .utterance .speaker.speaker-null {
+      background: rgba(244, 208, 63, 0.3);
+      color: var(--speaker-null);
+    }
+
+    .utterance .time {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+    }
+
+    .utterance .text {
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .utterance .word {
+      padding: 0.125rem 0;
+      border-radius: 2px;
+      transition: background 0.1s;
+    }
+
+    .utterance .word.active {
+      background: var(--word-active);
+    }
+
+    /* Notes */
+    .note-input-container {
+      margin-top: 0.75rem;
+      display: none;
+    }
+
+    .note-input-container.visible {
+      display: block;
+    }
+
+    .note-input {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      resize: none;
+    }
+
+    .note-input:focus {
+      outline: none;
+    }
+
+    .note-input-hint {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    .note-item {
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(233, 69, 96, 0.1);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+      font-size: 0.8125rem;
+    }
+
+    .note-item .note-time {
+      font-size: 0.6875rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    /* Loading & Error States */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(26, 26, 46, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .loading-overlay.hidden {
+      display: none;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      color: #ff6b6b;
+      padding: 1rem;
+      border-radius: 4px;
+      margin: 1rem 1.5rem;
+      display: none;
+    }
+
+    .error-message.visible {
+      display: block;
+    }
+
+    /* Keyboard hints */
+    .keyboard-hints {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .keyboard-hints:hover {
+      opacity: 1;
+    }
+
+    .keyboard-hints kbd {
+      display: inline-block;
+      padding: 0.125rem 0.375rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      margin-right: 0.25rem;
+    }
+
+    .keyboard-hints .hint-row {
+      margin-bottom: 0.25rem;
+    }
+
+    .keyboard-hints .hint-row:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-state h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-overlay hidden" id="loading">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <header>
+    <h1>Transcription Validation Player</h1>
+    <div class="file-select">
+      <label for="file-dropdown">Session:</label>
+      <select id="file-dropdown">
+        <option value="">Select a file...</option>
+      </select>
+    </div>
+  </header>
+
+  <div id="waveform-container">
+    <div id="waveform"></div>
+  </div>
+
+  <div class="controls">
+    <div class="controls-group">
+      <button class="btn btn-play" id="play-btn">Play</button>
+    </div>
+    <div class="controls-group">
+      <button class="btn rate-btn" data-rate="0.5">0.5x</button>
+      <button class="btn rate-btn active" data-rate="1">1x</button>
+      <button class="btn rate-btn" data-rate="1.5">1.5x</button>
+    </div>
+    <div class="time-display">
+      <span class="current" id="time-current">00:00.0</span>
+      <span> / </span>
+      <span id="time-total">00:00.0</span>
+    </div>
+  </div>
+
+  <div class="error-message" id="error-message"></div>
+
+  <div class="utterance-container" id="utterance-list">
+    <div class="empty-state">
+      <h2>No session loaded</h2>
+      <p>Select a file from the dropdown above to begin validation.</p>
+    </div>
+  </div>
+
+  <div class="keyboard-hints">
+    <div class="hint-row"><kbd>Space</kbd> Play/Pause</div>
+    <div class="hint-row"><kbd>&larr;</kbd><kbd>&rarr;</kbd> Seek 5s</div>
+    <div class="hint-row"><kbd>&uarr;</kbd><kbd>&darr;</kbd> Prev/Next utterance</div>
+    <div class="hint-row"><kbd>N</kbd> Add note</div>
+  </div>
+
+  <script>
+    // ============================================================
+    // State Management
+    // ============================================================
+    const state = {
+      filename: null,
+      utterances: [],
+      notes: [],
+      currentTime: 0,
+      currentUtteranceIndex: -1,
+      currentWordIndex: -1,
+      userScrolledAway: false,
+      scrollTimeout: null,
+      noteInputVisible: false,
+      noteInputUtteranceIndex: -1
+    };
+
+    // ============================================================
+    // DOM Elements
+    // ============================================================
+    const elements = {
+      loading: document.getElementById('loading'),
+      fileDropdown: document.getElementById('file-dropdown'),
+      waveform: document.getElementById('waveform'),
+      playBtn: document.getElementById('play-btn'),
+      rateBtns: document.querySelectorAll('.rate-btn'),
+      timeCurrent: document.getElementById('time-current'),
+      timeTotal: document.getElementById('time-total'),
+      utteranceList: document.getElementById('utterance-list'),
+      errorMessage: document.getElementById('error-message')
+    };
+
+    // ============================================================
+    // WaveSurfer Setup
+    // ============================================================
+    let wavesurfer = null;
+
+    function initWaveSurfer() {
+      wavesurfer = WaveSurfer.create({
+        container: '#waveform',
+        waveColor: '#4ecdc4',
+        progressColor: '#e94560',
+        cursorColor: '#ffffff',
+        cursorWidth: 2,
+        barWidth: 2,
+        barGap: 1,
+        barRadius: 2,
+        height: 100,
+        normalize: true
+      });
+
+      wavesurfer.on('ready', () => {
+        hideLoading();
+        updateTimeDisplay(0, wavesurfer.getDuration());
+      });
+
+      wavesurfer.on('audioprocess', (time) => {
+        state.currentTime = time;
+        updateTimeDisplay(time, wavesurfer.getDuration());
+        updateHighlights(time);
+      });
+
+      wavesurfer.on('seeking', (time) => {
+        state.currentTime = time;
+        updateTimeDisplay(time, wavesurfer.getDuration());
+        updateHighlights(time);
+      });
+
+      wavesurfer.on('play', () => {
+        elements.playBtn.textContent = 'Pause';
+      });
+
+      wavesurfer.on('pause', () => {
+        elements.playBtn.textContent = 'Play';
+      });
+
+      wavesurfer.on('error', (err) => {
+        hideLoading();
+        showError(`Audio error: ${err}`);
+      });
+    }
+
+    // ============================================================
+    // API Functions
+    // ============================================================
+    async function fetchFiles() {
+      try {
+        const response = await fetch('/files');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        populateFileDropdown(data.files);
+      } catch (err) {
+        showError(`Failed to load files: ${err.message}`);
+      }
+    }
+
+    async function loadSession(filename) {
+      if (!filename) return;
+
+      showLoading();
+      state.filename = filename;
+
+      try {
+        // Fetch transcript JSON
+        const transcriptUrl = `/transcript/${encodeURIComponent(filename)}`;
+        const transcriptRes = await fetch(transcriptUrl);
+        if (!transcriptRes.ok) throw new Error(`Transcript: HTTP ${transcriptRes.status}`);
+        const transcript = await transcriptRes.json();
+
+        // Extract utterances from stories[0]
+        if (transcript.stories && transcript.stories[0] && transcript.stories[0].utterances) {
+          state.utterances = transcript.stories[0].utterances;
+        } else {
+          state.utterances = [];
+        }
+
+        // Load notes
+        try {
+          const notesUrl = `/notes/${encodeURIComponent(filename)}`;
+          const notesRes = await fetch(notesUrl);
+          if (notesRes.ok) {
+            const notesData = await notesRes.json();
+            state.notes = notesData.notes || [];
+          } else {
+            state.notes = [];
+          }
+        } catch {
+          state.notes = [];
+        }
+
+        // Render utterances
+        renderUtterances();
+
+        // Load audio
+        const audioUrl = `/audio/${encodeURIComponent(filename)}`;
+        wavesurfer.load(audioUrl);
+
+        // Reset state
+        state.currentUtteranceIndex = -1;
+        state.currentWordIndex = -1;
+        state.userScrolledAway = false;
+
+      } catch (err) {
+        hideLoading();
+        showError(`Failed to load session: ${err.message}`);
+      }
+    }
+
+    async function saveNotes() {
+      if (!state.filename) return;
+
+      try {
+        const url = `/notes/${encodeURIComponent(state.filename)}`;
+        await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes: state.notes })
+        });
+      } catch (err) {
+        console.error('Failed to save notes:', err);
+      }
+    }
+
+    // ============================================================
+    // UI Rendering
+    // ============================================================
+    function populateFileDropdown(files) {
+      elements.fileDropdown.innerHTML = '<option value="">Select a file...</option>';
+      files.forEach(file => {
+        const option = document.createElement('option');
+        option.value = file;
+        option.textContent = file;
+        elements.fileDropdown.appendChild(option);
+      });
+    }
+
+    function renderUtterances() {
+      if (state.utterances.length === 0) {
+        elements.utteranceList.innerHTML = `
+          <div class="empty-state">
+            <h2>No utterances found</h2>
+            <p>This session has no transcribed utterances.</p>
+          </div>
+        `;
+        return;
+      }
+
+      elements.utteranceList.innerHTML = state.utterances.map((utt, uttIdx) => {
+        const speakerClass = getSpeakerClass(utt.speaker);
+        const speakerLabel = utt.speaker || 'UNKNOWN';
+        const startTime = formatTime(utt.start);
+        const endTime = formatTime(utt.end);
+
+        // Render words
+        const wordsHtml = (utt.words || []).map((w, wIdx) => {
+          return `<span class="word" data-index="${wIdx}" data-start="${w.start}" data-end="${w.end}">${escapeHtml(w.word)}</span>`;
+        }).join('');
+
+        // Render notes for this utterance
+        const utteranceNotes = state.notes.filter(n => n.utteranceIndex === uttIdx);
+        const notesHtml = utteranceNotes.map(n => `
+          <div class="note-item">
+            <div class="note-time">${formatTime(n.timestamp)} - ${formatDate(n.createdAt)}</div>
+            <div>${escapeHtml(n.text)}</div>
+          </div>
+        `).join('');
+
+        return `
+          <div class="utterance" data-index="${uttIdx}" data-start="${utt.start}">
+            <div class="header">
+              <span class="speaker ${speakerClass}">${speakerLabel}</span>
+              <span class="time">${startTime} - ${endTime}</span>
+            </div>
+            <div class="text">${wordsHtml || escapeHtml(utt.text)}</div>
+            ${notesHtml}
+            <div class="note-input-container" data-utterance="${uttIdx}">
+              <textarea class="note-input" placeholder="Add a note..." rows="2"></textarea>
+              <div class="note-input-hint">Press Enter to save, Escape to cancel</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add click listeners
+      document.querySelectorAll('.utterance').forEach(el => {
+        el.addEventListener('click', (e) => {
+          // Don't seek if clicking on note input
+          if (e.target.classList.contains('note-input')) return;
+
+          const start = parseFloat(el.dataset.start);
+          if (wavesurfer && !isNaN(start)) {
+            wavesurfer.seekTo(start / wavesurfer.getDuration());
+          }
+        });
+      });
+    }
+
+    function updateHighlights(time) {
+      // Find current utterance (linear scan)
+      let newUtteranceIndex = -1;
+      for (let i = 0; i < state.utterances.length; i++) {
+        const utt = state.utterances[i];
+        if (time >= utt.start && time <= utt.end) {
+          newUtteranceIndex = i;
+          break;
+        }
+      }
+
+      // Find current word within utterance
+      let newWordIndex = -1;
+      if (newUtteranceIndex >= 0) {
+        const words = state.utterances[newUtteranceIndex].words || [];
+        for (let i = 0; i < words.length; i++) {
+          const w = words[i];
+          if (time >= w.start && time <= w.end) {
+            newWordIndex = i;
+            break;
+          }
+        }
+      }
+
+      // Update utterance highlight if changed
+      if (newUtteranceIndex !== state.currentUtteranceIndex) {
+        // Remove old highlight
+        if (state.currentUtteranceIndex >= 0) {
+          const oldUtt = document.querySelector(`.utterance[data-index="${state.currentUtteranceIndex}"]`);
+          if (oldUtt) oldUtt.classList.remove('active');
+        }
+
+        // Add new highlight
+        if (newUtteranceIndex >= 0) {
+          const newUtt = document.querySelector(`.utterance[data-index="${newUtteranceIndex}"]`);
+          if (newUtt) {
+            newUtt.classList.add('active');
+            // Auto-scroll if not manually scrolled away
+            if (!state.userScrolledAway) {
+              newUtt.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
+        }
+
+        state.currentUtteranceIndex = newUtteranceIndex;
+      }
+
+      // Update word highlight if changed
+      if (newWordIndex !== state.currentWordIndex || newUtteranceIndex !== state.currentUtteranceIndex) {
+        // Remove all word highlights
+        document.querySelectorAll('.word.active').forEach(el => el.classList.remove('active'));
+
+        // Add new word highlight
+        if (newUtteranceIndex >= 0 && newWordIndex >= 0) {
+          const uttEl = document.querySelector(`.utterance[data-index="${newUtteranceIndex}"]`);
+          if (uttEl) {
+            const wordEl = uttEl.querySelector(`.word[data-index="${newWordIndex}"]`);
+            if (wordEl) wordEl.classList.add('active');
+          }
+        }
+
+        state.currentWordIndex = newWordIndex;
+      }
+    }
+
+    function updateTimeDisplay(current, total) {
+      elements.timeCurrent.textContent = formatTime(current);
+      elements.timeTotal.textContent = formatTime(total);
+    }
+
+    // ============================================================
+    // Notes System
+    // ============================================================
+    function showNoteInput(utteranceIndex) {
+      // Hide any existing input
+      hideNoteInput();
+
+      const container = document.querySelector(`.note-input-container[data-utterance="${utteranceIndex}"]`);
+      if (container) {
+        container.classList.add('visible');
+        const input = container.querySelector('.note-input');
+        input.focus();
+        state.noteInputVisible = true;
+        state.noteInputUtteranceIndex = utteranceIndex;
+
+        // Handle input events
+        input.addEventListener('keydown', handleNoteKeydown);
+      }
+    }
+
+    function hideNoteInput() {
+      const containers = document.querySelectorAll('.note-input-container.visible');
+      containers.forEach(c => {
+        c.classList.remove('visible');
+        const input = c.querySelector('.note-input');
+        input.value = '';
+        input.removeEventListener('keydown', handleNoteKeydown);
+      });
+      state.noteInputVisible = false;
+      state.noteInputUtteranceIndex = -1;
+    }
+
+    function handleNoteKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const text = e.target.value.trim();
+        if (text) {
+          const note = {
+            id: Date.now().toString(),
+            timestamp: state.currentTime,
+            utteranceIndex: state.noteInputUtteranceIndex,
+            text: text,
+            createdAt: new Date().toISOString()
+          };
+          state.notes.push(note);
+          saveNotes();
+          renderUtterances();
+        }
+        hideNoteInput();
+      } else if (e.key === 'Escape') {
+        hideNoteInput();
+      }
+    }
+
+    // ============================================================
+    // Utility Functions
+    // ============================================================
+    function formatTime(seconds) {
+      if (isNaN(seconds) || seconds < 0) return '00:00.0';
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toFixed(1).padStart(4, '0')}`;
+    }
+
+    function formatDate(isoString) {
+      const d = new Date(isoString);
+      return d.toLocaleString();
+    }
+
+    function getSpeakerClass(speaker) {
+      if (speaker === null || speaker === undefined) return 'speaker-null';
+      if (speaker === 'SPEAKER_00') return 'speaker-00';
+      if (speaker === 'SPEAKER_01') return 'speaker-01';
+      return 'speaker-00'; // Default
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showLoading() {
+      elements.loading.classList.remove('hidden');
+    }
+
+    function hideLoading() {
+      elements.loading.classList.add('hidden');
+    }
+
+    function showError(message) {
+      elements.errorMessage.textContent = message;
+      elements.errorMessage.classList.add('visible');
+      setTimeout(() => {
+        elements.errorMessage.classList.remove('visible');
+      }, 5000);
+    }
+
+    // ============================================================
+    // Event Handlers
+    // ============================================================
+    function setupEventListeners() {
+      // File selection
+      elements.fileDropdown.addEventListener('change', (e) => {
+        loadSession(e.target.value);
+      });
+
+      // Play/Pause
+      elements.playBtn.addEventListener('click', () => {
+        if (wavesurfer) wavesurfer.playPause();
+      });
+
+      // Playback rate
+      elements.rateBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const rate = parseFloat(btn.dataset.rate);
+          if (wavesurfer) wavesurfer.setPlaybackRate(rate);
+          elements.rateBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Skip if typing in input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        switch (e.key) {
+          case ' ':
+            e.preventDefault();
+            if (wavesurfer) wavesurfer.playPause();
+            break;
+
+          case 'ArrowLeft':
+            e.preventDefault();
+            if (wavesurfer) {
+              const newTime = Math.max(0, wavesurfer.getCurrentTime() - 5);
+              wavesurfer.seekTo(newTime / wavesurfer.getDuration());
+            }
+            break;
+
+          case 'ArrowRight':
+            e.preventDefault();
+            if (wavesurfer) {
+              const duration = wavesurfer.getDuration();
+              const newTime = Math.min(duration, wavesurfer.getCurrentTime() + 5);
+              wavesurfer.seekTo(newTime / duration);
+            }
+            break;
+
+          case 'ArrowUp':
+            e.preventDefault();
+            navigateUtterance(-1);
+            break;
+
+          case 'ArrowDown':
+            e.preventDefault();
+            navigateUtterance(1);
+            break;
+
+          case 'n':
+          case 'N':
+            e.preventDefault();
+            if (state.currentUtteranceIndex >= 0) {
+              showNoteInput(state.currentUtteranceIndex);
+            }
+            break;
+        }
+      });
+
+      // Detect manual scroll
+      elements.utteranceList.addEventListener('scroll', () => {
+        state.userScrolledAway = true;
+
+        // Clear existing timeout
+        if (state.scrollTimeout) {
+          clearTimeout(state.scrollTimeout);
+        }
+
+        // Re-enable auto-scroll after 5s of idle
+        state.scrollTimeout = setTimeout(() => {
+          state.userScrolledAway = false;
+        }, 5000);
+      });
+
+      // Re-enable auto-scroll on utterance click
+      elements.utteranceList.addEventListener('click', (e) => {
+        if (e.target.closest('.utterance')) {
+          state.userScrolledAway = false;
+        }
+      });
+    }
+
+    function navigateUtterance(direction) {
+      if (state.utterances.length === 0 || !wavesurfer) return;
+
+      let newIndex = state.currentUtteranceIndex + direction;
+
+      // Clamp to valid range
+      newIndex = Math.max(0, Math.min(state.utterances.length - 1, newIndex));
+
+      const utt = state.utterances[newIndex];
+      if (utt) {
+        wavesurfer.seekTo(utt.start / wavesurfer.getDuration());
+      }
+    }
+
+    // ============================================================
+    // Initialization
+    // ============================================================
+    function init() {
+      initWaveSurfer();
+      setupEventListeners();
+      fetchFiles();
+    }
+
+    // Start the app
+    init();
+  </script>
+</body>
+</html>
