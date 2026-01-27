@@ -10,6 +10,23 @@ Prefer simple, easy-to-understand code over "cleaner" architecture that adds com
 
 ---
 
+## Fail Loud
+
+No silent fallbacks. Use `utt["words"]` not `utt.get("words", [])`. If assumptions break, we want to know immediately — not have bugs hide behind default values.
+
+---
+
+## Capture Generously, Build Features Sparingly
+
+Store data even if you're not sure you'll need it. Cheap to store, impossible to recover. But don't build UI or features for that data until you actually want them.
+
+Data capture principles:
+- **Replay-ability** — if you can't recreate it later, store it now
+- **Cost of retrieval** — if regenerating is expensive, cache the result
+- **Regret heuristic** — bias toward capture when in doubt
+
+---
+
 ## Patterns Over Tools
 
 Document the *why* separately from the *what*. When I choose a tool, 
@@ -209,4 +226,4 @@ Sources: Anthropic docs/Discord, Claude Code GitHub discussions, Twitter workflo
 
 ---
 
-*Last updated: 2026-01-24*
+*Last updated: 2026-01-25*

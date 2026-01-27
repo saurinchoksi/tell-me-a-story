@@ -173,28 +173,39 @@ def test_align_empty_input():
 def test_group_combines_same_speaker():
     """Consecutive same-speaker words become one utterance."""
     words = [
-        {"start": 0.0, "end": 0.5, "word": " Once", "speaker": "SPEAKER_00"},
-        {"start": 0.5, "end": 1.0, "word": " upon", "speaker": "SPEAKER_00"},
+        {"start": 0.0, "end": 0.5, "word": " Once", "speaker": "SPEAKER_00", "probability": 0.95},
+        {"start": 0.5, "end": 1.0, "word": " upon", "speaker": "SPEAKER_00", "probability": 0.90},
     ]
-    
+
     result = group_words_by_speaker(words)
-    
+
     assert len(result) == 1
     assert result[0]["text"] == "Once upon"
+    # Words array should be present without speaker key
+    assert "words" in result[0]
+    assert len(result[0]["words"]) == 2
+    assert "speaker" not in result[0]["words"][0]
+    assert result[0]["words"][0]["word"] == " Once"
+    assert result[0]["words"][0]["probability"] == 0.95
 
 
 def test_group_splits_on_speaker_change():
     """Speaker change starts new utterance."""
     words = [
-        {"start": 0.0, "end": 0.5, "word": " Hello", "speaker": "SPEAKER_00"},
-        {"start": 1.0, "end": 1.5, "word": " Hi", "speaker": "SPEAKER_01"},
+        {"start": 0.0, "end": 0.5, "word": " Hello", "speaker": "SPEAKER_00", "probability": 0.95},
+        {"start": 1.0, "end": 1.5, "word": " Hi", "speaker": "SPEAKER_01", "probability": 0.88},
     ]
-    
+
     result = group_words_by_speaker(words)
-    
+
     assert len(result) == 2
     assert result[0]["speaker"] == "SPEAKER_00"
     assert result[1]["speaker"] == "SPEAKER_01"
+    # Each utterance should have its own words
+    assert len(result[0]["words"]) == 1
+    assert len(result[1]["words"]) == 1
+    assert result[0]["words"][0]["word"] == " Hello"
+    assert result[1]["words"][0]["word"] == " Hi"
 
 
 def test_group_empty_input():
@@ -208,26 +219,28 @@ def test_group_empty_input():
 def test_merge_fills_sandwiched_unknown():
     """UNKNOWN between same speaker gets filled."""
     utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "Hello"},
-        {"start": 1.0, "end": 2.0, "speaker": None, "text": "there"},
-        {"start": 2.0, "end": 3.0, "speaker": "SPEAKER_00", "text": "friend"},
+        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "Hello", "words": [{"start": 0.0, "end": 1.0, "word": " Hello"}]},
+        {"start": 1.0, "end": 2.0, "speaker": None, "text": "there", "words": [{"start": 1.0, "end": 2.0, "word": " there"}]},
+        {"start": 2.0, "end": 3.0, "speaker": "SPEAKER_00", "text": "friend", "words": [{"start": 2.0, "end": 3.0, "word": " friend"}]},
     ]
-    
+
     result = merge_unknown_utterances(utterances)
-    
+
     assert result[1]["speaker"] == "SPEAKER_00"
+    # Words should be preserved
+    assert result[1]["words"] == [{"start": 1.0, "end": 2.0, "word": " there"}]
 
 
 def test_merge_keeps_unknown_between_different_speakers():
     """UNKNOWN between different speakers stays None."""
     utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "Hello"},
-        {"start": 1.0, "end": 2.0, "speaker": None, "text": "um"},
-        {"start": 2.0, "end": 3.0, "speaker": "SPEAKER_01", "text": "Hi"},
+        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "Hello", "words": [{"start": 0.0, "end": 1.0, "word": " Hello"}]},
+        {"start": 1.0, "end": 2.0, "speaker": None, "text": "um", "words": [{"start": 1.0, "end": 2.0, "word": " um"}]},
+        {"start": 2.0, "end": 3.0, "speaker": "SPEAKER_01", "text": "Hi", "words": [{"start": 2.0, "end": 3.0, "word": " Hi"}]},
     ]
-    
+
     result = merge_unknown_utterances(utterances)
-    
+
     assert result[1]["speaker"] is None
 
 
@@ -236,28 +249,34 @@ def test_merge_keeps_unknown_between_different_speakers():
 def test_consolidate_combines_same_speaker():
     """Consecutive same-speaker utterances combine."""
     utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "Hello"},
-        {"start": 1.0, "end": 2.0, "speaker": "SPEAKER_00", "text": "there"},
+        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "Hello", "words": [{"start": 0.0, "end": 1.0, "word": " Hello"}]},
+        {"start": 1.0, "end": 2.0, "speaker": "SPEAKER_00", "text": "there", "words": [{"start": 1.0, "end": 2.0, "word": " there"}]},
     ]
-    
+
     result = consolidate_utterances(utterances)
-    
+
     assert len(result) == 1
     assert result[0]["text"] == "Hello there"
     assert result[0]["start"] == 0.0
     assert result[0]["end"] == 2.0
+    # Words should be concatenated
+    assert len(result[0]["words"]) == 2
+    assert result[0]["words"][0]["word"] == " Hello"
+    assert result[0]["words"][1]["word"] == " there"
 
 
 def test_consolidate_keeps_different_speakers_separate():
     """Different speakers stay separate."""
     utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "Hello"},
-        {"start": 1.0, "end": 2.0, "speaker": "SPEAKER_01", "text": "Hi"},
+        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "Hello", "words": [{"start": 0.0, "end": 1.0, "word": " Hello"}]},
+        {"start": 1.0, "end": 2.0, "speaker": "SPEAKER_01", "text": "Hi", "words": [{"start": 1.0, "end": 2.0, "word": " Hi"}]},
     ]
-    
+
     result = consolidate_utterances(utterances)
-    
+
     assert len(result) == 2
+    assert len(result[0]["words"]) == 1
+    assert len(result[1]["words"]) == 1
 
 
 def test_consolidate_empty_input():
@@ -295,49 +314,51 @@ def test_format_none_speaker_shows_unknown():
 def test_assign_fragment_within_gap():
     """UNKNOWN close to next utterance gets assigned to that speaker."""
     utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": None, "text": "That's"},
-        {"start": 1.1, "end": 2.0, "speaker": "SPEAKER_00", "text": "right"},
+        {"start": 0.0, "end": 1.0, "speaker": None, "text": "That's", "words": [{"start": 0.0, "end": 1.0, "word": " That's"}]},
+        {"start": 1.1, "end": 2.0, "speaker": "SPEAKER_00", "text": "right", "words": [{"start": 1.1, "end": 2.0, "word": " right"}]},
     ]
-    
+
     result = assign_leading_fragments(utterances)
-    
+
     assert result[0]["speaker"] == "SPEAKER_00"
+    # Words should be preserved
+    assert result[0]["words"] == [{"start": 0.0, "end": 1.0, "word": " That's"}]
 
 
 def test_assign_fragment_gap_too_large():
     """UNKNOWN with large gap to next utterance stays UNKNOWN."""
     utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um"},
-        {"start": 2.0, "end": 3.0, "speaker": "SPEAKER_00", "text": "hello"},
+        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um", "words": [{"start": 0.0, "end": 1.0, "word": " um"}]},
+        {"start": 2.0, "end": 3.0, "speaker": "SPEAKER_00", "text": "hello", "words": [{"start": 2.0, "end": 3.0, "word": " hello"}]},
     ]
-    
+
     result = assign_leading_fragments(utterances)
-    
+
     assert result[0]["speaker"] is None
 
 
 def test_assign_fragment_at_end():
     """UNKNOWN at end of list stays UNKNOWN (no next utterance)."""
     utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "hello"},
-        {"start": 1.5, "end": 2.0, "speaker": None, "text": "bye"},
+        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "hello", "words": [{"start": 0.0, "end": 1.0, "word": " hello"}]},
+        {"start": 1.5, "end": 2.0, "speaker": None, "text": "bye", "words": [{"start": 1.5, "end": 2.0, "word": " bye"}]},
     ]
-    
+
     result = assign_leading_fragments(utterances)
-    
+
     assert result[1]["speaker"] is None
 
 
 def test_assign_fragment_next_also_unknown():
     """UNKNOWN followed by another UNKNOWN stays UNKNOWN."""
     utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um"},
-        {"start": 1.1, "end": 2.0, "speaker": None, "text": "uh"},
-        {"start": 2.1, "end": 3.0, "speaker": "SPEAKER_00", "text": "hello"},
+        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um", "words": [{"start": 0.0, "end": 1.0, "word": " um"}]},
+        {"start": 1.1, "end": 2.0, "speaker": None, "text": "uh", "words": [{"start": 1.1, "end": 2.0, "word": " uh"}]},
+        {"start": 2.1, "end": 3.0, "speaker": "SPEAKER_00", "text": "hello", "words": [{"start": 2.1, "end": 3.0, "word": " hello"}]},
     ]
-    
+
     result = assign_leading_fragments(utterances)
-    
+
     # First UNKNOWN can't assign to another UNKNOWN
     assert result[0]["speaker"] is None
     # Second UNKNOWN can assign to SPEAKER_00
@@ -353,12 +374,12 @@ def test_assign_fragment_empty_input():
 def test_assign_fragment_no_unknowns():
     """List with no UNKNOWNs returns unchanged."""
     utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "hello"},
-        {"start": 1.0, "end": 2.0, "speaker": "SPEAKER_01", "text": "hi"},
+        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "hello", "words": [{"start": 0.0, "end": 1.0, "word": " hello"}]},
+        {"start": 1.0, "end": 2.0, "speaker": "SPEAKER_01", "text": "hi", "words": [{"start": 1.0, "end": 2.0, "word": " hi"}]},
     ]
-    
+
     result = assign_leading_fragments(utterances)
-    
+
     assert len(result) == 2
     assert result[0]["speaker"] == "SPEAKER_00"
     assert result[1]["speaker"] == "SPEAKER_01"
@@ -367,14 +388,14 @@ def test_assign_fragment_no_unknowns():
 def test_assign_fragment_custom_threshold():
     """Custom max_gap threshold is respected."""
     utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um"},
-        {"start": 1.3, "end": 2.0, "speaker": "SPEAKER_00", "text": "hello"},
+        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um", "words": [{"start": 0.0, "end": 1.0, "word": " um"}]},
+        {"start": 1.3, "end": 2.0, "speaker": "SPEAKER_00", "text": "hello", "words": [{"start": 1.3, "end": 2.0, "word": " hello"}]},
     ]
-    
+
     # Default 0.5s threshold — gap is 0.3s, should assign
     result_default = assign_leading_fragments(utterances)
     assert result_default[0]["speaker"] == "SPEAKER_00"
-    
+
     # Tighter 0.2s threshold — gap is 0.3s, should NOT assign
     result_tight = assign_leading_fragments(utterances, max_gap=0.2)
     assert result_tight[0]["speaker"] is None
@@ -385,21 +406,29 @@ def test_assign_fragment_custom_threshold():
 def test_align_full_pipeline():
     """The align() wrapper runs all steps end-to-end."""
     words = [
-        {"start": 0.0, "end": 0.5, "word": " Hello"},
-        {"start": 0.5, "end": 1.0, "word": " there"},
-        {"start": 1.5, "end": 2.0, "word": " Hi"},
+        {"start": 0.0, "end": 0.5, "word": " Hello", "probability": 0.95},
+        {"start": 0.5, "end": 1.0, "word": " there", "probability": 0.90},
+        {"start": 1.5, "end": 2.0, "word": " Hi", "probability": 0.88},
     ]
-    
+
     diarization = [
         {"start": 0.0, "end": 1.2, "speaker": "SPEAKER_00"},
         {"start": 1.4, "end": 2.5, "speaker": "SPEAKER_01"},
     ]
-    
+
     result = align(words, diarization)
-    
+
     # Should produce two consolidated utterances
     assert len(result) == 2
     assert result[0]["speaker"] == "SPEAKER_00"
     assert result[0]["text"] == "Hello there"
     assert result[1]["speaker"] == "SPEAKER_01"
     assert result[1]["text"] == "Hi"
+    # Words should be preserved with probability
+    assert "words" in result[0]
+    assert len(result[0]["words"]) == 2
+    assert result[0]["words"][0]["word"] == " Hello"
+    assert result[0]["words"][0]["probability"] == 0.95
+    assert "speaker" not in result[0]["words"][0]
+    assert len(result[1]["words"]) == 1
+    assert result[1]["words"][0]["word"] == " Hi"

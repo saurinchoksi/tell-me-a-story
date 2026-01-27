@@ -21,7 +21,7 @@ A local-first pipeline for capturing bedtime stories. Records parent-child story
 # Activate environment
 source venv/bin/activate
 
-# Run full pipeline
+# Run full pipeline (transcribes, diarizes, aligns, saves JSON)
 python src/pipeline.py sessions/audio/<filename>.m4a
 
 # Run individual modules
@@ -48,13 +48,15 @@ Audio flows through stages:
    - `filter_zero_duration_words()` — removes fabricated words (end == start)
    - `filter_low_probability_words()` — removes low-confidence fabrications
    - `align_words_to_speakers()` — assigns words by midpoint timestamp
-   - `group_words_by_speaker()` — combines into utterances
+   - `group_words_by_speaker()` — combines into utterances with word-level data
    - `merge_unknown_utterances()` — fills UNKNOWN gaps between same speaker
    - `assign_leading_fragments()` — assigns turn-starts to next speaker (≤0.5s gap)
    - `consolidate_utterances()` — merges consecutive same-speaker runs
    - `align()` — wrapper that runs the full alignment pipeline
 
-**pipeline.py** orchestrates all stages and formats the final transcript.
+4. **pipeline.py** — Orchestrates all stages:
+   - `run_pipeline()` — runs transcription, diarization, alignment
+   - `save_session()` — writes JSON to `sessions/processed/`
 
 ## Hallucination Handling
 
@@ -72,12 +74,40 @@ Key insight: `no_speech_prob` is NOT useful for our case. It stays low during ha
 
 ## Output Format
 
-JSON sessions will be saved to `sessions/processed/` with structure:
-- `meta`: source audio, duration, speakers detected, timestamps
-- `stories[]`: array of story segments (currently always one per file)
-- Each story has `utterances[]` with speaker labels and word-level timestamps
+JSON sessions saved to `sessions/processed/` with schema v0.1.0:
 
-Markdown transcripts (human-readable) planned as a future addition.
+```json
+{
+  "_schema_version": "0.1.0",
+  "meta": {
+    "source_audio": "path/to/file.m4a",
+    "transcribed_at": "2026-01-25T...",
+    "pipeline_version": "0.1.0"
+  },
+  "speakers": {
+    "detected": ["SPEAKER_00", "SPEAKER_01"],
+    "names": null
+  },
+  "stories": [{
+    "story_id": "filename",
+    "utterances": [
+      {
+        "speaker": "SPEAKER_00",
+        "start": 0.0,
+        "end": 3.5,
+        "text": "Once upon a time",
+        "words": [
+          {"word": "Once", "start": 0.0, "end": 0.3, "probability": 0.95}
+        ]
+      }
+    ]
+  }],
+  "moments": [],
+  "processing": null
+}
+```
+
+Word-level timestamps enable future caption sync (audio plays, words highlight).
 
 ## Key Details
 
@@ -92,10 +122,16 @@ From `docs/principles.md`: Simple over clever, patterns over tools, understand d
 
 ## Current State
 
-- Alignment pipeline complete with hallucination filtering
-- 43 fast tests + 6 slow integration tests passing
-- Next: JSON saving to `sessions/processed/`
-- Future: Story element extraction, searchable story bible
+- Full pipeline complete: audio → transcribe → diarize → align → save JSON
+- 43 fast tests passing
+- JSON output with word-level timestamps for caption sync
+
+## Future Work
+
+- Audio duration capture (file vs speech)
+- Processing stats (filter counts, unknowns merged)
+- Story element extraction (characters, worlds, plot beats)
+- Searchable story bible
 
 ## Journal
 

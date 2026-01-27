@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 2:
         print ("Usage: python src/transcribe.py <audio_file>")
-        sys.exit
+        sys.exit(1)
 
     audio_file = sys.argv[1]
     print(f"Transcribing: {audio_file}")
