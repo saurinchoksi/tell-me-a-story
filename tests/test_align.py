@@ -10,9 +10,7 @@ from align import (
     align_words_to_speakers,
     filter_zero_duration_words,
     filter_low_probability_words,
-    group_words_by_speaker,
-    merge_unknown_utterances,
-    assign_leading_fragments,
+    words_to_utterances,
     consolidate_utterances,
     format_transcript,
 )
@@ -27,11 +25,12 @@ def test_filter_keeps_normal_words():
         {"start": 0.5, "end": 1.0, "word": " world"},
     ]
 
-    result = filter_zero_duration_words(words)
+    kept, removed = filter_zero_duration_words(words)
 
-    assert len(result) == 2
-    assert result[0]["word"] == " Hello"
-    assert result[1]["word"] == " world"
+    assert len(kept) == 2
+    assert kept[0]["word"] == " Hello"
+    assert kept[1]["word"] == " world"
+    assert len(removed) == 0
 
 
 def test_filter_removes_zero_duration():
@@ -42,17 +41,21 @@ def test_filter_removes_zero_duration():
         {"start": 0.5, "end": 1.0, "word": " world"},
     ]
 
-    result = filter_zero_duration_words(words)
+    kept, removed = filter_zero_duration_words(words)
 
-    assert len(result) == 2
-    assert result[0]["word"] == " Hello"
-    assert result[1]["word"] == " world"
+    assert len(kept) == 2
+    assert kept[0]["word"] == " Hello"
+    assert kept[1]["word"] == " world"
+    assert len(removed) == 1
+    assert removed[0]["word"] == " silly"
+    assert removed[0]["filter_reason"] == "zero_duration"
 
 
 def test_filter_empty_input():
     """Empty input returns empty result."""
-    result = filter_zero_duration_words([])
-    assert result == []
+    kept, removed = filter_zero_duration_words([])
+    assert kept == []
+    assert removed == []
 
 
 def test_filter_all_zero_duration():
@@ -62,9 +65,11 @@ def test_filter_all_zero_duration():
         {"start": 1.0, "end": 1.0, "word": " silly"},
     ]
 
-    result = filter_zero_duration_words(words)
+    kept, removed = filter_zero_duration_words(words)
 
-    assert result == []
+    assert kept == []
+    assert len(removed) == 2
+    assert all(r["filter_reason"] == "zero_duration" for r in removed)
 
 
 # --- filter_low_probability_words tests ---
@@ -76,9 +81,10 @@ def test_filter_prob_keeps_high_probability():
         {"start": 0.5, "end": 1.0, "word": " world", "probability": 0.88},
     ]
 
-    result = filter_low_probability_words(words)
+    kept, removed = filter_low_probability_words(words)
 
-    assert len(result) == 2
+    assert len(kept) == 2
+    assert len(removed) == 0
 
 
 def test_filter_prob_removes_low_probability():
@@ -89,11 +95,14 @@ def test_filter_prob_removes_low_probability():
         {"start": 1.0, "end": 1.5, "word": " world", "probability": 0.88},
     ]
 
-    result = filter_low_probability_words(words)
+    kept, removed = filter_low_probability_words(words)
 
-    assert len(result) == 2
-    assert result[0]["word"] == " Hello"
-    assert result[1]["word"] == " world"
+    assert len(kept) == 2
+    assert kept[0]["word"] == " Hello"
+    assert kept[1]["word"] == " world"
+    assert len(removed) == 1
+    assert removed[0]["word"] == " silly"
+    assert "low_probability" in removed[0]["filter_reason"]
 
 
 def test_filter_prob_custom_threshold():
@@ -104,13 +113,17 @@ def test_filter_prob_custom_threshold():
     ]
 
     # Default threshold 0.5 keeps both
-    result_default = filter_low_probability_words(words)
-    assert len(result_default) == 2
+    kept_default, removed_default = filter_low_probability_words(words)
+    assert len(kept_default) == 2
+    assert len(removed_default) == 0
 
     # Higher threshold removes the 0.6
-    result_strict = filter_low_probability_words(words, threshold=0.7)
-    assert len(result_strict) == 1
-    assert result_strict[0]["word"] == " hello"
+    kept_strict, removed_strict = filter_low_probability_words(words, threshold=0.7)
+    assert len(kept_strict) == 1
+    assert kept_strict[0]["word"] == " hello"
+    assert len(removed_strict) == 1
+    assert removed_strict[0]["word"] == " um"
+    assert "low_probability" in removed_strict[0]["filter_reason"]
 
 
 def test_filter_prob_missing_probability():
@@ -120,15 +133,17 @@ def test_filter_prob_missing_probability():
         {"start": 0.5, "end": 1.0, "word": " world", "probability": 0.9},
     ]
 
-    result = filter_low_probability_words(words)
+    kept, removed = filter_low_probability_words(words)
 
-    assert len(result) == 2
+    assert len(kept) == 2
+    assert len(removed) == 0
 
 
 def test_filter_prob_empty_input():
     """Empty input returns empty result."""
-    result = filter_low_probability_words([])
-    assert result == []
+    kept, removed = filter_low_probability_words([])
+    assert kept == []
+    assert removed == []
 
 
 # --- align_words_to_speakers tests ---
@@ -168,80 +183,45 @@ def test_align_empty_input():
     assert result == []
 
 
-# --- group_words_by_speaker tests ---
+# --- words_to_utterances tests ---
 
-def test_group_combines_same_speaker():
-    """Consecutive same-speaker words become one utterance."""
+def test_words_to_utterances_basic():
+    """Each word becomes a mini-utterance."""
     words = [
-        {"start": 0.0, "end": 0.5, "word": " Once", "speaker": "SPEAKER_00", "probability": 0.95},
-        {"start": 0.5, "end": 1.0, "word": " upon", "speaker": "SPEAKER_00", "probability": 0.90},
+        {"start": 0.0, "end": 0.5, "word": " Hello", "speaker": "SPEAKER_00", "probability": 0.95},
+        {"start": 0.5, "end": 1.0, "word": " world", "speaker": "SPEAKER_00", "probability": 0.90},
     ]
 
-    result = group_words_by_speaker(words)
+    result = words_to_utterances(words)
 
-    assert len(result) == 1
-    assert result[0]["text"] == "Once upon"
+    assert len(result) == 2
+    assert result[0]["text"] == "Hello"
+    assert result[0]["speaker"] == "SPEAKER_00"
+    assert result[0]["start"] == 0.0
+    assert result[0]["end"] == 0.5
     # Words array should be present without speaker key
     assert "words" in result[0]
-    assert len(result[0]["words"]) == 2
+    assert len(result[0]["words"]) == 1
     assert "speaker" not in result[0]["words"][0]
-    assert result[0]["words"][0]["word"] == " Once"
+    assert result[0]["words"][0]["word"] == " Hello"
     assert result[0]["words"][0]["probability"] == 0.95
 
 
-def test_group_splits_on_speaker_change():
-    """Speaker change starts new utterance."""
+def test_words_to_utterances_strips_whitespace():
+    """Word text is stripped of leading/trailing whitespace."""
     words = [
-        {"start": 0.0, "end": 0.5, "word": " Hello", "speaker": "SPEAKER_00", "probability": 0.95},
-        {"start": 1.0, "end": 1.5, "word": " Hi", "speaker": "SPEAKER_01", "probability": 0.88},
+        {"start": 0.0, "end": 0.5, "word": " Hello ", "speaker": "SPEAKER_00"},
     ]
 
-    result = group_words_by_speaker(words)
+    result = words_to_utterances(words)
 
-    assert len(result) == 2
-    assert result[0]["speaker"] == "SPEAKER_00"
-    assert result[1]["speaker"] == "SPEAKER_01"
-    # Each utterance should have its own words
-    assert len(result[0]["words"]) == 1
-    assert len(result[1]["words"]) == 1
-    assert result[0]["words"][0]["word"] == " Hello"
-    assert result[1]["words"][0]["word"] == " Hi"
+    assert result[0]["text"] == "Hello"
 
 
-def test_group_empty_input():
+def test_words_to_utterances_empty_input():
     """Empty input returns empty result."""
-    result = group_words_by_speaker([])
+    result = words_to_utterances([])
     assert result == []
-
-
-# --- merge_unknown_utterances tests ---
-
-def test_merge_fills_sandwiched_unknown():
-    """UNKNOWN between same speaker gets filled."""
-    utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "Hello", "words": [{"start": 0.0, "end": 1.0, "word": " Hello"}]},
-        {"start": 1.0, "end": 2.0, "speaker": None, "text": "there", "words": [{"start": 1.0, "end": 2.0, "word": " there"}]},
-        {"start": 2.0, "end": 3.0, "speaker": "SPEAKER_00", "text": "friend", "words": [{"start": 2.0, "end": 3.0, "word": " friend"}]},
-    ]
-
-    result = merge_unknown_utterances(utterances)
-
-    assert result[1]["speaker"] == "SPEAKER_00"
-    # Words should be preserved
-    assert result[1]["words"] == [{"start": 1.0, "end": 2.0, "word": " there"}]
-
-
-def test_merge_keeps_unknown_between_different_speakers():
-    """UNKNOWN between different speakers stays None."""
-    utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "Hello", "words": [{"start": 0.0, "end": 1.0, "word": " Hello"}]},
-        {"start": 1.0, "end": 2.0, "speaker": None, "text": "um", "words": [{"start": 1.0, "end": 2.0, "word": " um"}]},
-        {"start": 2.0, "end": 3.0, "speaker": "SPEAKER_01", "text": "Hi", "words": [{"start": 2.0, "end": 3.0, "word": " Hi"}]},
-    ]
-
-    result = merge_unknown_utterances(utterances)
-
-    assert result[1]["speaker"] is None
 
 
 # --- consolidate_utterances tests ---
@@ -285,6 +265,21 @@ def test_consolidate_empty_input():
     assert result == []
 
 
+def test_consolidate_skips_none_speaker():
+    """None speaker utterances stay separate (not merged)."""
+    utterances = [
+        {"start": 0.0, "end": 1.0, "speaker": None, "text": "Uh", "words": [{"start": 0.0, "end": 1.0, "word": " Uh"}]},
+        {"start": 1.0, "end": 2.0, "speaker": None, "text": "huh", "words": [{"start": 1.0, "end": 2.0, "word": " huh"}]},
+    ]
+
+    result = consolidate_utterances(utterances)
+
+    # None speakers should NOT be consolidated
+    assert len(result) == 2
+    assert result[0]["text"] == "Uh"
+    assert result[1]["text"] == "huh"
+
+
 # --- format_transcript tests ---
 
 def test_format_basic():
@@ -307,98 +302,6 @@ def test_format_none_speaker_shows_unknown():
     result = format_transcript(utterances)
     
     assert "UNKNOWN: mystery" in result
-
-
-# --- assign_leading_fragments tests ---
-
-def test_assign_fragment_within_gap():
-    """UNKNOWN close to next utterance gets assigned to that speaker."""
-    utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": None, "text": "That's", "words": [{"start": 0.0, "end": 1.0, "word": " That's"}]},
-        {"start": 1.1, "end": 2.0, "speaker": "SPEAKER_00", "text": "right", "words": [{"start": 1.1, "end": 2.0, "word": " right"}]},
-    ]
-
-    result = assign_leading_fragments(utterances)
-
-    assert result[0]["speaker"] == "SPEAKER_00"
-    # Words should be preserved
-    assert result[0]["words"] == [{"start": 0.0, "end": 1.0, "word": " That's"}]
-
-
-def test_assign_fragment_gap_too_large():
-    """UNKNOWN with large gap to next utterance stays UNKNOWN."""
-    utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um", "words": [{"start": 0.0, "end": 1.0, "word": " um"}]},
-        {"start": 2.0, "end": 3.0, "speaker": "SPEAKER_00", "text": "hello", "words": [{"start": 2.0, "end": 3.0, "word": " hello"}]},
-    ]
-
-    result = assign_leading_fragments(utterances)
-
-    assert result[0]["speaker"] is None
-
-
-def test_assign_fragment_at_end():
-    """UNKNOWN at end of list stays UNKNOWN (no next utterance)."""
-    utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "hello", "words": [{"start": 0.0, "end": 1.0, "word": " hello"}]},
-        {"start": 1.5, "end": 2.0, "speaker": None, "text": "bye", "words": [{"start": 1.5, "end": 2.0, "word": " bye"}]},
-    ]
-
-    result = assign_leading_fragments(utterances)
-
-    assert result[1]["speaker"] is None
-
-
-def test_assign_fragment_next_also_unknown():
-    """UNKNOWN followed by another UNKNOWN stays UNKNOWN."""
-    utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um", "words": [{"start": 0.0, "end": 1.0, "word": " um"}]},
-        {"start": 1.1, "end": 2.0, "speaker": None, "text": "uh", "words": [{"start": 1.1, "end": 2.0, "word": " uh"}]},
-        {"start": 2.1, "end": 3.0, "speaker": "SPEAKER_00", "text": "hello", "words": [{"start": 2.1, "end": 3.0, "word": " hello"}]},
-    ]
-
-    result = assign_leading_fragments(utterances)
-
-    # First UNKNOWN can't assign to another UNKNOWN
-    assert result[0]["speaker"] is None
-    # Second UNKNOWN can assign to SPEAKER_00
-    assert result[1]["speaker"] == "SPEAKER_00"
-
-
-def test_assign_fragment_empty_input():
-    """Empty input returns empty result."""
-    result = assign_leading_fragments([])
-    assert result == []
-
-
-def test_assign_fragment_no_unknowns():
-    """List with no UNKNOWNs returns unchanged."""
-    utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00", "text": "hello", "words": [{"start": 0.0, "end": 1.0, "word": " hello"}]},
-        {"start": 1.0, "end": 2.0, "speaker": "SPEAKER_01", "text": "hi", "words": [{"start": 1.0, "end": 2.0, "word": " hi"}]},
-    ]
-
-    result = assign_leading_fragments(utterances)
-
-    assert len(result) == 2
-    assert result[0]["speaker"] == "SPEAKER_00"
-    assert result[1]["speaker"] == "SPEAKER_01"
-
-
-def test_assign_fragment_custom_threshold():
-    """Custom max_gap threshold is respected."""
-    utterances = [
-        {"start": 0.0, "end": 1.0, "speaker": None, "text": "um", "words": [{"start": 0.0, "end": 1.0, "word": " um"}]},
-        {"start": 1.3, "end": 2.0, "speaker": "SPEAKER_00", "text": "hello", "words": [{"start": 1.3, "end": 2.0, "word": " hello"}]},
-    ]
-
-    # Default 0.5s threshold — gap is 0.3s, should assign
-    result_default = assign_leading_fragments(utterances)
-    assert result_default[0]["speaker"] == "SPEAKER_00"
-
-    # Tighter 0.2s threshold — gap is 0.3s, should NOT assign
-    result_tight = assign_leading_fragments(utterances, max_gap=0.2)
-    assert result_tight[0]["speaker"] is None
 
 
 # --- align (full pipeline) tests ---
@@ -432,3 +335,79 @@ def test_align_full_pipeline():
     assert "speaker" not in result[0]["words"][0]
     assert len(result[1]["words"]) == 1
     assert result[1]["words"][0]["word"] == " Hi"
+
+
+def test_align_with_prob_threshold():
+    """The prob_threshold parameter controls word filtering."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Hello", "probability": 0.95},
+        {"start": 0.5, "end": 1.0, "word": " um", "probability": 0.6},
+        {"start": 1.0, "end": 1.5, "word": " world", "probability": 0.88},
+    ]
+    diarization = [
+        {"start": 0.0, "end": 2.0, "speaker": "SPEAKER_00"},
+    ]
+
+    # Default threshold 0.5 keeps all words
+    result_default = align(words, diarization)
+    assert result_default[0]["text"] == "Hello um world"
+
+    # Stricter threshold removes the 0.6 word
+    result_strict = align(words, diarization, prob_threshold=0.7)
+    assert result_strict[0]["text"] == "Hello world"
+
+
+def test_align_return_debug():
+    """The return_debug parameter returns detailed pipeline state."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Hello", "probability": 0.95},
+        {"start": 0.5, "end": 0.5, "word": " fake", "probability": 0.3},  # zero duration + low prob
+        {"start": 0.5, "end": 1.0, "word": " there", "probability": 0.90},
+        {"start": 1.5, "end": 2.0, "word": " bad", "probability": 0.2},  # low prob only
+    ]
+    diarization = [
+        {"start": 0.0, "end": 1.2, "speaker": "SPEAKER_00"},
+        {"start": 1.4, "end": 2.5, "speaker": "SPEAKER_01"},
+    ]
+
+    result = align(words, diarization, return_debug=True)
+
+    # Should return a dict with all debug keys
+    assert isinstance(result, dict)
+    assert "utterances" in result
+    assert "words_after_zero_filter" in result
+    assert "words_removed_zero" in result
+    assert "words_after_prob_filter" in result
+    assert "words_removed_prob" in result
+    assert "words_labeled" in result
+    assert "utterances_raw" in result
+
+    # Check zero duration filter removed the fake word
+    assert len(result["words_removed_zero"]) == 1
+    assert result["words_removed_zero"][0]["word"] == " fake"
+    assert result["words_removed_zero"][0]["filter_reason"] == "zero_duration"
+
+    # Check prob filter removed the bad word
+    assert len(result["words_removed_prob"]) == 1
+    assert result["words_removed_prob"][0]["word"] == " bad"
+    assert "low_probability" in result["words_removed_prob"][0]["filter_reason"]
+
+    # Final utterances should only have good words
+    assert len(result["utterances"]) == 1  # Only SPEAKER_00 utterance remains
+    assert result["utterances"][0]["text"] == "Hello there"
+
+
+def test_align_return_debug_false():
+    """When return_debug=False (default), returns just utterances list."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Hello", "probability": 0.95},
+    ]
+    diarization = [
+        {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00"},
+    ]
+
+    result = align(words, diarization, return_debug=False)
+
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0]["text"] == "Hello"

@@ -48,10 +48,8 @@ Audio flows through stages:
    - `filter_zero_duration_words()` — removes fabricated words (end == start)
    - `filter_low_probability_words()` — removes low-confidence fabrications
    - `align_words_to_speakers()` — assigns words by midpoint timestamp
-   - `group_words_by_speaker()` — combines into utterances with word-level data
-   - `merge_unknown_utterances()` — fills UNKNOWN gaps between same speaker
-   - `assign_leading_fragments()` — assigns turn-starts to next speaker (≤0.5s gap)
-   - `consolidate_utterances()` — merges consecutive same-speaker runs
+   - `words_to_utterances()` — converts labeled words to mini-utterances
+   - `consolidate_utterances()` — merges consecutive same-speaker runs (skips UNKNOWN)
    - `align()` — wrapper that runs the full alignment pipeline
 
 4. **pipeline.py** — Orchestrates all stages:
