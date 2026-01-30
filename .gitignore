@@ -7,6 +7,9 @@ __pycache__/
 # Sessions (private audio files and transcripts)
 sessions/
 
+# Debug output
+sessions/debug/
+
 # IDE
 .vscode/
 .idea/

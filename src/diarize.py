@@ -51,12 +51,13 @@ def convert_to_wav_16k(audio_path: str) -> str:
     return temp_wav.name
 
 
-def diarize(audio_path: str, pipeline: Pipeline = None) -> list[dict]:
+def diarize(audio_path: str, pipeline: Pipeline = None, num_speakers: int = None) -> list[dict]:
     """Run speaker diarization on an audio file.
     
     Args:
         audio_path: Path to audio file
         pipeline: Optional pre-loaded pipeline (loads one if not provided)
+        num_speakers: Optional hint for exact number of speakers (improves accuracy)
     
     Returns:
         List of dicts with 'start', 'end', 'speaker' keys
@@ -70,7 +71,7 @@ def diarize(audio_path: str, pipeline: Pipeline = None) -> list[dict]:
     try:
         # Run diarization with progress feedback
         with ProgressHook() as hook:
-            output = pipeline(wav_path, hook=hook)
+            output = pipeline(wav_path, hook=hook, num_speakers=num_speakers)
         
         # Extract segments using exclusive mode (one speaker at a time)
         # This simplifies alignment with transcription timestamps
@@ -99,16 +100,20 @@ def print_diarization(segments: list[dict]) -> None:
 
 if __name__ == "__main__":
     import sys
+    import argparse
     
-    if len(sys.argv) < 2:
-        print("Usage: python src/diarize.py <audio_file>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Run speaker diarization on an audio file")
+    parser.add_argument("audio_file", help="Path to audio file")
+    parser.add_argument("--num-speakers", type=int, default=None,
+                       help="Hint for exact number of speakers (improves accuracy)")
+    args = parser.parse_args()
     
-    audio_file = sys.argv[1]
-    print(f"Diarizing: {audio_file}")
+    print(f"Diarizing: {args.audio_file}")
+    if args.num_speakers:
+        print(f"Using num_speakers={args.num_speakers}")
     print("First run will download the model (~1GB)...")
     print()
     
-    segments = diarize(audio_file)
+    segments = diarize(args.audio_file, num_speakers=args.num_speakers)
     print_diarization(segments)
     print(f"\nFound {len(segments)} segments")
