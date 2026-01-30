@@ -1,0 +1,39 @@
+{
+  "notes": [
+    {
+      "id": "1769712540432",
+      "timestamp": 20,
+      "utteranceIndex": 2,
+      "text": "uh-huh should be attributed to Arti",
+      "createdAt": "2026-01-29T18:49:00.432Z"
+    },
+    {
+      "id": "1769712575428",
+      "timestamp": 23.001612,
+      "utteranceIndex": 2,
+      "text": "\"Why\" word is missing at the top of the utterance. I hear it clearly.",
+      "createdAt": "2026-01-29T18:49:35.429Z"
+    },
+    {
+      "id": "1769712605536",
+      "timestamp": 31.707471,
+      "utteranceIndex": 2,
+      "text": "There's a long sigh that get attributed to \"Well.\"",
+      "createdAt": "2026-01-29T18:50:05.536Z"
+    },
+    {
+      "id": "1769712628352",
+      "timestamp": 34.798262,
+      "utteranceIndex": 2,
+      "text": "\"kauravs\" after the is missing completely.",
+      "createdAt": "2026-01-29T18:50:28.352Z"
+    },
+    {
+      "id": "1769712684011",
+      "timestamp": 20,
+      "utteranceIndex": 2,
+      "text": "I hear well, but it does not get attributed to \"Well\" instead it is seems missing. Then the sigh is attributed to Well.",
+      "createdAt": "2026-01-29T18:51:24.011Z"
+    }
+  ]
+}
