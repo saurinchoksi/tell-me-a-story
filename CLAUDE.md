@@ -134,3 +134,28 @@ From `docs/principles.md`: Simple over clever, patterns over tools, understand d
 ## Journal
 
 Daily build log in `journal/` tracks decisions, experiments, and learnings.
+
+## SYNC.md Handoff Protocol
+
+When completing a task from SYNC.md:
+
+1. **Move** the task from "For Code" section to "From Code" section
+2. **Add Outcome:** What actually happened, what was built/changed
+3. **Add Surfaced:** Questions that came up, surprises, decisions you made that Desktop might want to revisit, loose threads, anything Desktop needs to know to continue intelligently
+
+**Example:**
+
+```markdown
+## From Code (for Desktop to process)
+
+### Completed: [Task name from original]
+**Completed:** 2026-01-30
+
+**Outcome:**
+[What you built, what changed, results]
+
+**Surfaced:**
+[Questions, surprises, things Desktop should know]
+```
+
+**Do not** write to SYNC-LOG.md — Desktop manages that file.
