@@ -186,14 +186,16 @@ def run_pipeline(
     if debug:
         audio_info = get_audio_info(audio_path)
 
+    model = "mlx-community/whisper-large-v3-mlx"
+
     if verbose:
         print(f"Transcribing: {audio_path}")
-        print("Using large model for better child speech recognition...")
+        print(f"Using: {model}")
 
     transcript = transcribe(
         audio_path,
         word_timestamps=True,
-        model="mlx-community/whisper-large-v3-turbo"
+        model=model
     )
 
     # Mark hallucinated segments before extracting words
