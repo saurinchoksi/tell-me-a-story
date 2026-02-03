@@ -28,23 +28,29 @@ def transcribe(audio_path: str, word_timestamps: bool = False, model: str = None
 
 
 def clean_transcript(transcript: dict) -> dict:
-    """Remove garbage words from transcript.
+    """Remove garbage from transcript.
 
-    Removes zero-duration words (where end == start) which are fabrications
-    that Whisper hallucinated - these never existed in the audio.
+    Removes:
+    - Zero-duration words (end == start) - fabrications that never existed
+    - Empty segments (no text, no words, or zero duration)
 
-    This is garbage removal, not quality filtering. Zero-duration words are
-    100% fabrications with no value. Quality filtering (probability thresholds)
-    happens at query time.
+    This is garbage removal, not quality filtering. Quality filtering
+    (probability thresholds) happens at query time.
 
     Args:
         transcript: Raw transcript dict from transcribe()
 
     Returns:
-        New transcript dict with garbage words removed from each segment.
+        New transcript dict with garbage removed.
     """
     cleaned_segments = []
     for seg in transcript.get("segments", []):
+        # Skip empty/garbage segments
+        text = seg.get("text", "").strip()
+        has_duration = seg.get("end", 0) > seg.get("start", 0)
+        if not text or not has_duration:
+            continue
+
         words = seg.get("words", [])
         # Keep only words with positive duration
         cleaned_words = [w for w in words if w.get("end", 0) > w.get("start", 0)]

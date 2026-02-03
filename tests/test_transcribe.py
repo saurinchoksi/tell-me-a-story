@@ -94,6 +94,28 @@ def test_clean_empty_segments():
     assert "_schema_version" in result
 
 
+def test_clean_removes_garbage_segments():
+    """Segments with no text or zero duration are removed."""
+    transcript = {
+        "text": "Hello",
+        "segments": [
+            # Good segment
+            {"start": 0.0, "end": 1.0, "text": " Hello", "words": []},
+            # Garbage: empty text, zero duration
+            {"start": 115.56, "end": 115.56, "text": "", "words": []},
+            # Garbage: whitespace-only text
+            {"start": 2.0, "end": 3.0, "text": "   ", "words": []},
+            # Garbage: zero duration even with text
+            {"start": 5.0, "end": 5.0, "text": " Something", "words": []},
+        ]
+    }
+
+    result = clean_transcript(transcript)
+
+    assert len(result["segments"]) == 1
+    assert result["segments"][0]["text"] == " Hello"
+
+
 def test_save_transcript_creates_file():
     """save_transcript should create a file with expected content."""
     #Mock result dict matching what mlx_whisper returns
