@@ -1,5 +1,6 @@
 """Initialize session folders from inbox audio files."""
 
+import hashlib
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -8,6 +9,7 @@ SCRIPT_DIR = Path(__file__).parent.resolve()  # src/
 PROJECT_DIR = SCRIPT_DIR.parent               # tell-me-a-story/
 SESSIONS_DIR = PROJECT_DIR / "sessions"
 INBOX_DIR = SESSIONS_DIR / "inbox"
+DUPLICATES_DIR = SESSIONS_DIR / "duplicates"
 SUPPORTED_FORMATS = {".m4a", ".mp3", ".wav"}
 
 
@@ -27,6 +29,15 @@ def generate_session_id(dt: datetime) -> str:
     return dt.strftime("%Y%m%d-%H%M%S")
 
 
+def file_hash(filepath: Path) -> str:
+    """Compute MD5 hash of file contents."""
+    h = hashlib.md5()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def init_session(audio_path: Path) -> tuple[str, str] | None:
     """Move audio file to new session folder.
 
@@ -37,8 +48,26 @@ def init_session(audio_path: Path) -> tuple[str, str] | None:
     session_dir = SESSIONS_DIR / session_id
 
     if session_dir.exists():
-        print(f"  {audio_path.name} → SKIPPED (session {session_id} already exists)")
-        return None
+        # Find existing audio file in session
+        existing_audio = None
+        for ext in SUPPORTED_FORMATS:
+            candidate = session_dir / f"audio{ext}"
+            if candidate.exists():
+                existing_audio = candidate
+                break
+
+        if existing_audio and file_hash(audio_path) == file_hash(existing_audio):
+            # True duplicate - move to duplicates folder
+            DUPLICATES_DIR.mkdir(parents=True, exist_ok=True)
+            dup_dest = DUPLICATES_DIR / f"{session_id}_{audio_path.name}"
+            shutil.move(audio_path, dup_dest)
+            print(f"  {audio_path.name} → DUPLICATE of session {session_id} (moved to duplicates/)")
+            return None
+        else:
+            # Collision - different files with same timestamp
+            print(f"  {audio_path.name} → COLLISION: session {session_id} exists with different content")
+            print(f"              Manual resolution required - file left in inbox")
+            return None
 
     session_dir.mkdir(parents=True)
     dest_path = session_dir / f"audio{audio_path.suffix.lower()}"
