@@ -5,7 +5,10 @@ __pycache__/
 .pytest_cache/
 
 # Sessions (private audio files and transcripts)
-sessions/
+sessions/*
+!sessions/inbox/
+sessions/inbox/*
+!sessions/inbox/.gitkeep
 
 # Debug output
 sessions/debug/
