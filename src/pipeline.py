@@ -122,7 +122,7 @@ def run_pipeline(audio_path: str, verbose: bool = True) -> dict:
     if not os.path.exists(audio_path):
         raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
-    session_id = Path(audio_path).stem
+    session_id = Path(audio_path).parent.name
 
     # Get audio info
     audio_info = get_audio_info(audio_path)
