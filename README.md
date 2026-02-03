@@ -1,22 +1,59 @@
-# Tell Me A Story
+# Tell Me a Story
 
-A local pipeline for capturing and organizing bedtime stories.
+My daughter Arti is four. Every night, we make up stories together. Characters recur. Worlds layer. Plot threads tangle across weeks of bedtime improv.
 
-**Status:** Just started. Working on the backend first.
+I wanted to capture it. Not the polished retellings, the live mess: her interruptions, my detours, the penguin who inexplicably showed up in every story for a month.
 
-## What it will do
+Most transcription tools are cloud-based. For family recordings, I wanted something local. So I built my own.
 
-- Record audio of storytelling sessions
-- Transcribe with speaker labels (who said what)
-- Extract story elements (characters, worlds, plot beats)
-- Build a searchable story bible for reference
+## What It Does
 
-## Principles
+Audio in, speaker-labeled transcript out. Entirely local.
 
-- **Local only.** No cloud, no API keys for family content.
-- **Zero latency.** Capture should disappear. Surface what I need without friction.
-- **Hard fun.** Building this is the learning.
+1. **Transcription** — MLX Whisper (large model) produces word-level timestamps
+2. **Diarization** — Pyannote separates speakers (parent vs. child voice)
+3. **Alignment** — Custom layer merges transcript to speaker segments
+4. **Filtering** — Hallucination detection for quiet/unclear speech
 
-## Progress
+The hard part is child speech. Whisper hallucinates when it can't decode soft voices. Pyannote struggles with speaker changes in overlapping conversation. The alignment layer compensates with filtering heuristics I've tuned through iteration.
 
-See [docs/journal/](docs/journal/) for the build log.
+## Why Local
+
+I could have used cloud APIs. But I wanted to understand the full pipeline, not just call an endpoint. And for recordings of my kid, local felt right.
+
+The constraint forced me to solve problems that managed services abstract away: model selection, hallucination filtering, speaker alignment. That's where the learning lives.
+
+## Tech Stack
+
+- **MLX Whisper** for transcription (Apple Silicon optimized)
+- **Pyannote** for speaker diarization
+- Python pipeline architecture
+- 43 tests, including slow integration tests against real audio
+
+## Status
+
+Working pipeline. Transcribes, diarizes, aligns, saves JSON with word-level timestamps. Still building: story element extraction, searchable archive, the thing that makes captured stories useful months later.
+
+## Background
+
+I spent five years writing children's animation (Daniel Tiger's Neighborhood, Wonder Pets, work with Mo Willems). Then I spent a year as a Creative Technologist at Kibeam Learning, building tools and ML pipelines for interactive children's products.
+
+This project sits at the intersection: audio ML applied to a problem I actually have, built with constraints I actually care about.
+
+## Running It
+
+```bash
+# Activate environment
+source venv/bin/activate
+
+# Run full pipeline
+python src/pipeline.py sessions/<session-id>/audio.m4a
+
+# Output: JSON files with transcript, diarization, and manifest
+```
+
+Requires `HF_TOKEN` environment variable for Pyannote model access.
+
+## Build Journal
+
+I've been keeping a daily log in `journal/`. It tracks decisions, experiments, dead ends, and what I'm learning about audio ML along the way.
