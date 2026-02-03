@@ -44,7 +44,7 @@ This project sits at the intersection: audio ML applied to a problem I actually 
 
 ```bash
 # Clone and set up
-git clone https://github.com/YOUR_USERNAME/tell-me-a-story.git
+git clone https://github.com/saurinchoksi/tell-me-a-story.git
 cd tell-me-a-story
 python3 -m venv venv
 source venv/bin/activate
