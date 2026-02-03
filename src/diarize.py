@@ -13,6 +13,9 @@ from pyannote.audio.pipelines.utils.hook import ProgressHook
 from pyannote.audio.core.task import Specifications, Problem, Resolution, Scope
 torch.serialization.add_safe_globals([Specifications, Problem, Resolution, Scope])
 
+_SCHEMA_VERSION = "1.0.0"
+_GENERATOR_VERSION = "pyannote-speaker-diarization-community-1"
+
 
 def load_pipeline() -> Pipeline:
     """Load the speaker diarization pipeline.
@@ -51,16 +54,17 @@ def convert_to_wav_16k(audio_path: str) -> str:
     return temp_wav.name
 
 
-def diarize(audio_path: str, pipeline: Pipeline = None, num_speakers: int = None) -> list[dict]:
+def diarize(audio_path: str, pipeline: Pipeline = None, num_speakers: int = None) -> dict:
     """Run speaker diarization on an audio file.
-    
+
     Args:
         audio_path: Path to audio file
         pipeline: Optional pre-loaded pipeline (loads one if not provided)
         num_speakers: Optional hint for exact number of speakers (improves accuracy)
-    
+
     Returns:
-        List of dicts with 'start', 'end', 'speaker' keys
+        Dict with '_schema_version', '_generator_version', and 'segments' keys.
+        Segments is a list of dicts with 'start', 'end', 'speaker' keys.
     """
     if pipeline is None:
         pipeline = load_pipeline()
@@ -83,14 +87,20 @@ def diarize(audio_path: str, pipeline: Pipeline = None, num_speakers: int = None
                 "speaker": speaker
             })
         
-        return segments
+        return {
+            "_schema_version": _SCHEMA_VERSION,
+            "_generator_version": _GENERATOR_VERSION,
+            "segments": segments
+        }
     finally:
         # Clean up temp file
         os.unlink(wav_path)
 
 
-def print_diarization(segments: list[dict]) -> None:
+def print_diarization(result: dict | list[dict]) -> None:
     """Print diarization results in a readable format."""
+    # Handle both dict (new format) and list (legacy)
+    segments = result.get("segments", result) if isinstance(result, dict) else result
     for seg in segments:
         start = seg["start"]
         end = seg["end"]
@@ -114,6 +124,6 @@ if __name__ == "__main__":
     print("First run will download the model (~1GB)...")
     print()
     
-    segments = diarize(args.audio_file, num_speakers=args.num_speakers)
-    print_diarization(segments)
-    print(f"\nFound {len(segments)} segments")
+    result = diarize(args.audio_file, num_speakers=args.num_speakers)
+    print_diarization(result)
+    print(f"\nFound {len(result['segments'])} segments")

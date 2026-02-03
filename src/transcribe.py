@@ -1,20 +1,23 @@
-"""Transcribe an audio file using MLX Wisper."""
+"""Transcribe an audio file using MLX Whisper."""
 
 import mlx_whisper
+
+_SCHEMA_VERSION = "1.0.0"
+_GENERATOR_VERSION = "mlx-whisper-1.0"
 
 
 def transcribe(audio_path: str, word_timestamps: bool = False, model: str = None) -> dict:
     """Transcribe audio file and return result dict.
-    
+
     Args:
         audio_path: Path to audio file
         word_timestamps: If True, include word-level timestamps in segments
-    
+        model: Optional model path/repo
+
     Returns:
         Dict with 'text', 'language', 'segments' keys.
         If word_timestamps=True, each segment also has 'words' list.
     """
-    
     kwargs = {"word_timestamps": word_timestamps}
 
     if model:
@@ -23,44 +26,37 @@ def transcribe(audio_path: str, word_timestamps: bool = False, model: str = None
     result = mlx_whisper.transcribe(audio_path, **kwargs)
     return result
 
-def mark_hallucinated_segments(
-    segments: list[dict],
-    temp_threshold: float = 1.0,
-    compression_threshold: float = 2.5
-) -> list[dict]:
-    """Mark hallucinated segments as [unintelligible].
 
-    Segments with high temperature or compression ratio are likely
-    hallucinations (model inventing speech during silence). We mark
-    these honestly rather than deleting them.
+def clean_transcript(transcript: dict) -> dict:
+    """Remove garbage words from transcript.
+
+    Removes zero-duration words (where end == start) which are fabrications
+    that Whisper hallucinated - these never existed in the audio.
+
+    This is garbage removal, not quality filtering. Zero-duration words are
+    100% fabrications with no value. Quality filtering (probability thresholds)
+    happens at query time.
 
     Args:
-        segments: List of segment dicts from transcribe()
-        temp_threshold: Temperature at or above this triggers marking
-        compression_threshold: Compression ratio above this triggers marking
+        transcript: Raw transcript dict from transcribe()
 
     Returns:
-        New list with hallucinated segments marked as [unintelligible].
+        New transcript dict with garbage words removed from each segment.
     """
-    result = []
-    for seg in segments:
-        temp = seg.get("temperature", 0.0)
-        comp = seg.get("compression_ratio", 1.0)
+    cleaned_segments = []
+    for seg in transcript.get("segments", []):
+        words = seg.get("words", [])
+        # Keep only words with positive duration
+        cleaned_words = [w for w in words if w.get("end", 0) > w.get("start", 0)]
 
-        if temp >= temp_threshold or comp > compression_threshold:
-            # Mark as unintelligible
-            marked = seg.copy()
-            marked["text"] = " [unintelligible]"
-            marked["words"] = [{
-                "word": " [unintelligible]",
-                "start": seg["start"],
-                "end": seg["end"],
-                "probability": 1.0  # Ensure it passes downstream filters
-            }]
-            result.append(marked)
-        else:
-            result.append(seg)
+        cleaned_seg = seg.copy()
+        cleaned_seg["words"] = cleaned_words
+        cleaned_segments.append(cleaned_seg)
 
+    result = transcript.copy()
+    result["segments"] = cleaned_segments
+    result["_schema_version"] = _SCHEMA_VERSION
+    result["_generator_version"] = _GENERATOR_VERSION
     return result
 
 
@@ -81,7 +77,7 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print ("Usage: python src/transcribe.py <audio_file>")
+        print("Usage: python src/transcribe.py <audio_file>")
         sys.exit(1)
 
     audio_file = sys.argv[1]

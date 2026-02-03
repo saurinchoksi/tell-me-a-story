@@ -11,19 +11,23 @@ app = Flask(__name__)
 
 # Path resolution
 PROJECT_ROOT = Path(__file__).parent.parent.parent  # tools/transcript_validator → project root
-AUDIO_DIR = PROJECT_ROOT / "sessions" / "audio"
-DEBUG_DIR = PROJECT_ROOT / "sessions" / "debug"
-NOTES_DIR = Path(__file__).parent / "notes"
-
-# Ensure notes directory exists
-NOTES_DIR.mkdir(exist_ok=True)
+SESSIONS_DIR = PROJECT_ROOT / "sessions"
 
 
-def validate_path(base_dir: Path, filename: str) -> Path:
+def get_session_paths(stem: str) -> dict:
+    """Get paths for a session."""
+    session_dir = SESSIONS_DIR / stem
+    return {
+        "session_dir": session_dir,
+        "audio": session_dir / "audio.m4a",
+        "transcript": session_dir / "transcript.json",
+        "notes": session_dir / "validation-notes.json",
+    }
+
+
+def validate_path(base_dir: Path, subpath: Path) -> Path:
     """Prevent path traversal attacks."""
-    # Resolve the full path
-    full_path = (base_dir / filename).resolve()
-    # Ensure it's still under base_dir
+    full_path = (base_dir / subpath).resolve()
     if not str(full_path).startswith(str(base_dir.resolve())):
         raise ValueError("Invalid path")
     return full_path
@@ -37,45 +41,47 @@ def index():
 
 @app.route("/files")
 def list_files():
-    """List sessions with both debug transcript AND matching audio."""
-    # Find debug folders with 03-transcript.json
-    debug_stems = set()
-    if DEBUG_DIR.exists():
-        for d in DEBUG_DIR.iterdir():
-            if d.is_dir() and (d / "03-transcript.json").exists():
-                debug_stems.add(d.name)
+    """List sessions with both transcript AND matching audio."""
+    valid_stems = []
 
-    # Find audio files
-    audio_stems = set()
-    if AUDIO_DIR.exists():
-        for f in AUDIO_DIR.glob("*.m4a"):
-            audio_stems.add(f.stem)
+    if SESSIONS_DIR.exists():
+        for session_dir in SESSIONS_DIR.iterdir():
+            if not session_dir.is_dir():
+                continue
 
-    # Return intersection
-    valid_stems = sorted(debug_stems & audio_stems)
-    return jsonify({"files": valid_stems})
+            stem = session_dir.name
+            paths = get_session_paths(stem)
+
+            if paths["transcript"].exists() and paths["audio"].exists():
+                valid_stems.append(stem)
+
+    return jsonify({"files": sorted(valid_stems)})
 
 
 @app.route("/audio/<stem>")
 def get_audio(stem: str):
     """Stream audio file."""
     try:
-        audio_path = validate_path(AUDIO_DIR, f"{stem}.m4a")
-        if not audio_path.exists():
+        validate_path(SESSIONS_DIR, Path(stem))
+        paths = get_session_paths(stem)
+
+        if not paths["audio"].exists():
             return jsonify({"error": "Audio not found"}), 404
-        return send_file(audio_path, mimetype="audio/mp4")
+        return send_file(paths["audio"], mimetype="audio/mp4")
     except ValueError:
         return jsonify({"error": "Invalid path"}), 400
 
 
 @app.route("/transcript/<stem>")
 def get_transcript(stem: str):
-    """Return 03-transcript.json content."""
+    """Return transcript content."""
     try:
-        transcript_path = validate_path(DEBUG_DIR / stem, "03-transcript.json")
-        if not transcript_path.exists():
+        validate_path(SESSIONS_DIR, Path(stem))
+        paths = get_session_paths(stem)
+
+        if not paths["transcript"].exists():
             return jsonify({"error": "Transcript not found"}), 404
-        with open(transcript_path) as f:
+        with open(paths["transcript"]) as f:
             return jsonify(json.load(f))
     except ValueError:
         return jsonify({"error": "Invalid path"}), 400
@@ -87,10 +93,12 @@ def get_transcript(stem: str):
 def get_notes(stem: str):
     """Get validation notes."""
     try:
-        notes_path = validate_path(NOTES_DIR, f"{stem}.json")
-        if not notes_path.exists():
+        validate_path(SESSIONS_DIR, Path(stem))
+        paths = get_session_paths(stem)
+
+        if not paths["notes"].exists():
             return jsonify({"notes": []})
-        with open(notes_path) as f:
+        with open(paths["notes"]) as f:
             return jsonify(json.load(f))
     except ValueError:
         return jsonify({"error": "Invalid path"}), 400
@@ -100,11 +108,15 @@ def get_notes(stem: str):
 def save_notes(stem: str):
     """Save validation notes."""
     try:
-        notes_path = validate_path(NOTES_DIR, f"{stem}.json")
+        validate_path(SESSIONS_DIR, Path(stem))
+        paths = get_session_paths(stem)
+
+        paths["session_dir"].mkdir(parents=True, exist_ok=True)
+
         data = request.get_json()
         if data is None:
             return jsonify({"error": "Invalid or missing JSON payload"}), 400
-        with open(notes_path, "w") as f:
+        with open(paths["notes"], "w") as f:
             json.dump(data, f, indent=2)
         return jsonify({"success": True})
     except ValueError:
@@ -115,7 +127,5 @@ def save_notes(stem: str):
 
 if __name__ == "__main__":
     print(f"Project root: {PROJECT_ROOT}")
-    print(f"Audio dir: {AUDIO_DIR}")
-    print(f"Debug dir: {DEBUG_DIR}")
-    print(f"Notes dir: {NOTES_DIR}")
+    print(f"Sessions dir: {SESSIONS_DIR}")
     app.run(host="localhost", port=5001, debug=True)

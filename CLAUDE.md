@@ -21,8 +21,8 @@ A local-first pipeline for capturing bedtime stories. Records parent-child story
 # Activate environment
 source venv/bin/activate
 
-# Run full pipeline (transcribes, diarizes, aligns, saves JSON)
-python src/pipeline.py sessions/audio/<filename>.m4a
+# Run full pipeline (transcribes, diarizes, saves JSON)
+python src/pipeline.py sessions/<session-id>/audio.m4a
 
 # Run individual modules
 python src/transcribe.py <audio_file>
@@ -70,48 +70,29 @@ Two-layer approach with different purposes:
 
 Key insight: `no_speech_prob` is NOT useful for our case. It stays low during hallucination because real speech IS happening (quiet child voice) — the model just can't decode it.
 
-## Output Format
+## Session Directory Structure
 
-JSON sessions saved to `sessions/processed/` with schema v0.1.0:
+Each session is stored at `sessions/{session-id}/`:
 
-```json
-{
-  "_schema_version": "0.1.0",
-  "meta": {
-    "source_audio": "path/to/file.m4a",
-    "transcribed_at": "2026-01-25T...",
-    "pipeline_version": "0.1.0"
-  },
-  "speakers": {
-    "detected": ["SPEAKER_00", "SPEAKER_01"],
-    "names": null
-  },
-  "stories": [{
-    "story_id": "filename",
-    "utterances": [
-      {
-        "speaker": "SPEAKER_00",
-        "start": 0.0,
-        "end": 3.5,
-        "text": "Once upon a time",
-        "words": [
-          {"word": "Once", "start": 0.0, "end": 0.3, "probability": 0.95}
-        ]
-      }
-    ]
-  }],
-  "moments": [],
-  "processing": null
-}
+```
+sessions/00000000-000000/
+  audio.m4a
+  audio-info.json
+  transcript.json
+  diarization.json
+  validation-notes.json
+  manifest.json
 ```
 
-Word-level timestamps enable future caption sync (audio plays, words highlight).
+Simple type names. The folder provides session context, so IDs in filenames are redundant.
+
+Word-level timestamps in transcript enable future caption sync (audio plays, words highlight).
 
 ## Key Details
 
 - Requires `HF_TOKEN` env var for pyannote model access
 - Pyannote struggles with soft/child speech—alignment heuristics compensate
-- Test audio: `sessions/audio/00000000-000000.m4a`
+- Test audio: `sessions/00000000-000000/audio.m4a`
 - Private data in `sessions/` is gitignored
 
 ## Development Principles

@@ -17,7 +17,7 @@ from diarize import convert_to_wav_16k, diarize
 
 def test_convert_to_wav_16k_creates_file():
     """convert_to_wav_16k should create a WAV file."""
-    source = "sessions/audio/00000000-000000.m4a"
+    source = "sessions/00000000-000000/audio.m4a"
     
     wav_path = convert_to_wav_16k(source)
     
@@ -30,7 +30,7 @@ def test_convert_to_wav_16k_creates_file():
 
 def test_convert_to_wav_16k_correct_sample_rate():
     """Converted WAV should be 16kHz mono."""
-    source = "sessions/audio/00000000-000000.m4a"
+    source = "sessions/00000000-000000/audio.m4a"
     
     wav_path = convert_to_wav_16k(source)
     
@@ -50,7 +50,7 @@ def test_convert_to_wav_16k_correct_sample_rate():
 @pytest.mark.slow
 def test_diarize_returns_expected_structure():
     """diarize() should return list of dicts with start, end, speaker."""
-    segments = diarize("sessions/audio/00000000-000000.m4a")
+    segments = diarize("sessions/00000000-000000/audio.m4a")
     
     assert isinstance(segments, list)
     assert len(segments) > 0
@@ -65,7 +65,7 @@ def test_diarize_returns_expected_structure():
 @pytest.mark.slow
 def test_diarize_segments_have_valid_timestamps():
     """Each segment should have valid timestamps (end > start)."""
-    segments = diarize("sessions/audio/00000000-000000.m4a")
+    segments = diarize("sessions/00000000-000000/audio.m4a")
     
     for seg in segments:
         assert isinstance(seg["start"], float)
@@ -76,7 +76,7 @@ def test_diarize_segments_have_valid_timestamps():
 @pytest.mark.slow
 def test_diarize_segments_are_chronological():
     """Segments should be in chronological order."""
-    segments = diarize("sessions/audio/00000000-000000.m4a")
+    segments = diarize("sessions/00000000-000000/audio.m4a")
     
     for i in range(1, len(segments)):
         # Each segment should start at or after the previous one started

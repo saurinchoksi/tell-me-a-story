@@ -7,105 +7,91 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from transcribe import transcribe, save_transcript, mark_hallucinated_segments
+from transcribe import transcribe, save_transcript, clean_transcript
 
 
 # --- Unit tests (fast, no model needed) ---
 
 
-# --- mark_hallucinated_segments tests ---
+# --- clean_transcript tests ---
 
-def test_mark_keeps_normal_segments():
-    """Normal segments pass through unchanged."""
-    segments = [
-        {
-            "start": 0.0, "end": 2.0, "text": " Hello there",
-            "temperature": 0.0, "compression_ratio": 1.2,
-            "words": [{"word": " Hello", "start": 0.0, "end": 1.0, "probability": 0.95}]
-        }
-    ]
+def test_clean_removes_zero_duration_words():
+    """Zero-duration words (fabrications) are removed."""
+    transcript = {
+        "text": "Hello world",
+        "segments": [
+            {
+                "start": 0.0, "end": 2.0, "text": " Hello world",
+                "words": [
+                    {"word": " Hello", "start": 0.0, "end": 0.5, "probability": 0.95},
+                    {"word": " fake", "start": 1.0, "end": 1.0, "probability": 0.9},  # zero duration
+                    {"word": " world", "start": 1.5, "end": 2.0, "probability": 0.92}
+                ]
+            }
+        ]
+    }
 
-    result = mark_hallucinated_segments(segments)
+    result = clean_transcript(transcript)
 
-    assert len(result) == 1
-    assert result[0]["text"] == " Hello there"
-
-
-def test_mark_flags_high_temperature():
-    """Segments with temperature >= 1.0 get marked."""
-    segments = [
-        {
-            "start": 0.0, "end": 2.0, "text": " kids kids kids",
-            "temperature": 1.0, "compression_ratio": 1.5,
-            "words": [{"word": " kids", "start": 0.0, "end": 0.5, "probability": 0.9}]
-        }
-    ]
-
-    result = mark_hallucinated_segments(segments)
-
-    assert result[0]["text"] == " [unintelligible]"
-    assert len(result[0]["words"]) == 1
-    assert result[0]["words"][0]["word"] == " [unintelligible]"
+    assert len(result["segments"]) == 1
+    assert len(result["segments"][0]["words"]) == 2
+    words = [w["word"] for w in result["segments"][0]["words"]]
+    assert " Hello" in words
+    assert " world" in words
+    assert " fake" not in words
 
 
-def test_mark_flags_high_compression():
-    """Segments with compression_ratio > 2.5 get marked."""
-    segments = [
-        {
-            "start": 5.0, "end": 8.0, "text": " silly silly silly",
-            "temperature": 0.0, "compression_ratio": 20.0,
-            "words": [{"word": " silly", "start": 5.0, "end": 5.5, "probability": 0.8}]
-        }
-    ]
+def test_clean_keeps_normal_words():
+    """Words with positive duration pass through unchanged."""
+    transcript = {
+        "text": "Once upon a time",
+        "segments": [
+            {
+                "start": 0.0, "end": 3.0, "text": " Once upon a time",
+                "words": [
+                    {"word": " Once", "start": 0.0, "end": 0.5, "probability": 0.98},
+                    {"word": " upon", "start": 0.5, "end": 1.0, "probability": 0.97},
+                    {"word": " a", "start": 1.0, "end": 1.2, "probability": 0.99},
+                    {"word": " time", "start": 1.2, "end": 1.8, "probability": 0.96}
+                ]
+            }
+        ]
+    }
 
-    result = mark_hallucinated_segments(segments)
+    result = clean_transcript(transcript)
 
-    assert result[0]["text"] == " [unintelligible]"
-    assert result[0]["words"][0]["start"] == 5.0
-    assert result[0]["words"][0]["end"] == 8.0
-
-
-def test_mark_custom_thresholds():
-    """Custom thresholds are respected."""
-    segments = [
-        {
-            "start": 0.0, "end": 1.0, "text": " um",
-            "temperature": 0.5, "compression_ratio": 2.0,
-            "words": []
-        }
-    ]
-
-    # Default thresholds — should pass
-    result_default = mark_hallucinated_segments(segments)
-    assert result_default[0]["text"] == " um"
-
-    # Stricter thresholds — should mark
-    result_strict = mark_hallucinated_segments(
-        segments, temp_threshold=0.5, compression_threshold=1.5
-    )
-    assert result_strict[0]["text"] == " [unintelligible]"
+    assert len(result["segments"][0]["words"]) == 4
+    # Verify original transcript not mutated
+    assert len(transcript["segments"][0]["words"]) == 4
 
 
-def test_mark_empty_segments():
-    """Empty input returns empty result."""
-    result = mark_hallucinated_segments([])
-    assert result == []
+def test_clean_adds_schema_version():
+    """clean_transcript adds _schema_version to result."""
+    transcript = {
+        "text": "Hello",
+        "segments": [
+            {"start": 0.0, "end": 1.0, "text": " Hello", "words": []}
+        ]
+    }
+
+    result = clean_transcript(transcript)
+
+    assert "_schema_version" in result
+    assert result["_schema_version"] == "1.0.0"
+    assert "_generator_version" in result
 
 
-def test_mark_preserves_other_fields():
-    """Other segment fields are preserved."""
-    segments = [
-        {
-            "id": 5, "start": 0.0, "end": 1.0, "text": " test",
-            "temperature": 1.0, "compression_ratio": 1.0,
-            "words": [], "tokens": [1, 2, 3]
-        }
-    ]
+def test_clean_empty_segments():
+    """Empty segments list returns empty result with schema version."""
+    transcript = {
+        "text": "",
+        "segments": []
+    }
 
-    result = mark_hallucinated_segments(segments)
+    result = clean_transcript(transcript)
 
-    assert result[0]["id"] == 5
-    assert result[0]["tokens"] == [1, 2, 3]
+    assert result["segments"] == []
+    assert "_schema_version" in result
 
 
 def test_save_transcript_creates_file():
@@ -147,7 +133,7 @@ def test_save_transcript_handles_empty_segments():
     with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
         temp_path = f.name
 
-    try: 
+    try:
         save_transcript(mock_result, temp_path)
 
         with open(temp_path, 'r') as f:
@@ -167,7 +153,7 @@ import pytest
 @pytest.mark.slow
 def test_transcribe_returns_expected_structure():
     """transcribe() should return dict with text, language, segments."""
-    result = transcribe("sessions/audio/00000000-000000.m4a")
+    result = transcribe("sessions/00000000-000000/audio.m4a")
 
     assert "text" in result
     assert "language" in result
@@ -179,7 +165,7 @@ def test_transcribe_returns_expected_structure():
 @pytest.mark.slow
 def test_transcribe_segments_have_timestamps():
     """Each segment should have start, end, and text."""
-    result = transcribe("sessions/audio/00000000-000000.m4a")
+    result = transcribe("sessions/00000000-000000/audio.m4a")
 
     assert len(result["segments"]) > 0
 
@@ -193,17 +179,17 @@ def test_transcribe_segments_have_timestamps():
 @pytest.mark.slow
 def test_transcribe_with_word_timestamps():
     """word_timestamps=True should add words array to segments."""
-    result = transcribe("sessions/audio/00000000-000000.m4a", word_timestamps=True)
-    
+    result = transcribe("sessions/00000000-000000/audio.m4a", word_timestamps=True)
+
     # Find a segment with content (some may be empty)
     seg_with_words = None
     for seg in result["segments"]:
         if seg.get("words"):
             seg_with_words = seg
             break
-    
+
     assert seg_with_words is not None, "Expected at least one segment with words"
-    
+
     # Check word structure
     word = seg_with_words["words"][0]
     assert "start" in word
