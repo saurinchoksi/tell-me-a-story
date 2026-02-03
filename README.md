@@ -43,16 +43,21 @@ This project sits at the intersection: audio ML applied to a problem I actually 
 ## Running It
 
 ```bash
-# Activate environment
+# Clone and set up
+git clone https://github.com/YOUR_USERNAME/tell-me-a-story.git
+cd tell-me-a-story
+python3 -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
+
+# Set Hugging Face token (required for Pyannote)
+export HF_TOKEN=your_token_here
 
 # Run full pipeline
 python src/pipeline.py sessions/<session-id>/audio.m4a
-
-# Output: JSON files with transcript, diarization, and manifest
 ```
 
-Requires `HF_TOKEN` environment variable for Pyannote model access.
+Requires Apple Silicon for MLX Whisper. Pyannote model downloads on first run (~1GB).
 
 ## Build Journal
 
