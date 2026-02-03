@@ -546,6 +546,11 @@
       padding: 18px 16px;
       border-bottom: 1px solid var(--glass-border);
       background: rgba(78, 205, 196, 0.05);
+      gap: 10px;
+    }
+
+    #delete-all-notes {
+      margin-left: auto;
     }
 
     .notes-panel-header h3 {
@@ -761,6 +766,7 @@
   <div class="notes-panel" id="notes-panel">
     <div class="notes-panel-header">
       <h3>Notes (<span id="notes-count">0</span>)</h3>
+      <button class="note-action-btn delete" id="delete-all-notes" onclick="deleteAllNotes()">Delete All</button>
       <button class="notes-panel-close" id="notes-panel-close">&times;</button>
     </div>
     <div class="notes-list" id="notes-list">
@@ -1459,6 +1465,31 @@
       } catch (error) {
         console.error('Error deleting note:', error);
         alert('Failed to delete note. Please try again.');
+        return;
+      }
+
+      renderNotesList();
+      renderSegments();
+      updateActiveSegment(state.currentTime);
+    };
+
+    window.deleteAllNotes = async function() {
+      if (state.notes.length === 0) return;
+
+      if (!confirm(`Delete all ${state.notes.length} notes? This cannot be undone.`)) return;
+
+      state.notes = [];
+
+      try {
+        const res = await fetch(`/notes/${state.filename}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes: state.notes }),
+        });
+        if (!res.ok) throw new Error(`Save failed: ${res.status}`);
+      } catch (error) {
+        console.error('Error deleting all notes:', error);
+        alert('Failed to delete notes. Please try again.');
         return;
       }
 
