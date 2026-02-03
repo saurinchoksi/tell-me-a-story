@@ -42,7 +42,11 @@ def init_session(audio_path: Path) -> tuple[str, str] | None:
 
     session_dir.mkdir(parents=True)
     dest_path = session_dir / f"audio{audio_path.suffix.lower()}"
-    shutil.move(audio_path, dest_path)
+    try:
+        shutil.move(audio_path, dest_path)
+    except Exception:
+        session_dir.rmdir()  # Clean up the empty folder
+        raise  # Re-raise so caller knows it failed
     print(f"  {audio_path.name} → {session_id}/{dest_path.name}")
     return session_id, dest_path.name
 
