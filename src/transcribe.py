@@ -2,7 +2,7 @@
 
 import mlx_whisper
 
-_SCHEMA_VERSION = "1.0.0"
+_SCHEMA_VERSION = "1.1.0"
 _GENERATOR_VERSION = "mlx-whisper-1.0"
 
 
@@ -57,6 +57,7 @@ def clean_transcript(transcript: dict) -> dict:
 
         cleaned_seg = seg.copy()
         cleaned_seg["words"] = cleaned_words
+        cleaned_seg["_min_word_prob"] = compute_min_word_prob(cleaned_seg)
         cleaned_segments.append(cleaned_seg)
 
     result = transcript.copy()
@@ -64,6 +65,27 @@ def clean_transcript(transcript: dict) -> dict:
     result["_schema_version"] = _SCHEMA_VERSION
     result["_generator_version"] = _GENERATOR_VERSION
     return result
+
+
+def compute_min_word_prob(segment: dict) -> float:
+    """
+    Compute minimum word probability for a segment.
+
+    Used for query-time hallucination filtering. Low probability
+    words (< 0.5) correlate with fabricated content.
+
+    Args:
+        segment: Whisper segment dict with optional 'words' array
+
+    Returns:
+        Minimum probability across all words, or 1.0 if no words
+    """
+    words = segment.get("words", [])
+    if not words:
+        return 1.0
+
+    probs = (w.get("probability", 1.0) for w in words)
+    return min(probs, default=1.0)
 
 
 def save_transcript(result: dict, output_path: str) -> None:
