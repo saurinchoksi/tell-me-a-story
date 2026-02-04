@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from transcribe import transcribe, save_transcript, clean_transcript, compute_min_word_prob
+from transcribe import transcribe, save_transcript, clean_transcript
 
 
 # --- Unit tests (fast, no model needed) ---
@@ -77,27 +77,8 @@ def test_clean_adds_schema_version():
     result = clean_transcript(transcript)
 
     assert "_schema_version" in result
-    assert result["_schema_version"] == "1.1.0"
+    assert result["_schema_version"] == "1.0.0"
     assert "_generator_version" in result
-
-
-def test_clean_adds_min_word_prob():
-    """clean_transcript computes _min_word_prob for each segment."""
-    transcript = {
-        "text": "Hello world",
-        "segments": [{
-            "start": 0.0, "end": 2.0, "text": " Hello world",
-            "words": [
-                {"word": " Hello", "start": 0.0, "end": 0.5, "probability": 0.95},
-                {"word": " world", "start": 1.5, "end": 2.0, "probability": 0.42}
-            ]
-        }]
-    }
-
-    result = clean_transcript(transcript)
-
-    assert "_min_word_prob" in result["segments"][0]
-    assert result["segments"][0]["_min_word_prob"] == 0.42
 
 
 def test_clean_empty_segments():
@@ -186,59 +167,6 @@ def test_save_transcript_handles_empty_segments():
         os.unlink(temp_path)
 
 
-# --- compute_min_word_prob tests ---
-
-
-class TestComputeMinWordProb:
-    """Tests for compute_min_word_prob helper."""
-
-    def test_normal_segment(self):
-        """Returns minimum probability from words."""
-        segment = {
-            "words": [
-                {"word": "Hello", "probability": 0.95},
-                {"word": "world", "probability": 0.42},
-                {"word": "!", "probability": 0.88},
-            ]
-        }
-        assert compute_min_word_prob(segment) == 0.42
-
-    def test_empty_words_array(self):
-        """Returns 1.0 for empty words array."""
-        segment = {"words": []}
-        assert compute_min_word_prob(segment) == 1.0
-
-    def test_missing_words_key(self):
-        """Returns 1.0 when words key is absent."""
-        segment = {"text": "Hello"}
-        assert compute_min_word_prob(segment) == 1.0
-
-    def test_word_missing_probability(self):
-        """Treats missing probability as 1.0."""
-        segment = {
-            "words": [
-                {"word": "Hello", "probability": 0.5},
-                {"word": "world"},  # no probability key
-            ]
-        }
-        assert compute_min_word_prob(segment) == 0.5
-
-    def test_single_word(self):
-        """Works with single word."""
-        segment = {"words": [{"word": "Hi", "probability": 0.99}]}
-        assert compute_min_word_prob(segment) == 0.99
-
-    def test_all_low_probability(self):
-        """Returns lowest when all are low."""
-        segment = {
-            "words": [
-                {"word": "Um", "probability": 0.1},
-                {"word": "uh", "probability": 0.05},
-            ]
-        }
-        assert compute_min_word_prob(segment) == 0.05
-
-
 # --- Inegration test (slow, runs actual model) ---
 # Mark with pytest.mark.slow so we can skip in quick runs
 
@@ -289,23 +217,3 @@ def test_transcribe_with_word_timestamps():
     assert "start" in word
     assert "end" in word
     assert "word" in word
-
-
-@pytest.mark.slow
-def test_transcribe_adds_min_word_prob():
-    """Transcription includes _min_word_prob on all segments."""
-    raw = transcribe("sessions/00000000-000000/audio.m4a", word_timestamps=True)
-    result = clean_transcript(raw)
-
-    for segment in result["segments"]:
-        assert "_min_word_prob" in segment
-        assert isinstance(segment["_min_word_prob"], float)
-        assert 0.0 <= segment["_min_word_prob"] <= 1.0
-
-
-@pytest.mark.slow
-def test_schema_version_updated():
-    """Schema version reflects the _min_word_prob addition."""
-    raw = transcribe("sessions/00000000-000000/audio.m4a")
-    result = clean_transcript(raw)
-    assert result.get("_schema_version") == "1.1.0"
