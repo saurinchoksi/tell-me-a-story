@@ -307,8 +307,8 @@
       content: attr(data-tooltip);
       position: absolute;
       bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
+      transform: none;
       background: var(--bg-tertiary);
       color: var(--text-primary);
       font-family: 'JetBrains Mono', monospace;
@@ -654,7 +654,7 @@
       transition: all 0.2s;
     }
 
-    .note-action-btn:hover {
+    .note-action-btn:not(:disabled):hover {
       background: rgba(78, 205, 196, 0.1);
       border-color: var(--glass-border-hover);
       color: var(--text-primary);
@@ -691,6 +691,28 @@
       color: var(--prob-high);
     }
 
+    .filter-toggle-btn {
+      padding: 6px 14px;
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .filter-toggle-btn:hover {
+      border-color: var(--glass-border-hover);
+      color: var(--text-primary);
+    }
+
+    .filter-toggle-btn.active {
+      background: rgba(255, 107, 107, 0.15);
+      border-color: rgba(255, 107, 107, 0.4);
+      color: var(--prob-low);
+    }
+
     .notes-toggle-btn .note-count {
       background: linear-gradient(135deg, var(--accent) 0%, #ff6b6b 100%);
       color: white;
@@ -700,6 +722,26 @@
       font-weight: 500;
       min-width: 20px;
       text-align: center;
+    }
+
+    .note-item.filtered-out {
+      opacity: 0.6;
+      border-left-color: var(--text-secondary);
+    }
+
+    .note-filtered-badge {
+      background: rgba(160, 160, 160, 0.2);
+      color: var(--text-secondary);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      text-transform: uppercase;
+      margin-left: auto;
+    }
+
+    .note-action-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
   </style>
 </head>
@@ -732,6 +774,10 @@
     </div>
     <button class="notes-toggle-btn" id="notes-toggle-btn">
       Notes <span class="note-count" id="notes-count-badge">0</span>
+    </button>
+    <button class="filter-toggle-btn" id="filter-toggle-btn"
+            title="Hide words where Whisper's transcription confidence is below 50%. Low-confidence words are often guesses from unclear or quiet speech.">
+      Hide Low Confidence
     </button>
   </div>
 
@@ -781,6 +827,7 @@
     <span><kbd>↑</kbd><kbd>↓</kbd> Prev/Next Segment</span>
     <span><kbd>N</kbd> Add Note</span>
     <span><kbd>Shift+N</kbd> Notes Panel</span>
+    <span><kbd>F</kbd> Hide Low Confidence</span>
   </div>
 
   <script type="module">
@@ -791,16 +838,20 @@
     const state = {
       filename: null,
       segments: [],
+      allSegments: [],  // Unfiltered copy for lookups when filtering
       notes: [],
       currentTime: 0,
       currentSegmentIndex: -1,
       currentWordIndex: -1,
       playbackRate: 1,
+      filterEnabled: false,
       userScrolledAway: false,
       scrollTimeout: null,
       // Context menu state
       contextTarget: null,  // { type: 'segment'|'word', segmentIndex, wordIndex }
     };
+
+    const FILTER_PROBABILITY_THRESHOLD = 0.5;
 
     // DOM elements
     const sessionSelect = document.getElementById('session-select');
@@ -824,6 +875,7 @@
     const notesList = document.getElementById('notes-list');
     const notesCount = document.getElementById('notes-count');
     const notesCountBadge = document.getElementById('notes-count-badge');
+    const filterToggleBtn = document.getElementById('filter-toggle-btn');
 
     // WaveSurfer instance
     let wavesurfer = null;
@@ -915,21 +967,24 @@
     }
 
     // Check if segment has notes
-    function segmentHasNotes(segmentIndex) {
-      return state.notes.some(n => n.segmentIndex === segmentIndex);
+    function segmentHasNotes(segmentId) {
+      return state.notes.some(n => n.segmentId === segmentId);
     }
 
     // Render segments
     function renderSegments() {
-      if (state.segments.length === 0) {
-        segmentsContainer.innerHTML = '<div class="empty-state">No segments found</div>';
+      if (!state.segments || state.segments.length === 0) {
+        const message = state.filterEnabled
+          ? 'No words above confidence threshold'
+          : 'No segments found';
+        segmentsContainer.innerHTML = `<div class="empty-state">${message}</div>`;
         return;
       }
 
       segmentsContainer.innerHTML = state.segments.map((segment, index) => {
         const hasHighTemp = segment.temperature === 1.0;
         const hasHighComp = segment.compression_ratio > 2.5;
-        const hasNotes = segmentHasNotes(index);
+        const hasNotes = segmentHasNotes(segment.id);
 
         const badges = [];
         if (hasHighTemp) badges.push('<span class="badge badge-temp">temp=1.0</span>');
@@ -1058,6 +1113,51 @@
       }
     }
 
+    // Reload transcript (used by filter toggle and loadSession)
+    async function reloadTranscript() {
+      if (!state.filename) return;
+
+      const url = state.filterEnabled
+        ? `/transcript/${state.filename}?min_prob=${FILTER_PROBABILITY_THRESHOLD}`
+        : `/transcript/${state.filename}`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to load transcript');
+      const data = await res.json();
+      state.segments = data.segments || [];
+      renderSegments();
+      updateActiveSegment(state.currentTime);
+    }
+
+    // Toggle probability filter
+    async function toggleFilter() {
+      state.filterEnabled = !state.filterEnabled;
+      filterToggleBtn.classList.toggle('active', state.filterEnabled);
+
+      const wasPlaying = wavesurfer && wavesurfer.isPlaying();
+      const currentTime = state.currentTime;
+
+      try {
+        await reloadTranscript();
+      } catch (error) {
+        // Revert state on failure
+        state.filterEnabled = !state.filterEnabled;
+        filterToggleBtn.classList.toggle('active', state.filterEnabled);
+        console.error('Error toggling filter:', error);
+        return;
+      }
+
+      // Refresh notes panel if open (filtered-out status may have changed)
+      if (notesPanel.classList.contains('open')) {
+        renderNotesList();
+      }
+
+      if (wavesurfer) {
+        wavesurfer.setTime(currentTime);
+        if (wasPlaying) wavesurfer.play();
+      }
+    }
+
     // Load session
     async function loadSession(stem) {
       if (!stem) {
@@ -1068,16 +1168,21 @@
       showLoading();
       state.filename = stem;
       state.segments = [];
+      state.allSegments = [];
       state.notes = [];
       state.currentSegmentIndex = -1;
       state.currentWordIndex = -1;
 
       try {
-        // Load transcript
-        const transcriptRes = await fetch(`/transcript/${stem}`);
-        if (!transcriptRes.ok) throw new Error('Failed to load transcript');
-        const transcript = await transcriptRes.json();
-        state.segments = transcript.segments || [];
+        // Load transcript (respects filter state)
+        await reloadTranscript();
+
+        // Always load unfiltered segments for timestamp lookups
+        const allRes = await fetch(`/transcript/${stem}`);
+        if (allRes.ok) {
+          const allData = await allRes.json();
+          state.allSegments = allData.segments || [];
+        }
 
         // Load notes
         try {
@@ -1091,7 +1196,7 @@
           state.notes = [];
         }
 
-        // Render segments and update notes count
+        // Re-render with notes and update count
         renderSegments();
         updateNotesCount();
 
@@ -1174,11 +1279,12 @@
       if (noteTarget.type === 'timestamp') {
         // Match timestamp notes within 0.5s tolerance
         existingNote = state.notes.find(n =>
-          n.segmentIndex == null && Math.abs(n.timestamp - noteTarget.timestamp) < 0.5
+          n.segmentId == null && Math.abs(n.timestamp - noteTarget.timestamp) < 0.5
         );
       } else {
+        const targetSegmentId = state.segments[noteTarget.segmentIndex]?.id;
         existingNote = state.notes.find(n =>
-          n.segmentIndex === noteTarget.segmentIndex &&
+          n.segmentId === targetSegmentId &&
           (noteTarget.type === 'word' ? n.wordIndex === noteTarget.wordIndex : n.wordIndex == null)
         );
       }
@@ -1204,23 +1310,28 @@
       }
 
       // Remove existing note for this target
+      const targetSegmentId = state.segments[target.segmentIndex]?.id;
       state.notes = state.notes.filter(n => {
         if (target.type === 'timestamp') {
           // Match timestamp notes within 0.5s tolerance
-          return !(n.segmentIndex == null && Math.abs(n.timestamp - target.timestamp) < 0.5);
+          return !(n.segmentId == null && Math.abs(n.timestamp - target.timestamp) < 0.5);
         }
         if (target.type === 'word') {
-          return !(n.segmentIndex === target.segmentIndex && n.wordIndex === target.wordIndex);
+          return !(n.segmentId === targetSegmentId && n.wordIndex === target.wordIndex);
         }
-        return !(n.segmentIndex === target.segmentIndex && n.wordIndex == null);
+        return !(n.segmentId === targetSegmentId && n.wordIndex == null);
       });
 
       // Add new note
+      const targetSegment = state.segments[target.segmentIndex];
+      const targetWord = target.type === 'word' ? targetSegment?.words?.[target.wordIndex] : null;
       const note = {
         id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        segmentIndex: target.type === 'timestamp' ? null : target.segmentIndex,
+        segmentId: target.type === 'timestamp' ? null : targetSegment?.id,
         wordIndex: target.type === 'word' ? target.wordIndex : null,
-        timestamp: target.type === 'timestamp' ? target.timestamp : state.currentTime,
+        wordText: targetWord?.word ?? null,
+        wordStart: targetWord?.start ?? null,
+        timestamp: target.type === 'timestamp' ? target.timestamp : (targetWord?.start ?? targetSegment?.start ?? state.currentTime),
         text: text,
         createdAt: new Date().toISOString(),
       };
@@ -1320,12 +1431,19 @@
       // Sort notes by timestamp for timestamp notes, then segment index, then word index
       const sortedNotes = [...state.notes].sort((a, b) => {
         // Timestamp-only notes sorted by their timestamp
-        const aIsTimestamp = a.segmentIndex == null;
-        const bIsTimestamp = b.segmentIndex == null;
+        const aIsTimestamp = a.segmentId == null;
+        const bIsTimestamp = b.segmentId == null;
 
-        // Get effective time for sorting
-        const aTime = aIsTimestamp ? a.timestamp : (state.segments[a.segmentIndex]?.start || 0);
-        const bTime = bIsTimestamp ? b.timestamp : (state.segments[b.segmentIndex]?.start || 0);
+        // Get effective time for sorting - use allSegments so filtered segments can still be looked up
+        const aSegment = a.segmentId != null ? state.allSegments.find(s => s.id === a.segmentId) : null;
+        const bSegment = b.segmentId != null ? state.allSegments.find(s => s.id === b.segmentId) : null;
+        // For word notes, use word start time; for segment notes, use segment start; fallback to stored timestamp
+        const aTime = aIsTimestamp ? a.timestamp
+          : (a.wordIndex != null ? (aSegment?.words?.[a.wordIndex]?.start ?? a.timestamp ?? 0)
+          : (aSegment?.start ?? a.timestamp ?? 0));
+        const bTime = bIsTimestamp ? b.timestamp
+          : (b.wordIndex != null ? (bSegment?.words?.[b.wordIndex]?.start ?? b.timestamp ?? 0)
+          : (bSegment?.start ?? b.timestamp ?? 0));
 
         // Primary sort by time
         if (Math.abs(aTime - bTime) > 0.01) {
@@ -1349,35 +1467,45 @@
       });
 
       notesList.innerHTML = sortedNotes.map(note => {
-        const segment = note.segmentIndex != null ? state.segments[note.segmentIndex] : null;
+        const segment = note.segmentId != null
+          ? state.segments.find(s => s.id === note.segmentId)
+          : null;
+        // Use allSegments to look up word data even when filtered
+        const allSegment = note.segmentId != null
+          ? state.allSegments.find(s => s.id === note.segmentId)
+          : null;
+        // Segment is filtered out if note has a segmentId but segment not found in current state.segments
+        const isFilteredOut = note.segmentId != null && !segment;
         let location, time;
 
-        if (note.segmentIndex == null) {
+        if (note.segmentId == null) {
           // Timestamp-only note (no segment association)
           location = `@ ${formatTime(note.timestamp)}`;
           time = formatTime(note.timestamp);
         } else if (note.wordIndex != null) {
-          const word = segment?.words?.[note.wordIndex];
-          const segmentId = segment?.id ?? note.segmentIndex;
-          location = `Seg ${segmentId} | Word "${escapeHtml(word?.word || '?')}"`;
-          time = formatTime(word?.start || 0);
+          const word = allSegment?.words?.[note.wordIndex];
+          const segmentId = allSegment?.id ?? note.segmentId;
+          const wordText = word?.word || note.wordText || '?';
+          location = `Seg ${segmentId} | Word "${escapeHtml(wordText)}"`;
+          time = formatTime(word?.start ?? note.timestamp ?? 0);
         } else {
-          location = `Segment ${segment?.id ?? note.segmentIndex}`;
-          time = formatTime(segment?.start || 0);
+          location = `Segment ${allSegment?.id ?? note.segmentId}`;
+          time = formatTime(allSegment?.start ?? note.timestamp ?? 0);
         }
 
         const textPreview = note.text.length > 100 ? note.text.substring(0, 100) + '...' : note.text;
 
         return `
-          <div class="note-item" data-note-id="${note.id}">
+          <div class="note-item ${isFilteredOut ? 'filtered-out' : ''}" data-note-id="${note.id}">
             <div class="note-item-header">
               <span class="note-item-location">${location}</span>
+              ${isFilteredOut ? '<span class="note-filtered-badge">hidden</span>' : ''}
               <span>${time}</span>
             </div>
             <div class="note-item-text">${escapeHtml(textPreview)}</div>
             <div class="note-item-actions">
-              <button class="note-action-btn" onclick="jumpToNote('${note.id}')">Jump</button>
-              <button class="note-action-btn" onclick="editNoteFromPanel('${note.id}')">Edit</button>
+              <button class="note-action-btn" onclick="jumpToNote('${note.id}')" ${isFilteredOut ? 'disabled' : ''}>Jump</button>
+              <button class="note-action-btn" onclick="editNoteFromPanel('${note.id}')" ${isFilteredOut ? 'disabled' : ''}>Edit</button>
               <button class="note-action-btn delete" onclick="deleteNote('${note.id}')">Delete</button>
             </div>
           </div>
@@ -1398,11 +1526,12 @@
 
       let seekTime;
 
-      if (note.segmentIndex == null) {
+      if (note.segmentId == null) {
         // Timestamp-only note - seek directly to timestamp
         seekTime = note.timestamp;
       } else {
-        const segment = state.segments[note.segmentIndex];
+        const segment = state.segments.find(s => s.id === note.segmentId);
+        const segmentIndex = state.segments.findIndex(s => s.id === note.segmentId);
         if (!segment) return;
 
         if (note.wordIndex != null) {
@@ -1413,7 +1542,7 @@
         }
 
         // Scroll to segment
-        const segmentCard = document.getElementById(`segment-${note.segmentIndex}`);
+        const segmentCard = document.getElementById(`segment-${segmentIndex}`);
         if (segmentCard) {
           segmentCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -1435,13 +1564,15 @@
       if (!note) return;
 
       let target;
-      if (note.segmentIndex == null) {
+      if (note.segmentId == null) {
         // Timestamp-only note
         target = { type: 'timestamp', timestamp: note.timestamp };
       } else {
+        const segmentIndex = state.segments.findIndex(s => s.id === note.segmentId);
         target = {
           type: note.wordIndex != null ? 'word' : 'segment',
-          segmentIndex: note.segmentIndex,
+          segmentIndex: segmentIndex,  // Still need index for openNoteModal
+          segmentId: note.segmentId,
           wordIndex: note.wordIndex
         };
       }
@@ -1556,6 +1687,11 @@
           e.preventDefault();
           toggleNotesPanel();
           break;
+
+        case 'f':
+          e.preventDefault();
+          toggleFilter();
+          break;
       }
     }
 
@@ -1589,6 +1725,7 @@
 
     notesToggleBtn.addEventListener('click', toggleNotesPanel);
     notesPanelClose.addEventListener('click', closeNotesPanel);
+    filterToggleBtn.addEventListener('click', toggleFilter);
 
     document.addEventListener('keydown', handleKeyboard);
 
