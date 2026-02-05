@@ -5,7 +5,6 @@ Serves the validation UI and handles transcript/notes operations.
 
 from flask import Flask, send_file, jsonify, request
 from pathlib import Path
-import copy
 import json
 import sys
 
@@ -102,14 +101,11 @@ def get_transcript(stem: str):
             if not (0.0 <= threshold <= 1.0):
                 return jsonify({"error": "min_prob must be between 0 and 1"}), 400
 
-            word_filter = min_probability(threshold)
-            filtered_segments = []
-            for segment in transcript.get("segments", []):
-                segment_copy = copy.deepcopy(segment)
-                filtered_words = [w for w in segment_copy.get("words", []) if word_filter(w)]
-                if filtered_words:
-                    segment_copy["words"] = filtered_words
-                    filtered_segments.append(segment_copy)
+            predicate = min_probability(threshold)
+            filtered_segments = [
+                seg for seg in transcript.get("segments", [])
+                if any(predicate(w) for w in seg.get("words", []))
+            ]
             transcript["segments"] = filtered_segments
 
         return jsonify(transcript)
