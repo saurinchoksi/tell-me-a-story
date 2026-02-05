@@ -119,8 +119,8 @@ def test_assign_speakers_gap():
     assert result[0]["speaker"] is None
 
 
-def test_assign_speakers_filters_words():
-    """Words are filtered by word_filter."""
+def test_assign_speakers_no_default_filter():
+    """Without a filter, all words pass through."""
     transcript = {
         "segments": [{
             "words": [
@@ -133,9 +133,8 @@ def test_assign_speakers_filters_words():
         {"start": 0.0, "end": 1.0, "speaker": "SPEAKER_00"},
     ]
     result = assign_speakers(transcript, diarization)
-    # Default filter removes zero-duration
-    assert len(result) == 1
-    assert result[0]["word"] == " Hello"
+    # No default filter - both words pass through
+    assert len(result) == 2
 
 
 def test_assign_speakers_custom_filter():
@@ -152,10 +151,8 @@ def test_assign_speakers_custom_filter():
         {"start": 0.0, "end": 2.0, "speaker": "SPEAKER_00"},
     ]
 
-    from filters import all_of, has_duration, has_content, min_probability
-    strict_filter = all_of(has_duration, has_content, min_probability(0.5))
-
-    result = assign_speakers(transcript, diarization, word_filter=strict_filter)
+    from filters import min_probability
+    result = assign_speakers(transcript, diarization, word_filter=min_probability(0.5))
     assert len(result) == 1
     assert result[0]["word"] == " Hello"
 

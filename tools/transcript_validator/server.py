@@ -5,13 +5,19 @@ Serves the validation UI and handles transcript/notes operations.
 
 from flask import Flask, send_file, jsonify, request
 from pathlib import Path
+import copy
 import json
+import sys
 
 app = Flask(__name__)
 
 # Path resolution
 PROJECT_ROOT = Path(__file__).parent.parent.parent  # tools/transcript_validator → project root
 SESSIONS_DIR = PROJECT_ROOT / "sessions"
+
+# Add src/ to path for filter imports
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
+from filters import min_probability
 
 
 def get_session_paths(stem: str) -> dict:
@@ -74,15 +80,39 @@ def get_audio(stem: str):
 
 @app.route("/transcript/<stem>")
 def get_transcript(stem: str):
-    """Return transcript content."""
+    """Return transcript content, optionally filtered by probability."""
     try:
         validate_path(SESSIONS_DIR, Path(stem))
         paths = get_session_paths(stem)
 
         if not paths["transcript"].exists():
             return jsonify({"error": "Transcript not found"}), 404
+
         with open(paths["transcript"]) as f:
-            return jsonify(json.load(f))
+            transcript = json.load(f)
+
+        # Apply probability filter if requested
+        min_prob = request.args.get("min_prob")
+        if min_prob is not None:
+            try:
+                threshold = float(min_prob)
+            except ValueError:
+                return jsonify({"error": "Invalid min_prob value"}), 400
+
+            if not (0.0 <= threshold <= 1.0):
+                return jsonify({"error": "min_prob must be between 0 and 1"}), 400
+
+            word_filter = min_probability(threshold)
+            filtered_segments = []
+            for segment in transcript.get("segments", []):
+                segment_copy = copy.deepcopy(segment)
+                filtered_words = [w for w in segment_copy.get("words", []) if word_filter(w)]
+                if filtered_words:
+                    segment_copy["words"] = filtered_words
+                    filtered_segments.append(segment_copy)
+            transcript["segments"] = filtered_segments
+
+        return jsonify(transcript)
     except ValueError:
         return jsonify({"error": "Invalid path"}), 400
     except json.JSONDecodeError:

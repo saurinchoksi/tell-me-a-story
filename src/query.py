@@ -7,7 +7,7 @@ Uses bisect for O(log n) speaker lookup instead of linear scan.
 import bisect
 from typing import Callable
 
-from filters import DEFAULT_FILTER, Predicate
+from filters import Predicate
 
 
 def build_speaker_index(segments: list[dict]) -> list[tuple[float, float, str]]:
@@ -60,21 +60,23 @@ def assign_speakers(
     Args:
         transcript: Transcript dict with 'segments' containing 'words'
         diarization: List of diarization segments
-        word_filter: Optional predicate to filter words (default: DEFAULT_FILTER)
+        word_filter: Optional predicate to filter words (default: None, no filtering)
 
     Returns:
         List of word dicts with 'speaker' field added
     """
-    if word_filter is None:
-        word_filter = DEFAULT_FILTER
+    # No default filter - clean_transcript() removes garbage upstream
 
     # Extract all words from transcript segments
     all_words = []
     for segment in transcript.get("segments", []):
         all_words.extend(segment.get("words", []))
 
-    # Filter words
-    words = [w for w in all_words if word_filter(w)]
+    # Filter words if a filter is provided
+    if word_filter is not None:
+        words = [w for w in all_words if word_filter(w)]
+    else:
+        words = all_words
 
     # Build speaker index for O(log n) lookup
     index = build_speaker_index(diarization)
