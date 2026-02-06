@@ -13,7 +13,7 @@ const state = {
   playbackRate: 1,
   filterEnabled: false,
   userScrolledAway: false,
-  filteredWordsExpanded: false,
+  activeDrawerTab: 'notes',
   scrollTimeout: null,
   // Context menu state
   contextTarget: null,  // { type: 'segment'|'word', segmentIndex, wordIndex }
@@ -41,9 +41,14 @@ const notesPanel = document.getElementById('notes-panel');
 const notesPanelClose = document.getElementById('notes-panel-close');
 const notesToggleBtn = document.getElementById('notes-toggle-btn');
 const notesList = document.getElementById('notes-list');
-const notesCount = document.getElementById('notes-count');
 const notesCountBadge = document.getElementById('notes-count-badge');
 const filterToggleBtn = document.getElementById('filter-toggle-btn');
+const tabContentNotes = document.getElementById('tab-content-notes');
+const tabContentLowConfidence = document.getElementById('tab-content-low-confidence');
+const lowConfidenceList = document.getElementById('low-confidence-list');
+const tabNotesCount = document.getElementById('tab-notes-count');
+const tabLcCount = document.getElementById('tab-lc-count');
+const deleteAllBtn = document.getElementById('delete-all-notes');
 
 // WaveSurfer instance
 let wavesurfer = null;
@@ -318,6 +323,7 @@ async function toggleFilter() {
   // Refresh notes panel if open (filtered-out status may have changed)
   if (notesPanel.classList.contains('open')) {
     renderNotesList();
+    renderLowConfidenceList();
   }
 
   if (wavesurfer) {
@@ -609,6 +615,8 @@ function toggleNotesPanel() {
   document.body.classList.toggle('notes-panel-open', isOpen);
   if (isOpen) {
     renderNotesList();
+    renderLowConfidenceList();
+    switchDrawerTab(state.activeDrawerTab);
   }
 }
 
@@ -618,9 +626,62 @@ function closeNotesPanel() {
   document.body.classList.remove('notes-panel-open');
 }
 
+function switchDrawerTab(tabName) {
+  state.activeDrawerTab = tabName;
+  document.querySelectorAll('.drawer-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+  tabContentNotes.classList.toggle('active', tabName === 'notes');
+  tabContentLowConfidence.classList.toggle('active', tabName === 'low-confidence');
+  deleteAllBtn.style.display = tabName === 'notes' ? '' : 'none';
+}
+
+function renderLowConfidenceList() {
+  const groups = getFilteredWords();
+  const totalWords = groups.reduce((sum, g) => sum + g.words.length, 0);
+  tabLcCount.textContent = totalWords;
+
+  if (groups.length === 0) {
+    lowConfidenceList.innerHTML = '<div class="notes-list-empty">No low confidence words</div>';
+    return;
+  }
+
+  const filteredSegmentIds = new Set(state.segments.map(s => s.id));
+
+  lowConfidenceList.innerHTML = groups.map(group => {
+    const isFilteredOut = state.filterEnabled && !filteredSegmentIds.has(group.segmentId);
+    const chips = group.words.map(w =>
+      `<button class="filtered-word-chip${isFilteredOut ? ' filter-active' : ''}" data-start="${w.start}">` +
+        `${escapeHtml(w.word)} <span class="word-prob">${w.probability.toFixed(2)}</span>` +
+      `</button>`
+    ).join('');
+
+    return `
+      <div class="note-item${isFilteredOut ? ' filtered-out' : ''}">
+        <div class="note-item-header">
+          <span class="note-item-location">Segment ${group.segmentId}</span>
+          <span>${formatTime(group.segmentStart)}</span>
+        </div>
+        <div class="filtered-word-chips">${chips}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Attach click-to-seek listeners
+  lowConfidenceList.querySelectorAll('.filtered-word-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const time = parseFloat(chip.dataset.start);
+      if (!isNaN(time)) {
+        state.userScrolledAway = false;
+        seekAndPlay(time);
+      }
+    });
+  });
+}
+
 function updateNotesCount() {
   const count = state.notes.length;
-  notesCount.textContent = count;
+  tabNotesCount.textContent = count;
   notesCountBadge.textContent = count;
 }
 
@@ -648,77 +709,11 @@ function getFilteredWords() {
   return results;
 }
 
-function renderFilteredWordsSection() {
-  const groups = getFilteredWords();
-  if (groups.length === 0) return '';
-
-  const totalWords = groups.reduce((sum, g) => sum + g.words.length, 0);
-  const expandedClass = state.filteredWordsExpanded ? ' expanded' : '';
-
-  const filteredSegmentIds = new Set(state.segments.map(s => s.id));
-
-  const cards = groups.map(group => {
-    const isFilteredOut = state.filterEnabled && !filteredSegmentIds.has(group.segmentId);
-    const chips = group.words.map(w =>
-      `<button class="filtered-word-chip${isFilteredOut ? ' filter-active' : ''}" data-start="${w.start}">` +
-        `${escapeHtml(w.word)} <span class="word-prob">${w.probability.toFixed(2)}</span>` +
-      `</button>`
-    ).join('');
-
-    return `
-      <div class="note-item${isFilteredOut ? ' filtered-out' : ''}">
-        <div class="note-item-header">
-          <span class="note-item-location">Segment ${group.segmentId}</span>
-          <span>${formatTime(group.segmentStart)}</span>
-        </div>
-        <div class="filtered-word-chips">${chips}</div>
-      </div>
-    `;
-  }).join('');
-
-  return `
-    <div class="filtered-words-section">
-      <button class="filtered-words-toggle">
-        <span class="toggle-chevron${expandedClass}">\u25B6</span>
-        Low Confidence Words
-        <span class="filtered-words-count">${totalWords}</span>
-      </button>
-      <div class="filtered-words-content${expandedClass}">
-        ${cards}
-      </div>
-    </div>
-  `;
-}
-
-function attachFilteredWordsListeners() {
-  const toggle = notesList.querySelector('.filtered-words-toggle');
-  if (!toggle) return;
-
-  toggle.addEventListener('click', () => {
-    state.filteredWordsExpanded = !state.filteredWordsExpanded;
-    const chevron = toggle.querySelector('.toggle-chevron');
-    const content = notesList.querySelector('.filtered-words-content');
-    if (chevron) chevron.classList.toggle('expanded', state.filteredWordsExpanded);
-    if (content) content.classList.toggle('expanded', state.filteredWordsExpanded);
-  });
-
-  notesList.querySelectorAll('.filtered-word-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const time = parseFloat(chip.dataset.start);
-      if (!isNaN(time)) {
-        state.userScrolledAway = false;
-        seekAndPlay(time);
-      }
-    });
-  });
-}
-
 function renderNotesList() {
   updateNotesCount();
 
   if (state.notes.length === 0) {
-    notesList.innerHTML = '<div class="notes-list-empty">No notes yet</div>' + renderFilteredWordsSection();
-    attachFilteredWordsListeners();
+    notesList.innerHTML = '<div class="notes-list-empty">No notes yet</div>';
     return;
   }
 
@@ -804,8 +799,7 @@ function renderNotesList() {
         </div>
       </div>
     `;
-  }).join('') + renderFilteredWordsSection();
-  attachFilteredWordsListeners();
+  }).join('');
 }
 
 function escapeHtml(text) {
@@ -1026,6 +1020,9 @@ noteCancel.addEventListener('click', closeNoteModal);
 
 notesToggleBtn.addEventListener('click', toggleNotesPanel);
 notesPanelClose.addEventListener('click', closeNotesPanel);
+document.querySelectorAll('.drawer-tab').forEach(tab => {
+  tab.addEventListener('click', () => switchDrawerTab(tab.dataset.tab));
+});
 filterToggleBtn.addEventListener('click', toggleFilter);
 
 document.getElementById('theme-toggle').addEventListener('click', toggleTheme);

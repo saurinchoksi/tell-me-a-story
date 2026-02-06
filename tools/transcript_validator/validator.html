@@ -85,12 +85,26 @@
   <!-- Notes Panel -->
   <div class="notes-panel" id="notes-panel">
     <div class="notes-panel-header">
-      <h3>Notes (<span id="notes-count">0</span>)</h3>
       <button class="note-action-btn delete" id="delete-all-notes" onclick="deleteAllNotes()">Delete All</button>
       <button class="notes-panel-close" id="notes-panel-close">&times;</button>
     </div>
-    <div class="notes-list" id="notes-list">
-      <div class="notes-list-empty">No notes yet</div>
+    <div class="drawer-tabs">
+      <button class="drawer-tab active" data-tab="notes">
+        Notes <span class="note-count" id="tab-notes-count">0</span>
+      </button>
+      <button class="drawer-tab" data-tab="low-confidence">
+        Low Confidence <span class="filtered-words-count" id="tab-lc-count">0</span>
+      </button>
+    </div>
+    <div class="drawer-tab-content active" id="tab-content-notes">
+      <div class="notes-list" id="notes-list">
+        <div class="notes-list-empty">No notes yet</div>
+      </div>
+    </div>
+    <div class="drawer-tab-content" id="tab-content-low-confidence">
+      <div class="notes-list" id="low-confidence-list">
+        <div class="notes-list-empty">No low confidence words</div>
+      </div>
     </div>
   </div>
 
