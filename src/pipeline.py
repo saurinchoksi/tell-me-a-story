@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,6 +12,13 @@ from transcribe import transcribe, clean_transcript, _SCHEMA_VERSION as TRANSCRI
 from diarize import diarize
 from query import assign_speakers, to_utterances, format_transcript
 from inspect_audio import get_audio_info
+from normalize import normalize as llm_normalize
+from dictionary import load_library, build_variant_map, normalize_variants
+from corrections import extract_text, apply_corrections, _NORMALIZED_SCHEMA_VERSION
+
+_DEFAULT_LIBRARY_PATH = str(Path(__file__).parent.parent / "data" / "mahabharata.json")
+_LLM_MODEL = "qwen3:8b"
+logger = logging.getLogger(__name__)
 
 
 def parse_args():
@@ -109,12 +117,13 @@ def save_computed(session_dir: str, audio_info: dict, transcript: dict, diarizat
         json.dump(manifest, f, indent=2)
 
 
-def run_pipeline(audio_path: str, verbose: bool = True) -> dict:
+def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None) -> dict:
     """Run full pipeline on an audio file.
 
     Args:
         audio_path: Path to audio file
         verbose: Print progress messages
+        library_path: Path to dictionary library JSON (defaults to data/mahabharata.json)
 
     Returns:
         Dict with 'audio_info', 'transcript', 'diarization', 'manifest' keys.
@@ -136,6 +145,64 @@ def run_pipeline(audio_path: str, verbose: bool = True) -> dict:
     transcript_time = datetime.now(timezone.utc).isoformat()
     raw_transcript = transcribe(audio_path, word_timestamps=True, model=model)
     transcript = clean_transcript(raw_transcript)
+
+    # Normalization
+    processing = [
+        {"stage": "transcription", "model": model, "status": "success"}
+    ]
+
+    llm_count = 0
+    dict_count = 0
+
+    # Pass 1: LLM normalization
+    try:
+        text = extract_text(transcript)
+        llm_corrections = llm_normalize(text, model=_LLM_MODEL)
+        transcript, llm_count = apply_corrections(transcript, llm_corrections, "llm")
+        processing.append({
+            "stage": "llm_normalization",
+            "model": _LLM_MODEL,
+            "status": "success",
+            "corrections_applied": llm_count,
+        })
+        if verbose:
+            logger.info(f"LLM normalization: {llm_count} corrections applied")
+    except Exception as e:
+        logger.warning(f"LLM normalization failed: {e}")
+        processing.append({
+            "stage": "llm_normalization",
+            "model": _LLM_MODEL,
+            "status": "error",
+            "error": str(e),
+        })
+
+    # Pass 2: Dictionary normalization
+    lib_path = library_path or _DEFAULT_LIBRARY_PATH
+    try:
+        library = load_library(lib_path)
+        variant_map = build_variant_map(library)
+        text = extract_text(transcript)
+        dict_corrections = normalize_variants(text, variant_map)
+        transcript, dict_count = apply_corrections(transcript, dict_corrections, "dictionary")
+        processing.append({
+            "stage": "dictionary_normalization",
+            "library": lib_path,
+            "status": "success",
+            "corrections_applied": dict_count,
+        })
+        if verbose:
+            logger.info(f"Dictionary normalization: {dict_count} corrections applied")
+    except Exception as e:
+        logger.warning(f"Dictionary normalization failed: {e}")
+        processing.append({
+            "stage": "dictionary_normalization",
+            "library": lib_path,
+            "status": "error",
+            "error": str(e),
+        })
+
+    transcript["_processing"] = processing
+    transcript["_schema_version"] = _NORMALIZED_SCHEMA_VERSION
 
     # Diarization
     if verbose:
@@ -161,6 +228,8 @@ def run_pipeline(audio_path: str, verbose: bool = True) -> dict:
         "transcript": transcript,
         "diarization": diarization,
         "manifest": manifest,
+        "llm_count": llm_count,
+        "dict_count": dict_count,
     }
 
 
@@ -194,3 +263,6 @@ if __name__ == "__main__":
     print(f"  audio-info.json")
     print(f"  transcript.json")
     print(f"  diarization.json")
+
+    print(f"\nLLM Normalization: {result['llm_count']} corrections")
+    print(f"Dictionary Normalization: {result['dict_count']} corrections")

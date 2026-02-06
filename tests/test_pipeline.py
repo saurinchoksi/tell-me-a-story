@@ -1,14 +1,17 @@
 """Tests for pipeline module."""
 
+import contextlib
+import copy
 import json
 import os
 import sys
 import tempfile
 from pathlib import Path
+from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from pipeline import compute_file_hash, create_manifest, save_computed
+from pipeline import compute_file_hash, create_manifest, save_computed, run_pipeline
 
 
 # --- compute_file_hash tests ---
@@ -160,3 +163,155 @@ def test_save_computed_content():
 
         with open(os.path.join(session_dir, "manifest.json")) as f:
             assert json.load(f) == manifest
+
+
+# --- run_pipeline normalization tests ---
+
+_FAKE_TRANSCRIPT = {
+    "text": "hello world",
+    "segments": [{
+        "text": "hello world",
+        "words": [
+            {"word": " hello", "start": 0.0, "end": 0.5, "probability": 0.9},
+            {"word": " world", "start": 0.5, "end": 1.0, "probability": 0.8},
+        ]
+    }]
+}
+
+
+def _apply_pipeline_mocks(stack, **overrides):
+    """Enter common mock patches onto an ExitStack and return a dict of active mocks.
+
+    Any key in overrides replaces the default mock for that target name
+    (use the short name after 'pipeline.', e.g. llm_normalize=MagicMock(...)).
+    """
+    defaults = {
+        "transcribe": MagicMock(return_value=copy.deepcopy(_FAKE_TRANSCRIPT)),
+        "clean_transcript": MagicMock(side_effect=lambda x: x),
+        "diarize": MagicMock(return_value={"segments": []}),
+        "get_audio_info": MagicMock(return_value={"duration": 10.0}),
+        "compute_file_hash": MagicMock(return_value="sha256:fake"),
+        "os.path.exists": MagicMock(return_value=True),
+        "extract_text": MagicMock(return_value="some text"),
+        "load_library": MagicMock(return_value={"entries": []}),
+        "build_variant_map": MagicMock(return_value={}),
+    }
+    defaults.update(overrides)
+
+    active = {}
+    for short_name, mock_obj in defaults.items():
+        target = f"pipeline.{short_name}"
+        active[short_name] = stack.enter_context(patch(target, mock_obj))
+    return active
+
+
+def test_pipeline_both_normalizations_succeed():
+    """Both LLM and dictionary normalization succeed and counts are recorded."""
+    fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)
+
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            llm_normalize=MagicMock(
+                return_value=[{"transcribed": "hello", "correct": "Hello"}]
+            ),
+            normalize_variants=MagicMock(
+                return_value=[{"transcribed": "world", "correct": "World"}]
+            ),
+            apply_corrections=MagicMock(
+                side_effect=[
+                    (copy.deepcopy(fake_transcript), 5),
+                    (copy.deepcopy(fake_transcript), 3),
+                ]
+            ),
+        )
+        result = run_pipeline("/fake/session/audio.m4a", verbose=False)
+
+    processing = result["transcript"]["_processing"]
+    assert len(processing) == 3
+
+    assert processing[0]["stage"] == "transcription"
+    assert processing[0]["status"] == "success"
+
+    assert processing[1]["stage"] == "llm_normalization"
+    assert processing[1]["status"] == "success"
+    assert processing[1]["corrections_applied"] == 5
+
+    assert processing[2]["stage"] == "dictionary_normalization"
+    assert processing[2]["status"] == "success"
+    assert processing[2]["corrections_applied"] == 3
+
+    assert result["transcript"]["_schema_version"] == "1.1.0"
+    assert result["llm_count"] == 5
+    assert result["dict_count"] == 3
+
+
+def test_pipeline_llm_fails_dictionary_continues():
+    """LLM normalization failure does not prevent dictionary normalization."""
+    fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)
+
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            llm_normalize=MagicMock(
+                side_effect=RuntimeError("Ollama not running")
+            ),
+            normalize_variants=MagicMock(
+                return_value=[{"transcribed": "x", "correct": "Y"}]
+            ),
+            apply_corrections=MagicMock(
+                return_value=(copy.deepcopy(fake_transcript), 2)
+            ),
+        )
+        result = run_pipeline("/fake/session/audio.m4a", verbose=False)
+
+    processing = result["transcript"]["_processing"]
+    assert len(processing) == 3
+
+    llm_entry = processing[1]
+    assert llm_entry["stage"] == "llm_normalization"
+    assert llm_entry["status"] == "error"
+    assert "Ollama not running" in llm_entry["error"]
+
+    dict_entry = processing[2]
+    assert dict_entry["stage"] == "dictionary_normalization"
+    assert dict_entry["status"] == "success"
+    assert dict_entry["corrections_applied"] == 2
+
+    assert result["llm_count"] == 0
+    assert result["dict_count"] == 2
+
+
+def test_pipeline_empty_corrections():
+    """Empty correction lists result in zero counts but success status."""
+    fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)
+
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            llm_normalize=MagicMock(return_value=[]),
+            normalize_variants=MagicMock(return_value=[]),
+            apply_corrections=MagicMock(
+                side_effect=[
+                    (copy.deepcopy(fake_transcript), 0),
+                    (copy.deepcopy(fake_transcript), 0),
+                ]
+            ),
+        )
+        result = run_pipeline("/fake/session/audio.m4a", verbose=False)
+
+    processing = result["transcript"]["_processing"]
+    assert len(processing) == 3
+
+    assert processing[1]["stage"] == "llm_normalization"
+    assert processing[1]["status"] == "success"
+    assert processing[1]["corrections_applied"] == 0
+
+    assert processing[2]["stage"] == "dictionary_normalization"
+    assert processing[2]["status"] == "success"
+    assert processing[2]["corrections_applied"] == 0
+
+    # Words should be unchanged
+    words = result["transcript"]["segments"][0]["words"]
+    assert words[0]["word"] == " hello"
+    assert words[1]["word"] == " world"
