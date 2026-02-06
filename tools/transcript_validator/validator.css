@@ -702,6 +702,7 @@ body.notes-panel-open #segments {
   font-size: 18px;
   transition: background 0.2s, color 0.2s;
   line-height: 1;
+  margin-left: auto;
 }
 
 .notes-panel-close:hover {
