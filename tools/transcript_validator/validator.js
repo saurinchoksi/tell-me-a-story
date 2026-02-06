@@ -59,7 +59,7 @@ function initWaveSurfer() {
     waveColor: getComputedStyle(document.documentElement).getPropertyValue('--wave-color').trim(),
     progressColor: getComputedStyle(document.documentElement).getPropertyValue('--wave-progress').trim(),
     cursorColor: getComputedStyle(document.documentElement).getPropertyValue('--wave-cursor').trim(),
-    minPxPerSec: 50,
+    minPxPerSec: 100,
     plugins: [
       Minimap.create({
         container: '#minimap',
@@ -364,6 +364,7 @@ async function loadSession(stem) {
 
   showLoading();
   state.filename = stem;
+  localStorage.setItem('validator-last-session', stem);
   state.segments = [];
   state.allSegments = [];
   state.notes = [];
@@ -422,6 +423,11 @@ async function loadFiles() {
       option.textContent = file;
       sessionSelect.appendChild(option);
     });
+    const lastSession = localStorage.getItem('validator-last-session');
+    if (lastSession && data.files.includes(lastSession)) {
+      sessionSelect.value = lastSession;
+      loadSession(lastSession);
+    }
   } catch (error) {
     console.error('Error loading files:', error);
     sessionSelect.innerHTML = '<option value="">Error loading sessions</option>';
