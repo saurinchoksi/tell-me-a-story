@@ -704,8 +704,10 @@ function attachFilteredWordsListeners() {
 
   notesList.querySelectorAll('.filtered-word-chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      if (wavesurfer) {
-        wavesurfer.setTime(parseFloat(chip.dataset.start));
+      const time = parseFloat(chip.dataset.start);
+      if (!isNaN(time)) {
+        state.userScrolledAway = false;
+        seekAndPlay(time);
       }
     });
   });
