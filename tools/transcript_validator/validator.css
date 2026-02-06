@@ -39,6 +39,16 @@
   --wave-progress: #A86840;
   --wave-cursor: #2C2520;
   --loading-overlay-bg: rgba(226, 218, 207, 0.85);
+
+  /* Drawer-specific surface */
+  --drawer-bg: #DDD5C8;
+  --drawer-surface: #EBE5DA;
+  --drawer-surface-hover: #F2EDE4;
+  --drawer-ink: #3D3529;
+  --drawer-ink-secondary: #6B6358;
+  --drawer-rule: rgba(92, 83, 72, 0.12);
+  --drawer-shadow: rgba(61, 56, 51, 0.12);
+  --noise-opacity: 0.03;
 }
 
 [data-theme="dark"] {
@@ -76,9 +86,18 @@
   --wave-progress: #B87A56;
   --wave-cursor: #E8E4DD;
   --loading-overlay-bg: rgba(28, 27, 26, 0.85);
+
+  --drawer-bg: #1F1E1C;
+  --drawer-surface: #2A2825;
+  --drawer-surface-hover: #33302C;
+  --drawer-ink: #E0DBD3;
+  --drawer-ink-secondary: #9A948B;
+  --drawer-rule: rgba(122, 116, 108, 0.15);
+  --drawer-shadow: rgba(0, 0, 0, 0.25);
+  --noise-opacity: 0.04;
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -244,7 +263,7 @@ body {
 
 /* Shift segments when notes panel is open */
 body.notes-panel-open #segments {
-  padding-right: 360px; /* 340px panel + 20px original padding */
+  padding-right: 400px; /* 380px panel + 20px original padding */
 }
 
 .segment-card {
@@ -600,95 +619,160 @@ body.notes-panel-open #segments {
 .notes-panel {
   position: fixed;
   top: 0;
-  right: -340px;
-  width: 340px;
+  right: 0;
+  width: 380px;
   height: 100vh;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border-medium);
-  box-shadow: -8px 0 32px rgba(61, 56, 51, 0.1);
+  background: var(--drawer-bg);
   z-index: 500;
   display: flex;
   flex-direction: column;
-  transition: right 0.3s ease;
+  box-shadow:
+    -2px 0 4px var(--drawer-shadow),
+    -8px 0 16px var(--drawer-shadow),
+    -24px 0 48px var(--drawer-shadow);
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
 }
 
 .notes-panel.open {
-  right: 0;
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Noise texture overlay */
+.notes-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--noise-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  z-index: 0;
+}
+
+/* Everything inside drawer should be above noise */
+.notes-panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .notes-panel-header {
+  height: 48px;
+  padding: 0 12px 0 16px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding: 20px 18px;
-  background: var(--bg-tertiary);
-  gap: 10px;
+  justify-content: space-between;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--drawer-rule);
 }
 
 #delete-all-notes {
   margin-right: auto;
+  background: none;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+}
+
+#delete-all-notes:hover {
+  color: var(--prob-low);
+  background: var(--prob-low-bg);
 }
 
 .notes-panel-close {
-  width: 30px;
-  height: 30px;
-  border: 1px solid var(--border-medium);
-  border-radius: 8px;
-  background: var(--bg-primary);
-  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--drawer-ink-secondary);
   cursor: pointer;
-  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.25s;
+  font-size: 18px;
+  transition: background 0.2s, color 0.2s;
+  line-height: 1;
 }
 
 .notes-panel-close:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--bg-hover);
+  background: var(--drawer-surface);
+  color: var(--drawer-ink);
 }
 
 /* Drawer Tabs */
 .drawer-tabs {
+  position: relative;
   display: flex;
-  background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border-light);
+  padding: 8px 12px;
+  gap: 4px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--drawer-rule);
+  background: transparent;
+}
+
+/* Sliding pill indicator */
+.drawer-tabs::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: var(--tab-left, 12px);
+  width: var(--tab-width, 140px);
+  height: calc(100% - 16px);
+  background: var(--drawer-surface);
+  border-radius: 20px;
+  box-shadow: 0 1px 3px var(--drawer-shadow);
+  transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
 }
 
 .drawer-tab {
+  position: relative;
+  z-index: 1;
   flex: 1;
-  padding: 12px 0;
+  padding: 8px 16px;
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-secondary);
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 500;
   cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant: small-caps;
+  letter-spacing: 0.05em;
+  color: var(--drawer-ink-secondary);
+  transition: color 0.25s;
+  text-align: center;
+  white-space: nowrap;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.25s;
 }
 
 .drawer-tab:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
+  color: var(--drawer-ink);
+  background: none;
 }
 
 .drawer-tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--drawer-ink);
+  border-bottom-color: transparent;
 }
 
 .drawer-tab-content {
   display: none;
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   flex-direction: column;
 }
 
@@ -699,43 +783,101 @@ body.notes-panel-open #segments {
 .notes-list {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  background: var(--bg-primary);
+  gap: 10px;
+  background: transparent;
 }
 
 .notes-list-empty {
-  color: var(--text-tertiary);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
   text-align: center;
-  padding: 48px 24px;
-  font-size: 14px;
-  font-style: italic;
+  gap: 12px;
+}
+
+.notes-list-empty svg {
+  width: 48px;
+  height: 48px;
+  color: var(--drawer-ink-secondary);
+  opacity: 0.4;
+  margin-bottom: 4px;
+}
+
+.notes-list-empty .empty-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--drawer-ink-secondary);
+}
+
+.notes-list-empty .empty-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
+}
+
+.notes-list-empty .empty-hint kbd {
+  padding: 2px 6px;
+  background: var(--drawer-surface);
+  border: 1px solid var(--drawer-rule);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
 }
 
 .note-item {
-  background: var(--bg-secondary);
+  position: relative;
+  background: var(--drawer-surface);
   border: none;
-  border-left: 3px solid var(--accent-soft);
-  border-radius: 10px;
-  padding: 16px 18px;
-  transition: all 0.25s;
-  box-shadow: 0 1px 3px rgba(61, 56, 51, 0.06);
+  border-left: none;
+  border-radius: 8px 10px 10px 8px;
+  padding: 14px 16px 14px 22px;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  box-shadow:
+    0 1px 4px var(--drawer-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation: noteSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Left gutter strip */
+.note-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--accent);
+  border-radius: 8px 0 0 8px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
 }
 
 .note-item:hover {
-  border-left-color: var(--accent);
-  box-shadow: 0 2px 8px rgba(61, 56, 51, 0.1);
+  background: var(--drawer-surface-hover);
+  transform: translateY(-1px);
+  box-shadow:
+    0 2px 8px var(--drawer-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.note-item:hover::before {
+  opacity: 1;
 }
 
 .note-item-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--drawer-ink-secondary);
   font-family: var(--font-mono);
 }
 
@@ -749,8 +891,8 @@ body.notes-panel-open #segments {
 
 .note-item-text {
   font-size: 14px;
-  line-height: 1.6;
-  color: var(--text-primary);
+  line-height: 1.7;
+  color: var(--drawer-ink);
   margin-bottom: 12px;
   display: -webkit-box;
   -webkit-line-clamp: 4;
@@ -760,31 +902,60 @@ body.notes-panel-open #segments {
 
 .note-item-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
+  margin-top: 8px;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.note-item:hover .note-item-actions,
+.note-item:focus-within .note-item-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Always visible on touch devices */
+@media (hover: none) {
+  .note-item-actions {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .note-action-btn {
-  padding: 6px 14px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: 16px;
-  color: var(--text-secondary);
+  border: none;
+  border-radius: 6px;
+  color: var(--drawer-ink-secondary);
   cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 12px;
-  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.note-action-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .note-action-btn:not(:disabled):hover {
-  background: var(--bg-hover);
-  border-color: var(--border-medium);
-  color: var(--text-primary);
+  background: var(--drawer-bg);
+  color: var(--drawer-ink);
 }
 
 .note-action-btn.delete:hover {
   background: var(--prob-low-bg);
-  border-color: var(--prob-low);
   color: var(--prob-low);
+}
+
+.note-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .notes-toggle-btn {
@@ -850,11 +1021,6 @@ body.notes-panel-open #segments {
   text-align: center;
 }
 
-.note-item.filtered-out {
-  opacity: 0.55;
-  border-left-color: var(--text-tertiary);
-}
-
 .note-filtered-badge {
   background: var(--bg-tertiary);
   color: var(--text-tertiary);
@@ -863,11 +1029,6 @@ body.notes-panel-open #segments {
   font-size: 10px;
   text-transform: uppercase;
   margin-left: auto;
-}
-
-.note-action-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 /* Theme Toggle */
@@ -911,30 +1072,51 @@ body.notes-panel-open #segments {
   margin-left: auto;
 }
 
+.drawer-tab .note-count,
+.drawer-tab .filtered-words-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant: normal;
+  opacity: 0.7;
+  background: none;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+  min-width: auto;
+  margin-left: 0;
+}
+
 .filtered-word-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 8px;
+  padding-left: 10px;
+  border-left: 2px dashed var(--drawer-rule);
 }
 
 .filtered-word-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: var(--prob-low-bg);
-  color: var(--text-secondary);
-  border-radius: 12px;
+  gap: 5px;
+  padding: 5px 10px;
+  background: var(--drawer-surface);
+  border: 1px solid var(--drawer-rule);
+  border-radius: 6px;
   font-size: 13px;
   cursor: pointer;
-  transition: box-shadow 0.25s;
-  border: none;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
   font-family: var(--font-body);
+  color: var(--drawer-ink);
 }
 
 .filtered-word-chip:hover {
-  box-shadow: 0 0 0 2px var(--prob-low);
+  background: var(--drawer-surface-hover);
+  border-color: var(--border-medium);
+}
+
+.filtered-word-chip:active {
+  transform: scale(0.95);
 }
 
 .filtered-word-chip.filter-active {
@@ -945,4 +1127,67 @@ body.notes-panel-open #segments {
 .filtered-word-chip .word-prob {
   font-family: var(--font-mono);
   font-size: 10px;
+}
+
+/* Note card animations */
+@keyframes noteSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes noteSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+/* Stagger delays for note cards */
+.note-item:nth-child(1) { animation-delay: 0.00s; }
+.note-item:nth-child(2) { animation-delay: 0.04s; }
+.note-item:nth-child(3) { animation-delay: 0.08s; }
+.note-item:nth-child(4) { animation-delay: 0.12s; }
+.note-item:nth-child(5) { animation-delay: 0.16s; }
+.note-item:nth-child(6) { animation-delay: 0.20s; }
+.note-item:nth-child(7) { animation-delay: 0.24s; }
+.note-item:nth-child(8) { animation-delay: 0.28s; }
+.note-item:nth-child(9) { animation-delay: 0.32s; }
+.note-item:nth-child(10) { animation-delay: 0.36s; }
+.note-item:nth-child(n+11) { animation-delay: 0.40s; }
+
+/* Filtered-out note cards */
+.note-item.filtered-out {
+  opacity: 0.55;
+}
+
+.note-item.filtered-out::before {
+  background: var(--text-tertiary);
+}
+
+/* Drawer scrollbar styling */
+.notes-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notes-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notes-list::-webkit-scrollbar-thumb {
+  background: var(--drawer-rule);
+  border-radius: 3px;
+}
+
+.notes-list::-webkit-scrollbar-thumb:hover {
+  background: var(--border-medium);
 }

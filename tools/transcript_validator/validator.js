@@ -616,7 +616,8 @@ function toggleNotesPanel() {
   if (isOpen) {
     renderNotesList();
     renderLowConfidenceList();
-    switchDrawerTab(state.activeDrawerTab);
+    // Defer pill position calculation until panel has rendered
+    requestAnimationFrame(() => switchDrawerTab(state.activeDrawerTab));
   }
 }
 
@@ -634,15 +635,36 @@ function switchDrawerTab(tabName) {
   tabContentNotes.classList.toggle('active', tabName === 'notes');
   tabContentLowConfidence.classList.toggle('active', tabName === 'low-confidence');
   deleteAllBtn.style.display = tabName === 'notes' ? '' : 'none';
+
+  updateTabPill();
+}
+
+function updateTabPill() {
+  const tabsContainer = document.querySelector('.drawer-tabs');
+  const activeTab = tabsContainer?.querySelector('.drawer-tab.active');
+  if (tabsContainer && activeTab) {
+    const containerRect = tabsContainer.getBoundingClientRect();
+    const tabRect = activeTab.getBoundingClientRect();
+    const left = tabRect.left - containerRect.left;
+    tabsContainer.style.setProperty('--tab-left', left + 'px');
+    tabsContainer.style.setProperty('--tab-width', tabRect.width + 'px');
+  }
 }
 
 function renderLowConfidenceList() {
   const groups = getFilteredWords();
   const totalWords = groups.reduce((sum, g) => sum + g.words.length, 0);
-  tabLcCount.textContent = totalWords;
+  tabLcCount.textContent = `(${totalWords})`;
 
   if (groups.length === 0) {
-    lowConfidenceList.innerHTML = '<div class="notes-list-empty">No low confidence words</div>';
+    lowConfidenceList.innerHTML = `<div class="notes-list-empty">
+  <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="24" cy="24" r="20"/>
+    <path d="M16 24l5 5 11-11"/>
+  </svg>
+  <span class="empty-title">All words confident</span>
+  <span class="empty-hint">Whisper was sure about every word</span>
+</div>`;
     return;
   }
 
@@ -681,7 +703,7 @@ function renderLowConfidenceList() {
 
 function updateNotesCount() {
   const count = state.notes.length;
-  tabNotesCount.textContent = count;
+  tabNotesCount.textContent = `(${count})`;
   notesCountBadge.textContent = count;
 }
 
@@ -713,7 +735,16 @@ function renderNotesList() {
   updateNotesCount();
 
   if (state.notes.length === 0) {
-    notesList.innerHTML = '<div class="notes-list-empty">No notes yet</div>';
+    notesList.innerHTML = `<div class="notes-list-empty">
+  <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 6h24l8 8v28a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
+    <path d="M32 6v8h8"/>
+    <path d="M16 24h16"/>
+    <path d="M16 32h10"/>
+  </svg>
+  <span class="empty-title">No notes yet</span>
+  <span class="empty-hint">Right-click a word or press <kbd>N</kbd></span>
+</div>`;
     return;
   }
 
@@ -793,9 +824,9 @@ function renderNotesList() {
         </div>
         <div class="note-item-text">${escapeHtml(textPreview)}</div>
         <div class="note-item-actions">
-          <button class="note-action-btn" onclick="jumpToNote('${note.id}')" ${isFilteredOut ? 'disabled' : ''}>Jump</button>
-          <button class="note-action-btn" onclick="editNoteFromPanel('${note.id}')" ${isFilteredOut ? 'disabled' : ''}>Edit</button>
-          <button class="note-action-btn delete" onclick="deleteNote('${note.id}')">Delete</button>
+          <button class="note-action-btn" onclick="jumpToNote('${note.id}')" ${isFilteredOut ? 'disabled' : ''} title="Jump to location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          <button class="note-action-btn" onclick="editNoteFromPanel('${note.id}')" ${isFilteredOut ? 'disabled' : ''} title="Edit note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="note-action-btn delete" onclick="deleteNote('${note.id}')" title="Delete note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
         </div>
       </div>
     `;
@@ -886,6 +917,13 @@ window.deleteNote = async function(noteId) {
     console.error('Error deleting note:', error);
     alert('Failed to delete note. Please try again.');
     return;
+  }
+
+  // Animate the card out before re-rendering
+  const noteEl = document.querySelector(`.note-item[data-note-id="${noteId}"]`);
+  if (noteEl) {
+    noteEl.style.animation = 'noteSlideOut 0.25s ease forwards';
+    await new Promise(r => setTimeout(r, 250));
   }
 
   renderNotesList();
@@ -1052,3 +1090,18 @@ segmentsContainer.addEventListener('scroll', () => {
 
 // Initialize
 loadFiles();
+
+// Initialize tab pill position after fonts load
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => {
+    if (notesPanel.classList.contains('open')) {
+      switchDrawerTab(state.activeDrawerTab);
+    }
+  });
+}
+
+window.addEventListener('resize', () => {
+  if (notesPanel.classList.contains('open')) {
+    updateTabPill();
+  }
+});

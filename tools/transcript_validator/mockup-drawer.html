@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes Drawer Mockup — Transcription Validator</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    /* ===================================================================
+       CSS Custom Properties — Light Theme (default)
+       =================================================================== */
+    :root {
+      --font-body: 'Source Serif 4', Georgia, serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+
+      /* Main app surface */
+      --bg-primary: #E2DACF;
+      --bg-secondary: #D1C8BB;
+      --bg-tertiary: #C4BAA9;
+      --bg-hover: #B8AE9C;
+
+      --text-primary: #2C2520;
+      --text-secondary: #5C5348;
+      --text-tertiary: #8A8078;
+
+      --accent: #A86840;
+      --accent-soft: rgba(168, 104, 64, 0.2);
+      --accent-hover: #955B38;
+
+      --prob-high: #5E9E66;
+      --prob-high-bg: rgba(94, 158, 102, 0.18);
+      --prob-mid: #B8913C;
+      --prob-mid-bg: rgba(184, 145, 60, 0.18);
+      --prob-low: #B06050;
+      --prob-low-bg: rgba(176, 96, 80, 0.2);
+
+      --border-light: rgba(92, 83, 72, 0.2);
+      --border-medium: rgba(92, 83, 72, 0.35);
+
+      --segment-active-bg: rgba(168, 104, 64, 0.08);
+      --word-active-bg: rgba(168, 104, 64, 0.25);
+
+      /* Drawer-specific surface */
+      --drawer-bg: #DDD5C8;
+      --drawer-surface: #EBE5DA;
+      --drawer-surface-hover: #F2EDE4;
+      --drawer-ink: #3D3529;
+      --drawer-ink-secondary: #6B6358;
+      --drawer-rule: rgba(92, 83, 72, 0.12);
+      --drawer-shadow: rgba(61, 56, 51, 0.12);
+
+      /* Noise overlay opacity */
+      --noise-opacity: 0.03;
+    }
+
+    /* ===================================================================
+       CSS Custom Properties — Dark Theme
+       =================================================================== */
+    [data-theme="dark"] {
+      --bg-primary: #1C1B1A;
+      --bg-secondary: #252320;
+      --bg-tertiary: #302D29;
+      --bg-hover: #3A3632;
+
+      --text-primary: #E8E4DD;
+      --text-secondary: #A69F96;
+      --text-tertiary: #7A746C;
+
+      --accent: #B87A56;
+      --accent-soft: rgba(184, 122, 86, 0.2);
+      --accent-hover: #A66B48;
+
+      --prob-high: #7DAF83;
+      --prob-high-bg: rgba(125, 175, 131, 0.15);
+      --prob-mid: #C9A060;
+      --prob-mid-bg: rgba(201, 160, 96, 0.15);
+      --prob-low: #B87070;
+      --prob-low-bg: rgba(184, 112, 112, 0.18);
+
+      --border-light: rgba(122, 116, 108, 0.25);
+      --border-medium: rgba(122, 116, 108, 0.4);
+
+      --segment-active-bg: rgba(184, 122, 86, 0.08);
+      --word-active-bg: rgba(184, 122, 86, 0.25);
+
+      --drawer-bg: #1F1E1C;
+      --drawer-surface: #2A2825;
+      --drawer-surface-hover: #33302C;
+      --drawer-ink: #E0DBD3;
+      --drawer-ink-secondary: #9A948B;
+      --drawer-rule: rgba(122, 116, 108, 0.15);
+      --drawer-shadow: rgba(0, 0, 0, 0.25);
+
+      --noise-opacity: 0.04;
+    }
+
+    /* ===================================================================
+       Reset + Base
+       =================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===================================================================
+       Header Bar
+       =================================================================== */
+    .header {
+      height: 56px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-light);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .header-spacer { flex: 1; }
+
+    .header-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-tertiary);
+      background: var(--bg-tertiary);
+      padding: 5px 12px;
+      border-radius: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    .theme-toggle-btn {
+      width: 40px;
+      height: 36px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 20px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--accent-soft);
+      color: var(--text-primary);
+      background: var(--bg-hover);
+    }
+
+    .theme-icon-dark { display: none; }
+    [data-theme="dark"] .theme-icon-light { display: none; }
+    [data-theme="dark"] .theme-icon-dark { display: inline; }
+
+    /* ===================================================================
+       Main Content Area (mock transcript)
+       =================================================================== */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      padding-right: 404px; /* drawer width + gap */
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .segment-card {
+      background: var(--bg-secondary);
+      border-left: 3px solid var(--accent-soft);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.25s;
+      box-shadow: 0 1px 3px rgba(61, 56, 51, 0.08);
+    }
+
+    .segment-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(61, 56, 51, 0.1);
+      border-left-color: var(--accent);
+    }
+
+    .segment-card.active {
+      border-left-color: var(--accent);
+      background: var(--segment-active-bg);
+      box-shadow: 0 2px 8px rgba(199, 123, 88, 0.12);
+    }
+
+    .segment-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .segment-id {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .segment-time {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .segment-badges {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-temp {
+      background: var(--prob-low-bg);
+      color: var(--prob-low);
+    }
+
+    .badge-note {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .segment-meta {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+      margin-bottom: 12px;
+    }
+
+    .segment-words {
+      line-height: 2.0;
+      font-size: 15px;
+    }
+
+    .word {
+      display: inline;
+      padding: 3px 5px;
+      margin: 2px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+
+    .word:hover { opacity: 0.85; }
+
+    .prob-high {
+      background: var(--prob-high-bg);
+      color: var(--prob-high);
+    }
+
+    .prob-mid {
+      background: var(--prob-mid-bg);
+      color: var(--prob-mid);
+    }
+
+    .prob-low {
+      background: var(--prob-low-bg);
+      color: var(--prob-low);
+    }
+
+    .word.active {
+      background: var(--word-active-bg) !important;
+      box-shadow: 0 0 0 2px var(--accent), 0 0 8px rgba(199, 123, 88, 0.3);
+    }
+
+    /* ===================================================================
+       DRAWER — "The Marginalia"
+       =================================================================== */
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 380px;
+      height: 100vh;
+      background: var(--drawer-bg);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+
+      /* 3-layer edge shadow */
+      box-shadow:
+        -2px 0 4px var(--drawer-shadow),
+        -8px 0 16px var(--drawer-shadow),
+        -24px 0 48px var(--drawer-shadow);
+
+      /* Entrance animation */
+      animation: drawerSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes drawerSlideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Noise texture overlay via SVG data URI */
+    .drawer::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: var(--noise-opacity);
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+      z-index: 0;
+    }
+
+    /* Everything inside drawer should be above noise */
+    .drawer > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===================================================================
+       Drawer Header — compact 48px
+       =================================================================== */
+    .drawer-header {
+      height: 48px;
+      padding: 0 12px 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--drawer-rule);
+    }
+
+    .drawer-delete-all {
+      background: none;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .drawer-delete-all:hover {
+      color: var(--prob-low);
+      background: var(--prob-low-bg);
+    }
+
+    .drawer-close {
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--drawer-ink-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: background 0.2s, color 0.2s;
+      line-height: 1;
+    }
+
+    .drawer-close:hover {
+      background: var(--drawer-surface);
+      color: var(--drawer-ink);
+    }
+
+    /* ===================================================================
+       Tabs with Sliding Pill
+       =================================================================== */
+    .drawer-tabs {
+      position: relative;
+      display: flex;
+      padding: 8px 12px;
+      gap: 4px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--drawer-rule);
+      background: transparent;
+    }
+
+    /* The sliding pill indicator */
+    .drawer-tabs::before {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: var(--tab-left, 12px);
+      width: var(--tab-width, 140px);
+      height: calc(100% - 16px);
+      background: var(--drawer-surface);
+      border-radius: 20px;
+      box-shadow: 0 1px 3px var(--drawer-shadow);
+      transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 0;
+    }
+
+    .drawer-tab {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      padding: 8px 16px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      font-variant: small-caps;
+      letter-spacing: 0.05em;
+      color: var(--drawer-ink-secondary);
+      transition: color 0.25s;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .drawer-tab:hover {
+      color: var(--drawer-ink);
+    }
+
+    .drawer-tab.active {
+      color: var(--drawer-ink);
+    }
+
+    .drawer-tab .tab-count {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-variant: normal;
+      margin-left: 4px;
+      opacity: 0.7;
+    }
+
+    /* ===================================================================
+       Tab Content Containers
+       =================================================================== */
+    .drawer-tab-content {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex-direction: column;
+    }
+
+    .drawer-tab-content.active {
+      display: flex;
+    }
+
+    .drawer-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ===================================================================
+       Note Cards
+       =================================================================== */
+    .note-card {
+      position: relative;
+      background: var(--drawer-surface);
+      border-radius: 8px 10px 10px 8px;
+      padding: 14px 16px 14px 22px;
+      cursor: default;
+      transition: background 0.2s, box-shadow 0.2s;
+
+      /* Subtle card shadow + inset top highlight */
+      box-shadow:
+        0 1px 4px var(--drawer-shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+      /* Staggered entrance animation */
+      animation: cardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .note-card:nth-child(1) { animation-delay: 0.00s; }
+    .note-card:nth-child(2) { animation-delay: 0.04s; }
+    .note-card:nth-child(3) { animation-delay: 0.08s; }
+    .note-card:nth-child(4) { animation-delay: 0.12s; }
+
+    @keyframes cardSlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .note-card:hover {
+      background: var(--drawer-surface-hover);
+      box-shadow:
+        0 2px 8px var(--drawer-shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    /* Left gutter strip */
+    .note-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      background: var(--accent);
+      border-radius: 8px 0 0 8px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .note-card:hover::before {
+      opacity: 1;
+    }
+
+    .note-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .note-location {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      font-feature-settings: 'tnum';
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 3px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    .note-time {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-feature-settings: 'tnum';
+      color: var(--drawer-ink-secondary);
+      margin-left: auto;
+    }
+
+    .note-text {
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--drawer-ink);
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Action buttons — hidden by default, shown on hover */
+    .note-actions {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+      opacity: 0;
+      transform: translateY(2px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .note-card:hover .note-actions {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .note-action {
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--drawer-ink-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .note-action:hover {
+      background: var(--drawer-bg);
+      color: var(--drawer-ink);
+    }
+
+    .note-action.delete:hover {
+      background: var(--prob-low-bg);
+      color: var(--prob-low);
+    }
+
+    /* ===================================================================
+       Low Confidence — Word Chip Groups
+       =================================================================== */
+    .lc-group {
+      padding: 14px 16px 14px 22px;
+      position: relative;
+      animation: cardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .lc-group:nth-child(1) { animation-delay: 0.00s; }
+    .lc-group:nth-child(2) { animation-delay: 0.04s; }
+    .lc-group:nth-child(3) { animation-delay: 0.08s; }
+
+    .lc-group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .lc-group-location {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      font-feature-settings: 'tnum';
+      color: var(--drawer-ink-secondary);
+    }
+
+    .lc-group-time {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-feature-settings: 'tnum';
+      color: var(--drawer-ink-secondary);
+      margin-left: auto;
+    }
+
+    .lc-chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-left: 10px;
+      border-left: 2px dashed var(--drawer-rule);
+    }
+
+    .lc-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      background: var(--drawer-surface);
+      border: 1px solid var(--drawer-rule);
+      border-radius: 6px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--drawer-ink);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+
+    .lc-chip:hover {
+      background: var(--drawer-surface-hover);
+      border-color: var(--border-medium);
+    }
+
+    .lc-chip:active {
+      transform: scale(0.95);
+    }
+
+    .lc-chip .chip-prob {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-feature-settings: 'tnum';
+    }
+
+    .lc-chip.prob-low-chip .chip-prob { color: var(--prob-low); }
+    .lc-chip.prob-mid-chip .chip-prob { color: var(--prob-mid); }
+    .lc-chip.prob-high-chip .chip-prob { color: var(--prob-high); }
+
+    .lc-chip.prob-low-chip { border-color: rgba(176, 96, 80, 0.25); }
+    .lc-chip.prob-mid-chip { border-color: rgba(184, 145, 60, 0.25); }
+
+    .lc-chip.prob-low-chip:hover { background: var(--prob-low-bg); }
+    .lc-chip.prob-mid-chip:hover { background: var(--prob-mid-bg); }
+
+    /* ===================================================================
+       Empty States
+       =================================================================== */
+    .empty-state-drawer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 32px;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .empty-state-drawer svg {
+      width: 48px;
+      height: 48px;
+      color: var(--drawer-ink-secondary);
+      opacity: 0.4;
+      margin-bottom: 4px;
+    }
+
+    .empty-state-drawer .empty-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--drawer-ink-secondary);
+    }
+
+    .empty-state-drawer .empty-hint {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-tertiary);
+      letter-spacing: 0.02em;
+    }
+
+    /* ===================================================================
+       Keyboard Hints Bar
+       =================================================================== */
+    .keyboard-hints {
+      height: 36px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      background: var(--bg-tertiary);
+      border-top: 1px solid var(--border-light);
+      font-size: 12px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .keyboard-hints kbd {
+      padding: 3px 7px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-primary);
+      box-shadow: 0 1px 2px rgba(61, 56, 51, 0.08);
+    }
+
+    /* ===================================================================
+       Scrollbar Styling
+       =================================================================== */
+    .drawer-scroll::-webkit-scrollbar,
+    .main-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .drawer-scroll::-webkit-scrollbar-track,
+    .main-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .drawer-scroll::-webkit-scrollbar-thumb {
+      background: var(--drawer-rule);
+      border-radius: 3px;
+    }
+
+    .main-content::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 3px;
+    }
+
+    .drawer-scroll::-webkit-scrollbar-thumb:hover,
+    .main-content::-webkit-scrollbar-thumb:hover {
+      background: var(--border-medium);
+    }
+
+    /* ===================================================================
+       Separator between drawer sections
+       =================================================================== */
+    .lc-group + .lc-group {
+      border-top: 1px solid var(--drawer-rule);
+    }
+
+    /* ===================================================================
+       "MOCKUP" watermark — subtle reminder this is a design mockup
+       =================================================================== */
+    .mockup-label {
+      position: fixed;
+      bottom: 44px;
+      left: 24px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-tertiary);
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 200;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================================================================
+       HEADER BAR
+       ================================================================ -->
+  <div class="header">
+    <h1>Transcription Validator</h1>
+    <div class="header-spacer"></div>
+    <span class="header-badge">mahabharata-night-12</span>
+    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle light/dark mode">
+      <span class="theme-icon-light">&#x2600;</span>
+      <span class="theme-icon-dark">&#x263E;</span>
+    </button>
+  </div>
+
+  <!-- ================================================================
+       MOCK MAIN CONTENT — Transcript Segments
+       ================================================================ -->
+  <div class="main-content">
+
+    <!-- Segment 1 — has a note, flagged -->
+    <div class="segment-card active">
+      <div class="segment-header">
+        <span class="segment-id">Segment 1</span>
+        <span class="segment-time">8.10s - 14.52s</span>
+        <div class="segment-badges">
+          <span class="badge badge-temp">temp=1.0</span>
+          <span class="badge badge-note">note</span>
+        </div>
+      </div>
+      <div class="segment-meta">temp: 1.0 | comp: 3.12 | no_speech: 0.021</div>
+      <div class="segment-words">
+        <span class="word prob-mid">And</span>
+        <span class="word prob-high">then</span>
+        <span class="word prob-high">the</span>
+        <span class="word prob-low">fondos</span>
+        <span class="word prob-high">went</span>
+        <span class="word prob-high">to</span>
+        <span class="word prob-high">the</span>
+        <span class="word prob-mid">forest</span>
+        <span class="word prob-high">and</span>
+        <span class="word prob-high">they</span>
+        <span class="word prob-high">were</span>
+        <span class="word prob-mid">really</span>
+        <span class="word prob-high">sad</span>
+        <span class="word prob-low">because</span>
+        <span class="word prob-high">the</span>
+        <span class="word prob-low">goros</span>
+        <span class="word prob-high">took</span>
+        <span class="word prob-high">everything</span>
+      </div>
+    </div>
+
+    <!-- Segment 5 — word note target -->
+    <div class="segment-card">
+      <div class="segment-header">
+        <span class="segment-id">Segment 5</span>
+        <span class="segment-time">38.44s - 51.90s</span>
+        <div class="segment-badges">
+          <span class="badge badge-note">note</span>
+        </div>
+      </div>
+      <div class="segment-meta">temp: 0.4 | comp: 1.82 | no_speech: 0.003</div>
+      <div class="segment-words">
+        <span class="word prob-high">Dad,</span>
+        <span class="word prob-high">why</span>
+        <span class="word prob-high">did</span>
+        <span class="word prob-high">the</span>
+        <span class="word prob-low active">fondos</span>
+        <span class="word prob-high">have</span>
+        <span class="word prob-high">to</span>
+        <span class="word prob-high">go</span>
+        <span class="word prob-high">to</span>
+        <span class="word prob-high">the</span>
+        <span class="word prob-high">forest?</span>
+        <span class="word prob-high">Was</span>
+        <span class="word prob-high">it</span>
+        <span class="word prob-mid">because</span>
+        <span class="word prob-high">of</span>
+        <span class="word prob-high">the</span>
+        <span class="word prob-mid">dice</span>
+        <span class="word prob-high">game?</span>
+      </div>
+    </div>
+
+    <!-- Segment 14 -->
+    <div class="segment-card">
+      <div class="segment-header">
+        <span class="segment-id">Segment 14</span>
+        <span class="segment-time">78.20s - 92.11s</span>
+        <div class="segment-badges"></div>
+      </div>
+      <div class="segment-meta">temp: 0.2 | comp: 1.44 | no_speech: 0.001</div>
+      <div class="segment-words">
+        <span class="word prob-high">So</span>
+        <span class="word prob-high">they</span>
+        <span class="word prob-high">went</span>
+        <span class="word prob-high">to</span>
+        <span class="word prob-mid">Hastinapur</span>
+        <span class="word prob-high">and</span>
+        <span class="word prob-mid">the</span>
+        <span class="word prob-high">king</span>
+        <span class="word prob-high">was</span>
+        <span class="word prob-high">sitting</span>
+        <span class="word prob-high">on</span>
+        <span class="word prob-high">his</span>
+        <span class="word prob-high">big</span>
+        <span class="word prob-high">throne</span>
+        <span class="word prob-high">and</span>
+        <span class="word prob-high">he</span>
+        <span class="word prob-high">said...</span>
+      </div>
+    </div>
+
+    <!-- Segment 23 — long note target -->
+    <div class="segment-card">
+      <div class="segment-header">
+        <span class="segment-id">Segment 23</span>
+        <span class="segment-time">115.90s - 134.22s</span>
+        <div class="segment-badges">
+          <span class="badge badge-temp">temp=1.0</span>
+          <span class="badge badge-note">note</span>
+        </div>
+      </div>
+      <div class="segment-meta">temp: 1.0 | comp: 2.88 | no_speech: 0.892</div>
+      <div class="segment-words">
+        <span class="word prob-low">And</span>
+        <span class="word prob-low">Draupadi</span>
+        <span class="word prob-low">stood</span>
+        <span class="word prob-low">in</span>
+        <span class="word prob-low">the</span>
+        <span class="word prob-low">great</span>
+        <span class="word prob-low">hall</span>
+        <span class="word prob-low">and</span>
+        <span class="word prob-low">her</span>
+        <span class="word prob-low">voice</span>
+        <span class="word prob-low">echoed</span>
+        <span class="word prob-low">through</span>
+        <span class="word prob-low">the</span>
+        <span class="word prob-low">marble</span>
+        <span class="word prob-low">columns</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================================================================
+       KEYBOARD HINTS
+       ================================================================ -->
+  <div class="keyboard-hints">
+    <span><kbd>Space</kbd> Play/Pause</span>
+    <span><kbd>&#x2190;</kbd><kbd>&#x2192;</kbd> &plusmn;1s</span>
+    <span><kbd>&#x2191;</kbd><kbd>&#x2193;</kbd> Prev/Next Segment</span>
+    <span><kbd>N</kbd> Add Note</span>
+    <span><kbd>Shift+N</kbd> Notes Panel</span>
+    <span><kbd>T</kbd> Toggle Theme</span>
+  </div>
+
+  <!-- ================================================================
+       THE DRAWER — "The Marginalia"
+       ================================================================ -->
+  <div class="drawer" id="drawer">
+
+    <!-- Drawer Header -->
+    <div class="drawer-header">
+      <button class="drawer-delete-all">Delete All</button>
+      <button class="drawer-close" id="drawer-close" title="Close drawer">&times;</button>
+    </div>
+
+    <!-- Tabs with Sliding Pill -->
+    <div class="drawer-tabs" id="drawer-tabs">
+      <button class="drawer-tab active" data-tab="notes" id="tab-notes">
+        notes <span class="tab-count">(3)</span>
+      </button>
+      <button class="drawer-tab" data-tab="low-confidence" id="tab-lc">
+        low confidence <span class="tab-count">(12)</span>
+      </button>
+    </div>
+
+    <!-- Notes Tab Content -->
+    <div class="drawer-tab-content active" id="content-notes">
+      <div class="drawer-scroll">
+
+        <!-- Note 1: Segment note -->
+        <div class="note-card">
+          <div class="note-card-header">
+            <span class="note-location">Segment 1 | 8.1s</span>
+            <span class="note-time">8.1s</span>
+          </div>
+          <div class="note-text">Completely hallucinated. Does not exist in audio.</div>
+          <div class="note-actions">
+            <button class="note-action" title="Jump to location">&#x2197;</button>
+            <button class="note-action" title="Edit note">&#x270E;</button>
+            <button class="note-action delete" title="Delete note">&#x1F5D1;</button>
+          </div>
+        </div>
+
+        <!-- Note 2: Word note -->
+        <div class="note-card">
+          <div class="note-card-header">
+            <span class="note-location">Seg 5 | Word 'fondos'</span>
+            <span class="note-time">10.2s</span>
+          </div>
+          <div class="note-text">Child is saying 'Pandavas' &mdash; phonetic approximation</div>
+          <div class="note-actions">
+            <button class="note-action" title="Jump to location">&#x2197;</button>
+            <button class="note-action" title="Edit note">&#x270E;</button>
+            <button class="note-action delete" title="Delete note">&#x1F5D1;</button>
+          </div>
+        </div>
+
+        <!-- Note 3: Timestamp note -->
+        <div class="note-card">
+          <div class="note-card-header">
+            <span class="note-location">@ 45.3s</span>
+            <span class="note-time">45.3s</span>
+          </div>
+          <div class="note-text">Interesting pause here, child thinking</div>
+          <div class="note-actions">
+            <button class="note-action" title="Jump to location">&#x2197;</button>
+            <button class="note-action" title="Edit note">&#x270E;</button>
+            <button class="note-action delete" title="Delete note">&#x1F5D1;</button>
+          </div>
+        </div>
+
+        <!-- Note 4: Long segment note -->
+        <div class="note-card">
+          <div class="note-card-header">
+            <span class="note-location">Segment 23 | 115.9s</span>
+            <span class="note-time">115.9s</span>
+          </div>
+          <div class="note-text">This whole section about Draupadi seems to be the model hallucinating &mdash; temperature was 1.0 and the child was silent during this portion. The high no_speech_prob confirms nobody was talking.</div>
+          <div class="note-actions">
+            <button class="note-action" title="Jump to location">&#x2197;</button>
+            <button class="note-action" title="Edit note">&#x270E;</button>
+            <button class="note-action delete" title="Delete note">&#x1F5D1;</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Low Confidence Tab Content -->
+    <div class="drawer-tab-content" id="content-lc">
+      <div class="drawer-scroll">
+
+        <!-- Group 1 -->
+        <div class="lc-group">
+          <div class="lc-group-header">
+            <span class="lc-group-location">Segment 1</span>
+            <span class="lc-group-time">8.1s</span>
+          </div>
+          <div class="lc-chips-container">
+            <button class="lc-chip prob-mid-chip">
+              fondos <span class="chip-prob">0.71</span>
+            </button>
+            <button class="lc-chip prob-low-chip">
+              goros <span class="chip-prob">0.45</span>
+            </button>
+            <button class="lc-chip prob-low-chip">
+              Dad, <span class="chip-prob">0.11</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Group 2 -->
+        <div class="lc-group">
+          <div class="lc-group-header">
+            <span class="lc-group-location">Segment 14</span>
+            <span class="lc-group-time">78.2s</span>
+          </div>
+          <div class="lc-chips-container">
+            <button class="lc-chip prob-low-chip">
+              Hastinapur <span class="chip-prob">0.38</span>
+            </button>
+            <button class="lc-chip prob-mid-chip">
+              the <span class="chip-prob">0.42</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Group 3 -->
+        <div class="lc-group">
+          <div class="lc-group-header">
+            <span class="lc-group-location">Segment 23</span>
+            <span class="lc-group-time">115.9s</span>
+          </div>
+          <div class="lc-chips-container">
+            <button class="lc-chip prob-low-chip">
+              And <span class="chip-prob">0.12</span>
+            </button>
+            <button class="lc-chip prob-low-chip">
+              Draupadi <span class="chip-prob">0.08</span>
+            </button>
+            <button class="lc-chip prob-low-chip">
+              stood <span class="chip-prob">0.15</span>
+            </button>
+            <button class="lc-chip prob-low-chip">
+              great <span class="chip-prob">0.22</span>
+            </button>
+            <button class="lc-chip prob-low-chip">
+              hall <span class="chip-prob">0.19</span>
+            </button>
+            <button class="lc-chip prob-low-chip">
+              echoed <span class="chip-prob">0.09</span>
+            </button>
+            <button class="lc-chip prob-low-chip">
+              marble <span class="chip-prob">0.14</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Empty State: Notes (hidden by default — uncomment to preview) -->
+    <!--
+    <div class="drawer-tab-content" id="content-notes-empty">
+      <div class="empty-state-drawer">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 6h24l8 8v28a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
+          <path d="M32 6v8h8"/>
+          <path d="M16 24h16"/>
+          <path d="M16 32h10"/>
+        </svg>
+        <span class="empty-title">No notes yet</span>
+        <span class="empty-hint">Right-click a word or segment, or press N</span>
+      </div>
+    </div>
+    -->
+
+    <!-- Empty State: Low Confidence (hidden by default — uncomment to preview) -->
+    <!--
+    <div class="drawer-tab-content" id="content-lc-empty">
+      <div class="empty-state-drawer">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="24" cy="24" r="20"/>
+          <path d="M16 24l5 5 11-11"/>
+        </svg>
+        <span class="empty-title">All words confident</span>
+        <span class="empty-hint">Whisper was sure about every word</span>
+      </div>
+    </div>
+    -->
+
+  </div>
+
+  <!-- Mockup label -->
+  <div class="mockup-label">Mockup &mdash; Notes Drawer Redesign</div>
+
+  <!-- ================================================================
+       JavaScript — Tab switching, theme toggle, pill animation
+       ================================================================ -->
+  <script>
+    (function() {
+      // ---- Theme Toggle ----
+      const themeBtn = document.getElementById('theme-toggle');
+      themeBtn.addEventListener('click', function() {
+        const html = document.documentElement;
+        const current = html.getAttribute('data-theme');
+        if (current === 'dark') {
+          html.removeAttribute('data-theme');
+        } else {
+          html.setAttribute('data-theme', 'dark');
+        }
+      });
+
+      // ---- Tab Switching + Sliding Pill ----
+      const tabsContainer = document.getElementById('drawer-tabs');
+      const tabNotes = document.getElementById('tab-notes');
+      const tabLC = document.getElementById('tab-lc');
+      const contentNotes = document.getElementById('content-notes');
+      const contentLC = document.getElementById('content-lc');
+
+      function updatePill(activeTab) {
+        const containerRect = tabsContainer.getBoundingClientRect();
+        const tabRect = activeTab.getBoundingClientRect();
+        const left = tabRect.left - containerRect.left;
+        tabsContainer.style.setProperty('--tab-left', left + 'px');
+        tabsContainer.style.setProperty('--tab-width', tabRect.width + 'px');
+      }
+
+      function switchTab(tabName) {
+        if (tabName === 'notes') {
+          tabNotes.classList.add('active');
+          tabLC.classList.remove('active');
+          contentNotes.classList.add('active');
+          contentLC.classList.remove('active');
+          updatePill(tabNotes);
+        } else {
+          tabLC.classList.add('active');
+          tabNotes.classList.remove('active');
+          contentLC.classList.add('active');
+          contentNotes.classList.remove('active');
+          updatePill(tabLC);
+
+          // Re-trigger card entrance animations for low-confidence tab
+          var groups = contentLC.querySelectorAll('.lc-group');
+          groups.forEach(function(g) {
+            g.style.animation = 'none';
+            g.offsetHeight; // force reflow
+            g.style.animation = '';
+          });
+        }
+      }
+
+      tabNotes.addEventListener('click', function() { switchTab('notes'); });
+      tabLC.addEventListener('click', function() { switchTab('low-confidence'); });
+
+      // Set initial pill position after fonts load
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function() { updatePill(tabNotes); });
+      } else {
+        // Fallback
+        window.addEventListener('load', function() { updatePill(tabNotes); });
+      }
+
+      // Also update pill on resize
+      window.addEventListener('resize', function() {
+        var activeTab = tabsContainer.querySelector('.drawer-tab.active');
+        if (activeTab) updatePill(activeTab);
+      });
+
+      // ---- Drawer Close (simulated) ----
+      var closeBtn = document.getElementById('drawer-close');
+      var drawer = document.getElementById('drawer');
+      closeBtn.addEventListener('click', function() {
+        drawer.style.transform = 'translateX(100%)';
+        drawer.style.opacity = '0';
+        drawer.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease';
+        // Re-open after a beat so the mockup stays useful
+        setTimeout(function() {
+          drawer.style.transform = '';
+          drawer.style.opacity = '';
+          drawer.style.transition = '';
+          drawer.style.animation = 'drawerSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both';
+        }, 800);
+      });
+
+      // ---- Keyboard shortcut: T for theme ----
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 't' || e.key === 'T') {
+          themeBtn.click();
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>

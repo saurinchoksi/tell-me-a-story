@@ -85,7 +85,7 @@
   <!-- Notes Panel -->
   <div class="notes-panel" id="notes-panel">
     <div class="notes-panel-header">
-      <button class="note-action-btn delete" id="delete-all-notes" onclick="deleteAllNotes()">Delete All</button>
+      <button id="delete-all-notes" onclick="deleteAllNotes()">Delete All</button>
       <button class="notes-panel-close" id="notes-panel-close">&times;</button>
     </div>
     <div class="drawer-tabs">
@@ -98,12 +98,28 @@
     </div>
     <div class="drawer-tab-content active" id="tab-content-notes">
       <div class="notes-list" id="notes-list">
-        <div class="notes-list-empty">No notes yet</div>
+        <div class="notes-list-empty">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 6h24l8 8v28a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
+            <path d="M32 6v8h8"/>
+            <path d="M16 24h16"/>
+            <path d="M16 32h10"/>
+          </svg>
+          <span class="empty-title">No notes yet</span>
+          <span class="empty-hint">Right-click a word or press <kbd>N</kbd></span>
+        </div>
       </div>
     </div>
     <div class="drawer-tab-content" id="tab-content-low-confidence">
       <div class="notes-list" id="low-confidence-list">
-        <div class="notes-list-empty">No low confidence words</div>
+        <div class="notes-list-empty">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="24" cy="24" r="20"/>
+            <path d="M16 24l5 5 11-11"/>
+          </svg>
+          <span class="empty-title">All words confident</span>
+          <span class="empty-hint">Whisper was sure about every word</span>
+        </div>
       </div>
     </div>
   </div>
