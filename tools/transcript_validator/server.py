@@ -44,6 +44,18 @@ def index():
     return send_file(Path(__file__).parent / "validator.html")
 
 
+@app.route("/validator.css")
+def serve_css():
+    """Serve the validator CSS."""
+    return send_file(Path(__file__).parent / "validator.css", mimetype="text/css")
+
+
+@app.route("/validator.js")
+def serve_js():
+    """Serve the validator JS."""
+    return send_file(Path(__file__).parent / "validator.js", mimetype="application/javascript")
+
+
 @app.route("/files")
 def list_files():
     """List sessions with both transcript AND matching audio."""
