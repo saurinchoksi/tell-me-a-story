@@ -13,6 +13,7 @@ const state = {
   playbackRate: 1,
   filterEnabled: false,
   userScrolledAway: false,
+  filteredWordsExpanded: false,
   scrollTimeout: null,
   // Context menu state
   contextTarget: null,  // { type: 'segment'|'word', segmentIndex, wordIndex }
@@ -623,11 +624,99 @@ function updateNotesCount() {
   notesCountBadge.textContent = count;
 }
 
+function getFilteredWords() {
+  const results = [];
+  for (const segment of state.allSegments) {
+    const lowConfWords = [];
+    for (const word of (segment.words || [])) {
+      if (word.probability < FILTER_PROBABILITY_THRESHOLD) {
+        lowConfWords.push({
+          word: word.word,
+          probability: word.probability,
+          start: word.start,
+        });
+      }
+    }
+    if (lowConfWords.length > 0) {
+      results.push({
+        segmentId: segment.id,
+        segmentStart: segment.start,
+        words: lowConfWords,
+      });
+    }
+  }
+  return results;
+}
+
+function renderFilteredWordsSection() {
+  const groups = getFilteredWords();
+  if (groups.length === 0) return '';
+
+  const totalWords = groups.reduce((sum, g) => sum + g.words.length, 0);
+  const expandedClass = state.filteredWordsExpanded ? ' expanded' : '';
+
+  const filteredSegmentIds = new Set(state.segments.map(s => s.id));
+
+  const cards = groups.map(group => {
+    const isFilteredOut = state.filterEnabled && !filteredSegmentIds.has(group.segmentId);
+    const chips = group.words.map(w =>
+      `<button class="filtered-word-chip${isFilteredOut ? ' filter-active' : ''}" data-start="${w.start}">` +
+        `${escapeHtml(w.word)} <span class="word-prob">${w.probability.toFixed(2)}</span>` +
+      `</button>`
+    ).join('');
+
+    return `
+      <div class="note-item${isFilteredOut ? ' filtered-out' : ''}">
+        <div class="note-item-header">
+          <span class="note-item-location">Segment ${group.segmentId}</span>
+          <span>${formatTime(group.segmentStart)}</span>
+        </div>
+        <div class="filtered-word-chips">${chips}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="filtered-words-section">
+      <button class="filtered-words-toggle">
+        <span class="toggle-chevron${expandedClass}">\u25B6</span>
+        Low Confidence Words
+        <span class="filtered-words-count">${totalWords}</span>
+      </button>
+      <div class="filtered-words-content${expandedClass}">
+        ${cards}
+      </div>
+    </div>
+  `;
+}
+
+function attachFilteredWordsListeners() {
+  const toggle = notesList.querySelector('.filtered-words-toggle');
+  if (!toggle) return;
+
+  toggle.addEventListener('click', () => {
+    state.filteredWordsExpanded = !state.filteredWordsExpanded;
+    const chevron = toggle.querySelector('.toggle-chevron');
+    const content = notesList.querySelector('.filtered-words-content');
+    if (chevron) chevron.classList.toggle('expanded', state.filteredWordsExpanded);
+    if (content) content.classList.toggle('expanded', state.filteredWordsExpanded);
+  });
+
+  notesList.querySelectorAll('.filtered-word-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (wavesurfer) {
+        wavesurfer.setTime(parseFloat(chip.dataset.start));
+      }
+    });
+  });
+}
+
 function renderNotesList() {
   updateNotesCount();
 
   if (state.notes.length === 0) {
-    notesList.innerHTML = '<div class="notes-list-empty">No notes yet</div>';
+    notesList.innerHTML = '<div class="notes-list-empty">No notes yet</div>' + renderFilteredWordsSection();
+    attachFilteredWordsListeners();
     return;
   }
 
@@ -713,7 +802,8 @@ function renderNotesList() {
         </div>
       </div>
     `;
-  }).join('');
+  }).join('') + renderFilteredWordsSection();
+  attachFilteredWordsListeners();
 }
 
 function escapeHtml(text) {
