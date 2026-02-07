@@ -195,6 +195,7 @@ def _apply_pipeline_mocks(stack, **overrides):
         "extract_text": MagicMock(return_value="some text"),
         "load_library": MagicMock(return_value={"entries": []}),
         "build_variant_map": MagicMock(return_value={}),
+        "enrich_with_diarization": MagicMock(side_effect=lambda t, d: t),
     }
     defaults.update(overrides)
 
@@ -228,7 +229,7 @@ def test_pipeline_both_normalizations_succeed():
         result = run_pipeline("/fake/session/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 3
+    assert len(processing) == 4
 
     assert processing[0]["stage"] == "transcription"
     assert processing[0]["status"] == "success"
@@ -241,7 +242,7 @@ def test_pipeline_both_normalizations_succeed():
     assert processing[2]["status"] == "success"
     assert processing[2]["corrections_applied"] == 3
 
-    assert result["transcript"]["_schema_version"] == "1.1.0"
+    assert result["transcript"]["_schema_version"] == "1.2.0"
     assert result["llm_count"] == 5
     assert result["dict_count"] == 3
 
@@ -266,7 +267,7 @@ def test_pipeline_llm_fails_dictionary_continues():
         result = run_pipeline("/fake/session/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 3
+    assert len(processing) == 4
 
     llm_entry = processing[1]
     assert llm_entry["stage"] == "llm_normalization"
@@ -301,7 +302,7 @@ def test_pipeline_empty_corrections():
         result = run_pipeline("/fake/session/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 3
+    assert len(processing) == 4
 
     assert processing[1]["stage"] == "llm_normalization"
     assert processing[1]["status"] == "success"
@@ -315,3 +316,64 @@ def test_pipeline_empty_corrections():
     words = result["transcript"]["segments"][0]["words"]
     assert words[0]["word"] == " hello"
     assert words[1]["word"] == " world"
+
+
+def test_pipeline_diarization_enrichment_succeeds():
+    """Diarization enrichment stage is recorded in processing."""
+    fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)
+
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            llm_normalize=MagicMock(return_value=[]),
+            normalize_variants=MagicMock(return_value=[]),
+            apply_corrections=MagicMock(
+                side_effect=[
+                    (copy.deepcopy(fake_transcript), 0),
+                    (copy.deepcopy(fake_transcript), 0),
+                ]
+            ),
+        )
+        result = run_pipeline("/fake/session/audio.m4a", verbose=False)
+
+    processing = result["transcript"]["_processing"]
+    assert len(processing) == 4
+
+    enrichment_entry = processing[3]
+    assert enrichment_entry["stage"] == "diarization_enrichment"
+    assert enrichment_entry["status"] == "success"
+    assert enrichment_entry["model"] == "pyannote/speaker-diarization-community-1"
+
+
+def test_pipeline_diarization_enrichment_fails_gracefully():
+    """Diarization enrichment failure is recorded but pipeline continues."""
+    fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)
+
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            llm_normalize=MagicMock(return_value=[]),
+            normalize_variants=MagicMock(return_value=[]),
+            apply_corrections=MagicMock(
+                side_effect=[
+                    (copy.deepcopy(fake_transcript), 0),
+                    (copy.deepcopy(fake_transcript), 0),
+                ]
+            ),
+            enrich_with_diarization=MagicMock(
+                side_effect=RuntimeError("Enrichment crashed")
+            ),
+        )
+        result = run_pipeline("/fake/session/audio.m4a", verbose=False)
+
+    processing = result["transcript"]["_processing"]
+    assert len(processing) == 4
+
+    enrichment_entry = processing[3]
+    assert enrichment_entry["stage"] == "diarization_enrichment"
+    assert enrichment_entry["status"] == "error"
+    assert "Enrichment crashed" in enrichment_entry["error"]
+
+    # Pipeline still returns valid result
+    assert "transcript" in result
+    assert "diarization" in result

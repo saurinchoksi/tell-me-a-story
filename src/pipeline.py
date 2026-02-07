@@ -14,7 +14,8 @@ from query import assign_speakers, to_utterances, format_transcript
 from inspect_audio import get_audio_info
 from normalize import normalize as llm_normalize
 from dictionary import load_library, build_variant_map, normalize_variants
-from corrections import extract_text, apply_corrections, _NORMALIZED_SCHEMA_VERSION
+from corrections import extract_text, apply_corrections
+from enrichment import enrich_with_diarization, _ENRICHED_SCHEMA_VERSION
 
 _DEFAULT_LIBRARY_PATH = str(Path(__file__).parent.parent / "data" / "mahabharata.json")
 _LLM_MODEL = "qwen3:8b"
@@ -201,9 +202,6 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
             "error": str(e),
         })
 
-    transcript["_processing"] = processing
-    transcript["_schema_version"] = _NORMALIZED_SCHEMA_VERSION
-
     # Diarization
     if verbose:
         print("\nDiarizing (this takes a few minutes)...")
@@ -211,6 +209,26 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     diarization_time = datetime.now(timezone.utc).isoformat()
     diarization = diarize(audio_path)
     diarization_model = "pyannote/speaker-diarization-community-1"
+
+    # Diarization enrichment
+    try:
+        transcript = enrich_with_diarization(transcript, diarization)
+        processing.append({
+            "stage": "diarization_enrichment",
+            "model": diarization_model,
+            "status": "success",
+        })
+    except Exception as e:
+        logger.warning(f"Diarization enrichment failed: {e}")
+        processing.append({
+            "stage": "diarization_enrichment",
+            "model": diarization_model,
+            "status": "error",
+            "error": str(e),
+        })
+
+    transcript["_processing"] = processing
+    transcript["_schema_version"] = _ENRICHED_SCHEMA_VERSION
 
     # Create manifest
     manifest = create_manifest(
