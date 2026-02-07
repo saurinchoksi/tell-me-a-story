@@ -1,0 +1,6084 @@
+{
+  "_experiment_metadata": {
+    "run_number": 1,
+    "label": "vocab_list",
+    "initial_prompt": "Pandavas, Kauravas, Yudhishthira, Duryodhana, Dhritarashtra, Pandu, Bhima, Arjuna, Draupadi, Karna, Krishna, Mahabharata",
+    "elapsed_seconds": 61.99,
+    "model": "mlx-community/whisper-large-v3-mlx",
+    "timestamp": "2026-02-05T16:06:56.697455"
+  },
+  "_name_occurrences": {
+    "Pandavas": {
+      "count": 0,
+      "variants_found": []
+    },
+    "Kauravas": {
+      "count": 4,
+      "variants_found": [
+        "Kaurava",
+        "Kauravas,",
+        "Kauravas"
+      ]
+    },
+    "Yudhishthira": {
+      "count": 3,
+      "variants_found": [
+        "Yudhishthira",
+        "Yudhishthira."
+      ]
+    },
+    "Duryodhana": {
+      "count": 8,
+      "variants_found": [
+        "Duryodhana,",
+        "Duryodhana",
+        "Duryodhana."
+      ]
+    },
+    "Dhritarashtra": {
+      "count": 1,
+      "variants_found": [
+        "Dhrashtra",
+        "Dhrashtra,"
+      ]
+    },
+    "Pandu": {
+      "count": 0,
+      "variants_found": []
+    },
+    "Bhima": {
+      "count": 0,
+      "variants_found": []
+    },
+    "Arjuna": {
+      "count": 0,
+      "variants_found": []
+    },
+    "Draupadi": {
+      "count": 0,
+      "variants_found": []
+    },
+    "Karna": {
+      "count": 0,
+      "variants_found": []
+    },
+    "Krishna": {
+      "count": 0,
+      "variants_found": []
+    },
+    "Mahabharata": {
+      "count": 0,
+      "variants_found": []
+    }
+  },
+  "text": " Okay, what is the question? Dad, why do the Pandus and the Kauravas want to be king? Why do the Pandus and the Kauravas want to be king? Uh-huh. Well. Well. So the oldest brother of the Kauravas, his name was, do you remember? Duryodhana. Duryodhana, yeah. And the oldest brother of the Pandus, his name is? Yudhishthira. That's right, Yudhishthira. And so the Pandus and the Kauravas, they both wanted to be king. Okay. Meaning they both wanted the oldest on both families to be the king. And because they both wanted the same thing, they got in lots of arguments and lots of fights and they were not nice to each other. Does that make sense? And the reason that... Yudhishthira wanted to be king and Duryodhana wanted to be king were not exactly the same. Duryodhana wanted to be king because he felt like he deserved it. Like it was supposed to be his. It was a little bit of his, not a little, it was a lot of his ego. And he was quite vain, just like James is, right? Duryodhana was... Duryodhana was... Really thought that he should be king because he was the best. And then remember I also said he was mad and resented that his father, that they had taken him away from being king. And I mean to his credit... The rich father. The blind father. His father, what, do you remember his father's name? The... The... The... Yeah, I have to look up the pronunciation. But remember he was born blind. And even though he was the older one, older than Pondo, they didn't let him be king in the beginning. And because... Because they took his... His being a king away... He... Duryodhana always felt like it wasn't fair. And to be honest, he thought it wasn't fair that Yudhisthira should be king. Because his dad at that point, Dhrashtra, his dad was king. So it didn't make sense to Duryodhana that he wasn't king. So, I mean, he wasn't a great guy. But it's not like you can't understand why he kind of felt like he should be king. You can relate to him. You can have what we call empathy for him. Now, Yudhisthira, on the other hand, he thought he should be king. Because his father had been made king. And then because his father... Had to go away... It was kind of... Huh? Yudhisthira's dad. Yudhisthira's dad was Pondo. That's why Yudhisthira and his brothers are called the Pondos. Their dad's name was Pondo. And him and his brothers are called the Pondos. And they might say Pondovas too, but... Oh, we just say Pondos. So... So... When... So Yudhisthira, his whole life was like, well, I'm supposed to be king. Everybody told him he was supposed to be king. You know, he kind of knew that he was, like, good king material. You know? He knew he would probably be a good king and a fair king for the most part. So he thought it was his right to be king. He thought he would be a good king. And, I mean, he generally... Wanted to do right by people. I think there were a lot of times when he... When he said it would be okay if he wasn't king. But I also think he kind of felt like he should be king. So they both wanted to be king for kind of a lot of reasons. I just told you all the reasons. Well, I... We can talk about it again tomorrow. Because now we got to go to sleep. Okay? We talked for one minute. Okay.",
+  "segments": [
+    {
+      "id": 0,
+      "seek": 0,
+      "start": 1.2399999999999989,
+      "end": 3.84,
+      "text": " Okay, what is the question?",
+      "tokens": [
+        50365,
+        1033,
+        11,
+        437,
+        307,
+        264,
+        1168,
+        30,
+        50562
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4785649483663994,
+      "compression_ratio": 1.5463917525773196,
+      "no_speech_prob": 0.05375749245285988,
+      "words": [
+        {
+          "word": " Okay,",
+          "start": 1.2399999999999989,
+          "end": 2.1,
+          "probability": 0.53564453125
+        },
+        {
+          "word": " what",
+          "start": 2.2,
+          "end": 2.84,
+          "probability": 0.8154296875
+        },
+        {
+          "word": " is",
+          "start": 2.84,
+          "end": 3.3,
+          "probability": 0.998046875
+        },
+        {
+          "word": " the",
+          "start": 3.3,
+          "end": 3.42,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " question?",
+          "start": 3.42,
+          "end": 3.84,
+          "probability": 0.99755859375
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "seek": 0,
+      "start": 8.059999999999997,
+      "end": 17.98,
+      "text": " Dad, why do the Pandus and the Kauravas want to be king?",
+      "tokens": [
+        50752,
+        5639,
+        11,
+        983,
+        360,
+        264,
+        16995,
+        301,
+        293,
+        264,
+        591,
+        3463,
+        37331,
+        528,
+        281,
+        312,
+        4867,
+        30,
+        51271
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4785649483663994,
+      "compression_ratio": 1.5463917525773196,
+      "no_speech_prob": 0.05375749245285988,
+      "words": [
+        {
+          "word": " Dad,",
+          "start": 8.059999999999997,
+          "end": 8.919999999999998,
+          "probability": 0.10943603515625
+        },
+        {
+          "word": " why",
+          "start": 8.919999999999998,
+          "end": 9.78,
+          "probability": 0.85888671875
+        },
+        {
+          "word": " do",
+          "start": 9.78,
+          "end": 9.98,
+          "probability": 0.9609375
+        },
+        {
+          "word": " the",
+          "start": 9.98,
+          "end": 10.22,
+          "probability": 0.9921875
+        },
+        {
+          "word": " Pandus",
+          "start": 10.22,
+          "end": 10.7,
+          "probability": 0.0012836456298828125
+        },
+        {
+          "word": " and",
+          "start": 10.7,
+          "end": 11.82,
+          "probability": 0.99609375
+        },
+        {
+          "word": " the",
+          "start": 11.82,
+          "end": 12.32,
+          "probability": 0.9951171875
+        },
+        {
+          "word": " Kauravas",
+          "start": 12.32,
+          "end": 13.32,
+          "probability": 0.482177734375
+        },
+        {
+          "word": " want",
+          "start": 13.32,
+          "end": 14.86,
+          "probability": 0.8095703125
+        },
+        {
+          "word": " to",
+          "start": 14.86,
+          "end": 15.08,
+          "probability": 0.99755859375
+        },
+        {
+          "word": " be",
+          "start": 15.08,
+          "end": 17.72,
+          "probability": 0.98583984375
+        },
+        {
+          "word": " king?",
+          "start": 17.72,
+          "end": 17.98,
+          "probability": 0.90185546875
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "seek": 0,
+      "start": 18.58,
+      "end": 22.56,
+      "text": " Why do the Pandus and the Kauravas want to be king?",
+      "tokens": [
+        51355,
+        1545,
+        360,
+        264,
+        16995,
+        301,
+        293,
+        264,
+        591,
+        3463,
+        37331,
+        528,
+        281,
+        312,
+        4867,
+        30,
+        51499
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4785649483663994,
+      "compression_ratio": 1.5463917525773196,
+      "no_speech_prob": 0.05375749245285988,
+      "words": [
+        {
+          "word": " Why",
+          "start": 18.58,
+          "end": 19.02,
+          "probability": 0.59326171875
+        },
+        {
+          "word": " do",
+          "start": 19.02,
+          "end": 20.04,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " the",
+          "start": 20.04,
+          "end": 20.18,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " Pandus",
+          "start": 20.18,
+          "end": 20.66,
+          "probability": 0.89501953125
+        },
+        {
+          "word": " and",
+          "start": 20.66,
+          "end": 20.82,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " the",
+          "start": 20.82,
+          "end": 21.06,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " Kauravas",
+          "start": 21.06,
+          "end": 21.54,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " want",
+          "start": 21.54,
+          "end": 21.94,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " to",
+          "start": 21.94,
+          "end": 22.12,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 22.12,
+          "end": 22.28,
+          "probability": 1.0
+        },
+        {
+          "word": " king?",
+          "start": 22.28,
+          "end": 22.56,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "seek": 0,
+      "start": 22.76,
+      "end": 23.6,
+      "text": " Uh-huh.",
+      "tokens": [
+        51523,
+        4019,
+        12,
+        18710,
+        13,
+        51549
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4785649483663994,
+      "compression_ratio": 1.5463917525773196,
+      "no_speech_prob": 0.05375749245285988,
+      "words": [
+        {
+          "word": " Uh",
+          "start": 22.76,
+          "end": 23.26,
+          "probability": 0.53271484375
+        },
+        {
+          "word": "-huh.",
+          "start": 23.26,
+          "end": 23.6,
+          "probability": 0.9794921875
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "seek": 0,
+      "start": 25.240000000000002,
+      "end": 25.58,
+      "text": " Well.",
+      "tokens": [
+        51627,
+        1042,
+        13,
+        51659
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4785649483663994,
+      "compression_ratio": 1.5463917525773196,
+      "no_speech_prob": 0.05375749245285988,
+      "words": [
+        {
+          "word": " Well.",
+          "start": 25.15,
+          "end": 25.58,
+          "probability": 0.994140625
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "seek": 2558,
+      "start": 25.58,
+      "end": 25.84,
+      "text": " Well.",
+      "tokens": [
+        50365,
+        1042,
+        13,
+        50379
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.2978495803533816,
+      "compression_ratio": 1.68125,
+      "no_speech_prob": 0.10101912170648575,
+      "words": [
+        {
+          "word": " Well.",
+          "start": 25.58,
+          "end": 25.84,
+          "probability": 0.1326904296875
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "seek": 2558,
+      "start": 29.22,
+      "end": 34.82,
+      "text": " So the oldest brother of the Kauravas, his name was, do you remember?",
+      "tokens": [
+        50556,
+        407,
+        264,
+        14026,
+        3708,
+        295,
+        264,
+        591,
+        3463,
+        37331,
+        11,
+        702,
+        1315,
+        390,
+        11,
+        360,
+        291,
+        1604,
+        30,
+        50836
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.2978495803533816,
+      "compression_ratio": 1.68125,
+      "no_speech_prob": 0.10101912170648575,
+      "words": [
+        {
+          "word": " So",
+          "start": 29.22,
+          "end": 29.98,
+          "probability": 0.93798828125
+        },
+        {
+          "word": " the",
+          "start": 29.98,
+          "end": 30.24,
+          "probability": 0.857421875
+        },
+        {
+          "word": " oldest",
+          "start": 30.24,
+          "end": 30.88,
+          "probability": 0.85498046875
+        },
+        {
+          "word": " brother",
+          "start": 30.88,
+          "end": 31.3,
+          "probability": 0.9951171875
+        },
+        {
+          "word": " of",
+          "start": 31.3,
+          "end": 31.68,
+          "probability": 0.912109375
+        },
+        {
+          "word": " the",
+          "start": 31.68,
+          "end": 31.86,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " Kauravas,",
+          "start": 31.86,
+          "end": 32.48,
+          "probability": 0.5859375
+        },
+        {
+          "word": " his",
+          "start": 32.66,
+          "end": 33.5,
+          "probability": 0.9970703125
+        },
+        {
+          "word": " name",
+          "start": 33.5,
+          "end": 33.88,
+          "probability": 1.0
+        },
+        {
+          "word": " was,",
+          "start": 33.88,
+          "end": 34.12,
+          "probability": 1.0
+        },
+        {
+          "word": " do",
+          "start": 34.22,
+          "end": 34.34,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " you",
+          "start": 34.34,
+          "end": 34.44,
+          "probability": 1.0
+        },
+        {
+          "word": " remember?",
+          "start": 34.44,
+          "end": 34.82,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "seek": 2558,
+      "start": 35.5,
+      "end": 36.26,
+      "text": " Duryodhana.",
+      "tokens": [
+        50870,
+        413,
+        2598,
+        378,
+        39907,
+        13,
+        50908
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.2978495803533816,
+      "compression_ratio": 1.68125,
+      "no_speech_prob": 0.10101912170648575,
+      "words": [
+        {
+          "word": " Duryodhana.",
+          "start": 35.5,
+          "end": 36.26,
+          "probability": 0.90625
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "seek": 2558,
+      "start": 36.58,
+      "end": 37.7,
+      "text": " Duryodhana, yeah.",
+      "tokens": [
+        50925,
+        413,
+        2598,
+        378,
+        39907,
+        11,
+        1338,
+        13,
+        50980
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.2978495803533816,
+      "compression_ratio": 1.68125,
+      "no_speech_prob": 0.10101912170648575,
+      "words": [
+        {
+          "word": " Duryodhana,",
+          "start": 36.58,
+          "end": 37.34,
+          "probability": 0.97998046875
+        },
+        {
+          "word": " yeah.",
+          "start": 37.52,
+          "end": 37.7,
+          "probability": 0.9990234375
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "seek": 2558,
+      "start": 38.34,
+      "end": 42.64,
+      "text": " And the oldest brother of the Pandus, his name is?",
+      "tokens": [
+        51018,
+        400,
+        264,
+        14026,
+        3708,
+        295,
+        264,
+        16995,
+        301,
+        11,
+        702,
+        1315,
+        307,
+        30,
+        51224
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.2978495803533816,
+      "compression_ratio": 1.68125,
+      "no_speech_prob": 0.10101912170648575,
+      "words": [
+        {
+          "word": " And",
+          "start": 38.34,
+          "end": 39.1,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " the",
+          "start": 39.1,
+          "end": 39.26,
+          "probability": 1.0
+        },
+        {
+          "word": " oldest",
+          "start": 39.26,
+          "end": 39.78,
+          "probability": 1.0
+        },
+        {
+          "word": " brother",
+          "start": 39.78,
+          "end": 40.32,
+          "probability": 1.0
+        },
+        {
+          "word": " of",
+          "start": 40.32,
+          "end": 40.78,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 40.78,
+          "end": 40.98,
+          "probability": 1.0
+        },
+        {
+          "word": " Pandus,",
+          "start": 40.98,
+          "end": 41.58,
+          "probability": 0.3544921875
+        },
+        {
+          "word": " his",
+          "start": 41.64,
+          "end": 41.9,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " name",
+          "start": 41.9,
+          "end": 42.24,
+          "probability": 1.0
+        },
+        {
+          "word": " is?",
+          "start": 42.24,
+          "end": 42.64,
+          "probability": 0.99951171875
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "seek": 2558,
+      "start": 43.480000000000004,
+      "end": 44.24,
+      "text": " Yudhishthira.",
+      "tokens": [
+        51273,
+        398,
+        532,
+        18300,
+        357,
+        71,
+        4271,
+        13,
+        51307
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.2978495803533816,
+      "compression_ratio": 1.68125,
+      "no_speech_prob": 0.10101912170648575,
+      "words": [
+        {
+          "word": " Yudhishthira.",
+          "start": 43.480000000000004,
+          "end": 44.24,
+          "probability": 0.87890625
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "seek": 2558,
+      "start": 44.6,
+      "end": 45.76,
+      "text": " That's right, Yudhishthira.",
+      "tokens": [
+        51323,
+        663,
+        311,
+        558,
+        11,
+        398,
+        532,
+        18300,
+        357,
+        71,
+        4271,
+        13,
+        51382
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.2978495803533816,
+      "compression_ratio": 1.68125,
+      "no_speech_prob": 0.10101912170648575,
+      "words": [
+        {
+          "word": " That's",
+          "start": 44.6,
+          "end": 44.96,
+          "probability": 0.9892578125
+        },
+        {
+          "word": " right,",
+          "start": 44.96,
+          "end": 45.18,
+          "probability": 1.0
+        },
+        {
+          "word": " Yudhishthira.",
+          "start": 45.26,
+          "end": 45.76,
+          "probability": 0.99560546875
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "seek": 2558,
+      "start": 46.38,
+      "end": 54.42,
+      "text": " And so the Pandus and the Kauravas, they both wanted to be king.",
+      "tokens": [
+        51382,
+        400,
+        370,
+        264,
+        16995,
+        301,
+        293,
+        264,
+        591,
+        3463,
+        37331,
+        11,
+        436,
+        1293,
+        1415,
+        281,
+        312,
+        4867,
+        13,
+        51818
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.2978495803533816,
+      "compression_ratio": 1.68125,
+      "no_speech_prob": 0.10101912170648575,
+      "words": [
+        {
+          "word": " And",
+          "start": 46.38,
+          "end": 47.14,
+          "probability": 0.994140625
+        },
+        {
+          "word": " so",
+          "start": 47.14,
+          "end": 47.48,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 47.48,
+          "end": 48.84,
+          "probability": 0.59814453125
+        },
+        {
+          "word": " Pandus",
+          "start": 48.84,
+          "end": 49.48,
+          "probability": 0.99609375
+        },
+        {
+          "word": " and",
+          "start": 49.48,
+          "end": 50.68,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " the",
+          "start": 50.68,
+          "end": 50.94,
+          "probability": 1.0
+        },
+        {
+          "word": " Kauravas,",
+          "start": 50.94,
+          "end": 51.56,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " they",
+          "start": 51.8,
+          "end": 52.32,
+          "probability": 1.0
+        },
+        {
+          "word": " both",
+          "start": 52.32,
+          "end": 52.76,
+          "probability": 1.0
+        },
+        {
+          "word": " wanted",
+          "start": 52.76,
+          "end": 53.64,
+          "probability": 1.0
+        },
+        {
+          "word": " to",
+          "start": 53.64,
+          "end": 53.86,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 53.86,
+          "end": 54.0,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 54.0,
+          "end": 54.42,
+          "probability": 0.92724609375
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "seek": 2558,
+      "start": 55.239999999999995,
+      "end": 55.28,
+      "text": " Okay.",
+      "tokens": [
+        51848,
+        1033,
+        13,
+        51847
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.2978495803533816,
+      "compression_ratio": 1.68125,
+      "no_speech_prob": 0.10101912170648575,
+      "words": [
+        {
+          "word": " Okay.",
+          "start": 54.9,
+          "end": 55.28,
+          "probability": 0.043975830078125
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "seek": 5558,
+      "start": 55.58,
+      "end": 61.98,
+      "text": " Meaning they both wanted the oldest on both families to be the king.",
+      "tokens": [
+        50365,
+        19948,
+        436,
+        1293,
+        1415,
+        264,
+        14026,
+        322,
+        1293,
+        4466,
+        281,
+        312,
+        264,
+        4867,
+        13,
+        50697
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19865336183641777,
+      "compression_ratio": 1.6225165562913908,
+      "no_speech_prob": 0.0020662269089370966,
+      "words": [
+        {
+          "word": " Meaning",
+          "start": 55.58,
+          "end": 55.9,
+          "probability": 0.7900390625
+        },
+        {
+          "word": " they",
+          "start": 55.9,
+          "end": 56.1,
+          "probability": 0.97119140625
+        },
+        {
+          "word": " both",
+          "start": 56.1,
+          "end": 56.46,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " wanted",
+          "start": 56.46,
+          "end": 56.9,
+          "probability": 0.98583984375
+        },
+        {
+          "word": " the",
+          "start": 56.9,
+          "end": 57.1,
+          "probability": 0.9150390625
+        },
+        {
+          "word": " oldest",
+          "start": 57.1,
+          "end": 57.58,
+          "probability": 0.99755859375
+        },
+        {
+          "word": " on",
+          "start": 57.58,
+          "end": 58.42,
+          "probability": 0.5810546875
+        },
+        {
+          "word": " both",
+          "start": 58.42,
+          "end": 58.8,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " families",
+          "start": 58.8,
+          "end": 60.86,
+          "probability": 0.85400390625
+        },
+        {
+          "word": " to",
+          "start": 60.86,
+          "end": 61.34,
+          "probability": 0.99560546875
+        },
+        {
+          "word": " be",
+          "start": 61.34,
+          "end": 61.52,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 61.52,
+          "end": 61.7,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " king.",
+          "start": 61.7,
+          "end": 61.98,
+          "probability": 0.99169921875
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "seek": 5558,
+      "start": 64.76,
+      "end": 74.32,
+      "text": " And because they both wanted the same thing, they got in lots of arguments and lots of fights and they were not nice to each other.",
+      "tokens": [
+        50830,
+        400,
+        570,
+        436,
+        1293,
+        1415,
+        264,
+        912,
+        551,
+        11,
+        436,
+        658,
+        294,
+        3195,
+        295,
+        12869,
+        293,
+        3195,
+        295,
+        14512,
+        293,
+        436,
+        645,
+        406,
+        1481,
+        281,
+        1184,
+        661,
+        13,
+        51307
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19865336183641777,
+      "compression_ratio": 1.6225165562913908,
+      "no_speech_prob": 0.0020662269089370966,
+      "words": [
+        {
+          "word": " And",
+          "start": 64.76,
+          "end": 65.44,
+          "probability": 0.9970703125
+        },
+        {
+          "word": " because",
+          "start": 65.44,
+          "end": 65.72,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " they",
+          "start": 65.72,
+          "end": 66.2,
+          "probability": 1.0
+        },
+        {
+          "word": " both",
+          "start": 66.2,
+          "end": 66.62,
+          "probability": 1.0
+        },
+        {
+          "word": " wanted",
+          "start": 66.62,
+          "end": 67.14,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 67.14,
+          "end": 67.38,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " same",
+          "start": 67.38,
+          "end": 67.68,
+          "probability": 1.0
+        },
+        {
+          "word": " thing,",
+          "start": 67.68,
+          "end": 68.06,
+          "probability": 1.0
+        },
+        {
+          "word": " they",
+          "start": 68.22,
+          "end": 69.14,
+          "probability": 0.99658203125
+        },
+        {
+          "word": " got",
+          "start": 69.14,
+          "end": 69.38,
+          "probability": 1.0
+        },
+        {
+          "word": " in",
+          "start": 69.38,
+          "end": 69.62,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " lots",
+          "start": 69.62,
+          "end": 69.96,
+          "probability": 1.0
+        },
+        {
+          "word": " of",
+          "start": 69.96,
+          "end": 70.26,
+          "probability": 1.0
+        },
+        {
+          "word": " arguments",
+          "start": 70.26,
+          "end": 70.9,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " and",
+          "start": 70.9,
+          "end": 71.24,
+          "probability": 0.9853515625
+        },
+        {
+          "word": " lots",
+          "start": 71.24,
+          "end": 71.5,
+          "probability": 0.99755859375
+        },
+        {
+          "word": " of",
+          "start": 71.5,
+          "end": 71.78,
+          "probability": 1.0
+        },
+        {
+          "word": " fights",
+          "start": 71.78,
+          "end": 72.18,
+          "probability": 1.0
+        },
+        {
+          "word": " and",
+          "start": 72.18,
+          "end": 72.58,
+          "probability": 0.73681640625
+        },
+        {
+          "word": " they",
+          "start": 72.58,
+          "end": 72.78,
+          "probability": 1.0
+        },
+        {
+          "word": " were",
+          "start": 72.78,
+          "end": 72.94,
+          "probability": 1.0
+        },
+        {
+          "word": " not",
+          "start": 72.94,
+          "end": 73.2,
+          "probability": 1.0
+        },
+        {
+          "word": " nice",
+          "start": 73.2,
+          "end": 73.56,
+          "probability": 1.0
+        },
+        {
+          "word": " to",
+          "start": 73.56,
+          "end": 73.8,
+          "probability": 1.0
+        },
+        {
+          "word": " each",
+          "start": 73.8,
+          "end": 73.98,
+          "probability": 1.0
+        },
+        {
+          "word": " other.",
+          "start": 73.98,
+          "end": 74.32,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "seek": 5558,
+      "start": 78.0,
+      "end": 79.42,
+      "text": " Does that make sense?",
+      "tokens": [
+        51496,
+        4402,
+        300,
+        652,
+        2020,
+        30,
+        51571
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19865336183641777,
+      "compression_ratio": 1.6225165562913908,
+      "no_speech_prob": 0.0020662269089370966,
+      "words": [
+        {
+          "word": " Does",
+          "start": 78.0,
+          "end": 78.68,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " that",
+          "start": 78.68,
+          "end": 78.92,
+          "probability": 1.0
+        },
+        {
+          "word": " make",
+          "start": 78.92,
+          "end": 79.12,
+          "probability": 1.0
+        },
+        {
+          "word": " sense?",
+          "start": 79.12,
+          "end": 79.42,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "seek": 5558,
+      "start": 82.48,
+      "end": 84.7,
+      "text": " And the reason that...",
+      "tokens": [
+        51721,
+        400,
+        264,
+        1778,
+        300,
+        485,
+        51821
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19865336183641777,
+      "compression_ratio": 1.6225165562913908,
+      "no_speech_prob": 0.0020662269089370966,
+      "words": [
+        {
+          "word": " And",
+          "start": 82.48,
+          "end": 83.16,
+          "probability": 0.98095703125
+        },
+        {
+          "word": " the",
+          "start": 83.16,
+          "end": 83.32,
+          "probability": 1.0
+        },
+        {
+          "word": " reason",
+          "start": 83.32,
+          "end": 83.9,
+          "probability": 1.0
+        },
+        {
+          "word": " that...",
+          "start": 83.9,
+          "end": 84.7,
+          "probability": 0.59033203125
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "seek": 8558,
+      "start": 85.66,
+      "end": 92.48,
+      "text": " Yudhishthira wanted to be king and Duryodhana wanted to be king were not exactly the same.",
+      "tokens": [
+        50365,
+        398,
+        532,
+        18300,
+        357,
+        71,
+        4271,
+        1415,
+        281,
+        312,
+        4867,
+        293,
+        413,
+        2598,
+        378,
+        39907,
+        1415,
+        281,
+        312,
+        4867,
+        645,
+        406,
+        2293,
+        264,
+        912,
+        13,
+        50718
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1835742777044123,
+      "compression_ratio": 1.8432432432432433,
+      "no_speech_prob": 0.07476755976676941,
+      "words": [
+        {
+          "word": " Yudhishthira",
+          "start": 85.66,
+          "end": 86.2,
+          "probability": 0.6953125
+        },
+        {
+          "word": " wanted",
+          "start": 86.2,
+          "end": 86.56,
+          "probability": 0.9912109375
+        },
+        {
+          "word": " to",
+          "start": 86.56,
+          "end": 86.74,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " be",
+          "start": 86.74,
+          "end": 86.84,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " king",
+          "start": 86.84,
+          "end": 87.18,
+          "probability": 0.9423828125
+        },
+        {
+          "word": " and",
+          "start": 87.18,
+          "end": 88.4,
+          "probability": 0.57177734375
+        },
+        {
+          "word": " Duryodhana",
+          "start": 88.4,
+          "end": 88.98,
+          "probability": 0.970703125
+        },
+        {
+          "word": " wanted",
+          "start": 88.98,
+          "end": 89.34,
+          "probability": 0.98681640625
+        },
+        {
+          "word": " to",
+          "start": 89.34,
+          "end": 89.54,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " be",
+          "start": 89.54,
+          "end": 89.64,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " king",
+          "start": 89.64,
+          "end": 89.98,
+          "probability": 0.99365234375
+        },
+        {
+          "word": " were",
+          "start": 89.98,
+          "end": 91.02,
+          "probability": 0.90478515625
+        },
+        {
+          "word": " not",
+          "start": 91.02,
+          "end": 91.26,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " exactly",
+          "start": 91.26,
+          "end": 91.78,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " the",
+          "start": 91.78,
+          "end": 92.16,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " same.",
+          "start": 92.16,
+          "end": 92.48,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "seek": 8558,
+      "start": 94.72,
+      "end": 99.94,
+      "text": " Duryodhana wanted to be king because he felt like he deserved it.",
+      "tokens": [
+        50830,
+        413,
+        2598,
+        378,
+        39907,
+        1415,
+        281,
+        312,
+        4867,
+        570,
+        415,
+        2762,
+        411,
+        415,
+        27964,
+        309,
+        13,
+        51089
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1835742777044123,
+      "compression_ratio": 1.8432432432432433,
+      "no_speech_prob": 0.07476755976676941,
+      "words": [
+        {
+          "word": " Duryodhana",
+          "start": 94.72,
+          "end": 95.26,
+          "probability": 0.9921875
+        },
+        {
+          "word": " wanted",
+          "start": 95.26,
+          "end": 95.58,
+          "probability": 0.939453125
+        },
+        {
+          "word": " to",
+          "start": 95.58,
+          "end": 95.82,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " be",
+          "start": 95.82,
+          "end": 95.94,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " king",
+          "start": 95.94,
+          "end": 96.28,
+          "probability": 0.99462890625
+        },
+        {
+          "word": " because",
+          "start": 96.28,
+          "end": 97.06,
+          "probability": 0.9853515625
+        },
+        {
+          "word": " he",
+          "start": 97.06,
+          "end": 98.22,
+          "probability": 0.99560546875
+        },
+        {
+          "word": " felt",
+          "start": 98.22,
+          "end": 98.6,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " like",
+          "start": 98.6,
+          "end": 98.86,
+          "probability": 0.99658203125
+        },
+        {
+          "word": " he",
+          "start": 98.86,
+          "end": 99.06,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " deserved",
+          "start": 99.06,
+          "end": 99.44,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " it.",
+          "start": 99.44,
+          "end": 99.94,
+          "probability": 0.99658203125
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "seek": 8558,
+      "start": 100.52000000000001,
+      "end": 102.74,
+      "text": " Like it was supposed to be his.",
+      "tokens": [
+        51122,
+        1743,
+        309,
+        390,
+        3442,
+        281,
+        312,
+        702,
+        13,
+        51245
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1835742777044123,
+      "compression_ratio": 1.8432432432432433,
+      "no_speech_prob": 0.07476755976676941,
+      "words": [
+        {
+          "word": " Like",
+          "start": 100.52000000000001,
+          "end": 101.06,
+          "probability": 0.9765625
+        },
+        {
+          "word": " it",
+          "start": 101.06,
+          "end": 101.28,
+          "probability": 0.98779296875
+        },
+        {
+          "word": " was",
+          "start": 101.28,
+          "end": 101.44,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " supposed",
+          "start": 101.44,
+          "end": 101.76,
+          "probability": 0.99658203125
+        },
+        {
+          "word": " to",
+          "start": 101.76,
+          "end": 102.16,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 102.16,
+          "end": 102.26,
+          "probability": 1.0
+        },
+        {
+          "word": " his.",
+          "start": 102.26,
+          "end": 102.74,
+          "probability": 0.99658203125
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "seek": 8558,
+      "start": 104.04,
+      "end": 108.16,
+      "text": " It was a little bit of his, not a little, it was a lot of his ego.",
+      "tokens": [
+        51295,
+        467,
+        390,
+        257,
+        707,
+        857,
+        295,
+        702,
+        11,
+        406,
+        257,
+        707,
+        11,
+        309,
+        390,
+        257,
+        688,
+        295,
+        702,
+        14495,
+        13,
+        51498
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1835742777044123,
+      "compression_ratio": 1.8432432432432433,
+      "no_speech_prob": 0.07476755976676941,
+      "words": [
+        {
+          "word": " It",
+          "start": 104.04,
+          "end": 104.58,
+          "probability": 0.9912109375
+        },
+        {
+          "word": " was",
+          "start": 104.58,
+          "end": 104.72,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " a",
+          "start": 104.72,
+          "end": 104.88,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " little",
+          "start": 104.88,
+          "end": 105.08,
+          "probability": 0.9404296875
+        },
+        {
+          "word": " bit",
+          "start": 105.08,
+          "end": 105.26,
+          "probability": 0.998046875
+        },
+        {
+          "word": " of",
+          "start": 105.26,
+          "end": 105.4,
+          "probability": 0.99755859375
+        },
+        {
+          "word": " his,",
+          "start": 105.4,
+          "end": 105.54,
+          "probability": 0.9970703125
+        },
+        {
+          "word": " not",
+          "start": 105.62,
+          "end": 106.04,
+          "probability": 0.99755859375
+        },
+        {
+          "word": " a",
+          "start": 106.04,
+          "end": 106.2,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " little,",
+          "start": 106.2,
+          "end": 106.44,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " it",
+          "start": 106.52,
+          "end": 106.62,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " was",
+          "start": 106.62,
+          "end": 106.74,
+          "probability": 1.0
+        },
+        {
+          "word": " a",
+          "start": 106.74,
+          "end": 106.86,
+          "probability": 1.0
+        },
+        {
+          "word": " lot",
+          "start": 106.86,
+          "end": 107.14,
+          "probability": 1.0
+        },
+        {
+          "word": " of",
+          "start": 107.14,
+          "end": 107.32,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " his",
+          "start": 107.32,
+          "end": 107.58,
+          "probability": 1.0
+        },
+        {
+          "word": " ego.",
+          "start": 107.58,
+          "end": 108.16,
+          "probability": 0.998046875
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "seek": 8558,
+      "start": 108.82,
+      "end": 112.14,
+      "text": " And he was quite vain, just like James is, right?",
+      "tokens": [
+        51536,
+        400,
+        415,
+        390,
+        1596,
+        22240,
+        11,
+        445,
+        411,
+        5678,
+        307,
+        11,
+        558,
+        30,
+        51701
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1835742777044123,
+      "compression_ratio": 1.8432432432432433,
+      "no_speech_prob": 0.07476755976676941,
+      "words": [
+        {
+          "word": " And",
+          "start": 108.82,
+          "end": 109.36,
+          "probability": 0.998046875
+        },
+        {
+          "word": " he",
+          "start": 109.36,
+          "end": 109.5,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " was",
+          "start": 109.5,
+          "end": 109.66,
+          "probability": 1.0
+        },
+        {
+          "word": " quite",
+          "start": 109.66,
+          "end": 109.94,
+          "probability": 1.0
+        },
+        {
+          "word": " vain,",
+          "start": 109.94,
+          "end": 110.38,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " just",
+          "start": 110.56,
+          "end": 110.88,
+          "probability": 1.0
+        },
+        {
+          "word": " like",
+          "start": 110.88,
+          "end": 111.12,
+          "probability": 1.0
+        },
+        {
+          "word": " James",
+          "start": 111.12,
+          "end": 111.48,
+          "probability": 0.98046875
+        },
+        {
+          "word": " is,",
+          "start": 111.48,
+          "end": 111.92,
+          "probability": 0.99560546875
+        },
+        {
+          "word": " right?",
+          "start": 111.94,
+          "end": 112.14,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "seek": 8558,
+      "start": 113.94,
+      "end": 114.76,
+      "text": " Duryodhana was...",
+      "tokens": [
+        51786,
+        413,
+        2598,
+        378,
+        39907,
+        390,
+        485,
+        51821
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1835742777044123,
+      "compression_ratio": 1.8432432432432433,
+      "no_speech_prob": 0.07476755976676941,
+      "words": [
+        {
+          "word": " Duryodhana",
+          "start": 113.94,
+          "end": 114.48,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " was...",
+          "start": 114.48,
+          "end": 114.76,
+          "probability": 0.5078125
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "seek": 8558,
+      "start": 114.76,
+      "end": 115.56,
+      "text": " Duryodhana was...",
+      "tokens": [
+        51821,
+        413,
+        2598,
+        378,
+        39907,
+        390,
+        485,
+        51846
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1835742777044123,
+      "compression_ratio": 1.8432432432432433,
+      "no_speech_prob": 0.07476755976676941,
+      "words": [
+        {
+          "word": " Duryodhana",
+          "start": 114.76,
+          "end": 115.56,
+          "probability": 0.748046875
+        },
+        {
+          "word": " was...",
+          "start": 115.56,
+          "end": 115.56,
+          "probability": 0.900390625
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "seek": 11556,
+      "start": 115.56,
+      "end": 121.24,
+      "text": " Really thought that he should be king because he was the best.",
+      "tokens": [
+        50365,
+        4083,
+        1194,
+        300,
+        415,
+        820,
+        312,
+        4867,
+        570,
+        415,
+        390,
+        264,
+        1151,
+        13,
+        50661
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.21470141410827637,
+      "compression_ratio": 1.620879120879121,
+      "no_speech_prob": 0.0039021680131554604,
+      "words": [
+        {
+          "word": " Really",
+          "start": 115.56,
+          "end": 115.74,
+          "probability": 0.3193359375
+        },
+        {
+          "word": " thought",
+          "start": 115.74,
+          "end": 116.02,
+          "probability": 0.99462890625
+        },
+        {
+          "word": " that",
+          "start": 116.02,
+          "end": 116.44,
+          "probability": 0.98876953125
+        },
+        {
+          "word": " he",
+          "start": 116.44,
+          "end": 117.38,
+          "probability": 0.70458984375
+        },
+        {
+          "word": " should",
+          "start": 117.38,
+          "end": 117.62,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " be",
+          "start": 117.62,
+          "end": 117.78,
+          "probability": 1.0
+        },
+        {
+          "word": " king",
+          "start": 117.78,
+          "end": 118.04,
+          "probability": 0.97705078125
+        },
+        {
+          "word": " because",
+          "start": 118.04,
+          "end": 118.54,
+          "probability": 0.7724609375
+        },
+        {
+          "word": " he",
+          "start": 118.54,
+          "end": 120.46,
+          "probability": 0.94580078125
+        },
+        {
+          "word": " was",
+          "start": 120.46,
+          "end": 120.76,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 120.76,
+          "end": 120.94,
+          "probability": 1.0
+        },
+        {
+          "word": " best.",
+          "start": 120.94,
+          "end": 121.24,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "seek": 11556,
+      "start": 121.46,
+      "end": 133.7,
+      "text": " And then remember I also said he was mad and resented that his father, that they had taken him away from being king.",
+      "tokens": [
+        50661,
+        400,
+        550,
+        1604,
+        286,
+        611,
+        848,
+        415,
+        390,
+        5244,
+        293,
+        725,
+        6003,
+        300,
+        702,
+        3086,
+        11,
+        300,
+        436,
+        632,
+        2726,
+        796,
+        1314,
+        490,
+        885,
+        4867,
+        13,
+        51281
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.21470141410827637,
+      "compression_ratio": 1.620879120879121,
+      "no_speech_prob": 0.0039021680131554604,
+      "words": [
+        {
+          "word": " And",
+          "start": 121.46,
+          "end": 121.9,
+          "probability": 0.99560546875
+        },
+        {
+          "word": " then",
+          "start": 121.9,
+          "end": 122.04,
+          "probability": 0.99755859375
+        },
+        {
+          "word": " remember",
+          "start": 122.04,
+          "end": 122.34,
+          "probability": 0.849609375
+        },
+        {
+          "word": " I",
+          "start": 122.34,
+          "end": 122.62,
+          "probability": 0.677734375
+        },
+        {
+          "word": " also",
+          "start": 122.62,
+          "end": 122.9,
+          "probability": 1.0
+        },
+        {
+          "word": " said",
+          "start": 122.9,
+          "end": 123.24,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 123.24,
+          "end": 123.6,
+          "probability": 0.99365234375
+        },
+        {
+          "word": " was",
+          "start": 123.6,
+          "end": 124.8,
+          "probability": 1.0
+        },
+        {
+          "word": " mad",
+          "start": 124.8,
+          "end": 126.26,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " and",
+          "start": 126.26,
+          "end": 126.8,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " resented",
+          "start": 126.8,
+          "end": 127.44,
+          "probability": 1.0
+        },
+        {
+          "word": " that",
+          "start": 127.44,
+          "end": 127.74,
+          "probability": 0.99072265625
+        },
+        {
+          "word": " his",
+          "start": 127.74,
+          "end": 128.4,
+          "probability": 0.998046875
+        },
+        {
+          "word": " father,",
+          "start": 128.4,
+          "end": 128.86,
+          "probability": 1.0
+        },
+        {
+          "word": " that",
+          "start": 129.02,
+          "end": 130.86,
+          "probability": 0.9970703125
+        },
+        {
+          "word": " they",
+          "start": 130.86,
+          "end": 131.44,
+          "probability": 1.0
+        },
+        {
+          "word": " had",
+          "start": 131.44,
+          "end": 131.7,
+          "probability": 1.0
+        },
+        {
+          "word": " taken",
+          "start": 131.7,
+          "end": 132.3,
+          "probability": 1.0
+        },
+        {
+          "word": " him",
+          "start": 132.3,
+          "end": 132.64,
+          "probability": 1.0
+        },
+        {
+          "word": " away",
+          "start": 132.64,
+          "end": 132.92,
+          "probability": 1.0
+        },
+        {
+          "word": " from",
+          "start": 132.92,
+          "end": 133.2,
+          "probability": 1.0
+        },
+        {
+          "word": " being",
+          "start": 133.2,
+          "end": 133.4,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 133.4,
+          "end": 133.7,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "seek": 11556,
+      "start": 134.68,
+      "end": 136.48000000000002,
+      "text": " And I mean to his credit...",
+      "tokens": [
+        51331,
+        400,
+        286,
+        914,
+        281,
+        702,
+        5397,
+        485,
+        51411
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.21470141410827637,
+      "compression_ratio": 1.620879120879121,
+      "no_speech_prob": 0.0039021680131554604,
+      "words": [
+        {
+          "word": " And",
+          "start": 134.68,
+          "end": 135.28,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " I",
+          "start": 135.28,
+          "end": 135.44,
+          "probability": 0.63671875
+        },
+        {
+          "word": " mean",
+          "start": 135.44,
+          "end": 135.68,
+          "probability": 1.0
+        },
+        {
+          "word": " to",
+          "start": 135.68,
+          "end": 135.84,
+          "probability": 0.80322265625
+        },
+        {
+          "word": " his",
+          "start": 135.84,
+          "end": 136.12,
+          "probability": 1.0
+        },
+        {
+          "word": " credit...",
+          "start": 136.12,
+          "end": 136.48000000000002,
+          "probability": 0.5556640625
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "seek": 11556,
+      "start": 137.02,
+      "end": 137.98,
+      "text": " The rich father.",
+      "tokens": [
+        51445,
+        440,
+        4593,
+        3086,
+        13,
+        51499
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.21470141410827637,
+      "compression_ratio": 1.620879120879121,
+      "no_speech_prob": 0.0039021680131554604,
+      "words": [
+        {
+          "word": " The",
+          "start": 137.02,
+          "end": 137.18,
+          "probability": 0.97265625
+        },
+        {
+          "word": " rich",
+          "start": 137.18,
+          "end": 137.6,
+          "probability": 0.2646484375
+        },
+        {
+          "word": " father.",
+          "start": 137.6,
+          "end": 137.98,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "seek": 11556,
+      "start": 138.36,
+      "end": 139.6,
+      "text": " The blind father.",
+      "tokens": [
+        51526,
+        440,
+        6865,
+        3086,
+        13,
+        51584
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.21470141410827637,
+      "compression_ratio": 1.620879120879121,
+      "no_speech_prob": 0.0039021680131554604,
+      "words": [
+        {
+          "word": " The",
+          "start": 138.36,
+          "end": 138.9,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " blind",
+          "start": 138.9,
+          "end": 139.22,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " father.",
+          "start": 139.22,
+          "end": 139.6,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "seek": 11556,
+      "start": 140.9,
+      "end": 143.98,
+      "text": " His father, what, do you remember his father's name?",
+      "tokens": [
+        51657,
+        2812,
+        3086,
+        11,
+        437,
+        11,
+        360,
+        291,
+        1604,
+        702,
+        3086,
+        311,
+        1315,
+        30,
+        51792
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.21470141410827637,
+      "compression_ratio": 1.620879120879121,
+      "no_speech_prob": 0.0039021680131554604,
+      "words": [
+        {
+          "word": " His",
+          "start": 140.9,
+          "end": 141.5,
+          "probability": 0.99169921875
+        },
+        {
+          "word": " father,",
+          "start": 141.5,
+          "end": 141.88,
+          "probability": 1.0
+        },
+        {
+          "word": " what,",
+          "start": 142.04,
+          "end": 142.64,
+          "probability": 0.595703125
+        },
+        {
+          "word": " do",
+          "start": 142.72,
+          "end": 142.84,
+          "probability": 1.0
+        },
+        {
+          "word": " you",
+          "start": 142.84,
+          "end": 142.94,
+          "probability": 1.0
+        },
+        {
+          "word": " remember",
+          "start": 142.94,
+          "end": 143.14,
+          "probability": 1.0
+        },
+        {
+          "word": " his",
+          "start": 143.14,
+          "end": 143.34,
+          "probability": 1.0
+        },
+        {
+          "word": " father's",
+          "start": 143.34,
+          "end": 143.78,
+          "probability": 1.0
+        },
+        {
+          "word": " name?",
+          "start": 143.78,
+          "end": 143.98,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "seek": 14556,
+      "start": 145.84,
+      "end": 146.56,
+      "text": " The...",
+      "tokens": [
+        50365,
+        440,
+        485,
+        50393
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4413301086425781,
+      "compression_ratio": 1.5,
+      "no_speech_prob": 0.01350041851401329,
+      "words": [
+        {
+          "word": " The...",
+          "start": 145.84,
+          "end": 146.56,
+          "probability": 0.3212890625
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "seek": 14556,
+      "start": 147.62,
+      "end": 148.34,
+      "text": " The...",
+      "tokens": [
+        50393,
+        440,
+        485,
+        50413
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4413301086425781,
+      "compression_ratio": 1.5,
+      "no_speech_prob": 0.01350041851401329,
+      "words": [
+        {
+          "word": " The...",
+          "start": 147.62,
+          "end": 148.34,
+          "probability": 0.46337890625
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "seek": 14556,
+      "start": 148.34,
+      "end": 149.38,
+      "text": " The...",
+      "tokens": [
+        50413,
+        440,
+        485,
+        50504
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4413301086425781,
+      "compression_ratio": 1.5,
+      "no_speech_prob": 0.01350041851401329,
+      "words": [
+        {
+          "word": " The...",
+          "start": 148.34,
+          "end": 149.38,
+          "probability": 0.529296875
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "seek": 14556,
+      "start": 149.38,
+      "end": 152.18,
+      "text": " Yeah, I have to look up the pronunciation.",
+      "tokens": [
+        50504,
+        865,
+        11,
+        286,
+        362,
+        281,
+        574,
+        493,
+        264,
+        23338,
+        13,
+        50705
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4413301086425781,
+      "compression_ratio": 1.5,
+      "no_speech_prob": 0.01350041851401329,
+      "words": [
+        {
+          "word": " Yeah,",
+          "start": 149.38,
+          "end": 150.4,
+          "probability": 0.1630859375
+        },
+        {
+          "word": " I",
+          "start": 150.6,
+          "end": 150.9,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " have",
+          "start": 150.9,
+          "end": 151.06,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " to",
+          "start": 151.06,
+          "end": 151.24,
+          "probability": 1.0
+        },
+        {
+          "word": " look",
+          "start": 151.24,
+          "end": 151.38,
+          "probability": 1.0
+        },
+        {
+          "word": " up",
+          "start": 151.38,
+          "end": 151.58,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 151.58,
+          "end": 151.7,
+          "probability": 0.998046875
+        },
+        {
+          "word": " pronunciation.",
+          "start": 151.7,
+          "end": 152.18,
+          "probability": 0.99951171875
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "seek": 14556,
+      "start": 153.38,
+      "end": 155.88,
+      "text": " But remember he was born blind.",
+      "tokens": [
+        50756,
+        583,
+        1604,
+        415,
+        390,
+        4232,
+        6865,
+        13,
+        50894
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4413301086425781,
+      "compression_ratio": 1.5,
+      "no_speech_prob": 0.01350041851401329,
+      "words": [
+        {
+          "word": " But",
+          "start": 153.05999999999997,
+          "end": 153.42,
+          "probability": 0.994140625
+        },
+        {
+          "word": " remember",
+          "start": 153.42,
+          "end": 154.46,
+          "probability": 0.5732421875
+        },
+        {
+          "word": " he",
+          "start": 154.46,
+          "end": 154.76,
+          "probability": 0.326904296875
+        },
+        {
+          "word": " was",
+          "start": 154.76,
+          "end": 155.02,
+          "probability": 1.0
+        },
+        {
+          "word": " born",
+          "start": 155.02,
+          "end": 155.32,
+          "probability": 1.0
+        },
+        {
+          "word": " blind.",
+          "start": 155.32,
+          "end": 155.88,
+          "probability": 0.99951171875
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "seek": 14556,
+      "start": 157.08,
+      "end": 162.38,
+      "text": " And even though he was the older one, older than Pondo,",
+      "tokens": [
+        50954,
+        400,
+        754,
+        1673,
+        415,
+        390,
+        264,
+        4906,
+        472,
+        11,
+        4906,
+        813,
+        430,
+        27720,
+        11,
+        51214
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4413301086425781,
+      "compression_ratio": 1.5,
+      "no_speech_prob": 0.01350041851401329,
+      "words": [
+        {
+          "word": " And",
+          "start": 157.08,
+          "end": 157.8,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " even",
+          "start": 157.8,
+          "end": 158.52,
+          "probability": 0.99658203125
+        },
+        {
+          "word": " though",
+          "start": 158.52,
+          "end": 158.76,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 158.76,
+          "end": 158.94,
+          "probability": 1.0
+        },
+        {
+          "word": " was",
+          "start": 158.94,
+          "end": 159.16,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 159.16,
+          "end": 159.3,
+          "probability": 1.0
+        },
+        {
+          "word": " older",
+          "start": 159.3,
+          "end": 159.84,
+          "probability": 1.0
+        },
+        {
+          "word": " one,",
+          "start": 159.84,
+          "end": 160.2,
+          "probability": 1.0
+        },
+        {
+          "word": " older",
+          "start": 160.34,
+          "end": 161.46,
+          "probability": 0.9931640625
+        },
+        {
+          "word": " than",
+          "start": 161.46,
+          "end": 161.86,
+          "probability": 1.0
+        },
+        {
+          "word": " Pondo,",
+          "start": 161.86,
+          "end": 162.38,
+          "probability": 0.49560546875
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "seek": 14556,
+      "start": 165.3,
+      "end": 168.66,
+      "text": " they didn't let him be king in the beginning.",
+      "tokens": [
+        51362,
+        436,
+        994,
+        380,
+        718,
+        796,
+        312,
+        4867,
+        294,
+        264,
+        2863,
+        13,
+        51529
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4413301086425781,
+      "compression_ratio": 1.5,
+      "no_speech_prob": 0.01350041851401329,
+      "words": [
+        {
+          "word": " they",
+          "start": 165.3,
+          "end": 166.02,
+          "probability": 0.9912109375
+        },
+        {
+          "word": " didn't",
+          "start": 166.02,
+          "end": 166.74,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " let",
+          "start": 166.74,
+          "end": 166.92,
+          "probability": 1.0
+        },
+        {
+          "word": " him",
+          "start": 166.92,
+          "end": 167.12,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 167.12,
+          "end": 167.36,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " king",
+          "start": 167.36,
+          "end": 167.64,
+          "probability": 0.99462890625
+        },
+        {
+          "word": " in",
+          "start": 167.64,
+          "end": 168.04,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " the",
+          "start": 168.04,
+          "end": 168.18,
+          "probability": 1.0
+        },
+        {
+          "word": " beginning.",
+          "start": 168.18,
+          "end": 168.66,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "seek": 14556,
+      "start": 169.54,
+      "end": 170.98,
+      "text": " And because...",
+      "tokens": [
+        51529,
+        400,
+        570,
+        485,
+        51629
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4413301086425781,
+      "compression_ratio": 1.5,
+      "no_speech_prob": 0.01350041851401329,
+      "words": [
+        {
+          "word": " And",
+          "start": 169.54,
+          "end": 170.26,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " because...",
+          "start": 170.26,
+          "end": 170.98,
+          "probability": 0.97900390625
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "seek": 14556,
+      "start": 173.48,
+      "end": 175.54,
+      "text": " Because they took his...",
+      "tokens": [
+        51705,
+        1436,
+        436,
+        1890,
+        702,
+        485,
+        51857
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.4413301086425781,
+      "compression_ratio": 1.5,
+      "no_speech_prob": 0.01350041851401329,
+      "words": [
+        {
+          "word": " Because",
+          "start": 173.48,
+          "end": 174.2,
+          "probability": 0.90966796875
+        },
+        {
+          "word": " they",
+          "start": 174.2,
+          "end": 174.62,
+          "probability": 0.97900390625
+        },
+        {
+          "word": " took",
+          "start": 174.62,
+          "end": 175.22,
+          "probability": 0.96923828125
+        },
+        {
+          "word": " his...",
+          "start": 175.22,
+          "end": 175.54,
+          "probability": 0.97900390625
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "seek": 17556,
+      "start": 175.56,
+      "end": 177.64,
+      "text": " His being a king away...",
+      "tokens": [
+        50365,
+        2812,
+        885,
+        257,
+        4867,
+        1314,
+        485,
+        50465
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30715599488676265,
+      "compression_ratio": 1.560693641618497,
+      "no_speech_prob": 0.022802503779530525,
+      "words": [
+        {
+          "word": " His",
+          "start": 175.56,
+          "end": 175.72,
+          "probability": 0.00986480712890625
+        },
+        {
+          "word": " being",
+          "start": 175.72,
+          "end": 176.12,
+          "probability": 0.97021484375
+        },
+        {
+          "word": " a",
+          "start": 176.12,
+          "end": 176.28,
+          "probability": 0.99267578125
+        },
+        {
+          "word": " king",
+          "start": 176.28,
+          "end": 176.58,
+          "probability": 0.99169921875
+        },
+        {
+          "word": " away...",
+          "start": 176.58,
+          "end": 177.64,
+          "probability": 0.48046875
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "seek": 17556,
+      "start": 181.34,
+      "end": 182.02,
+      "text": " He...",
+      "tokens": [
+        50465,
+        634,
+        485,
+        50665
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30715599488676265,
+      "compression_ratio": 1.560693641618497,
+      "no_speech_prob": 0.022802503779530525,
+      "words": [
+        {
+          "word": " He...",
+          "start": 181.34,
+          "end": 182.02,
+          "probability": 0.55029296875
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "seek": 17556,
+      "start": 182.02,
+      "end": 184.58,
+      "text": " Duryodhana always felt like it wasn't fair.",
+      "tokens": [
+        50699,
+        413,
+        2598,
+        378,
+        39907,
+        1009,
+        2762,
+        411,
+        309,
+        2067,
+        380,
+        3143,
+        13,
+        50831
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30715599488676265,
+      "compression_ratio": 1.560693641618497,
+      "no_speech_prob": 0.022802503779530525,
+      "words": [
+        {
+          "word": " Duryodhana",
+          "start": 182.02,
+          "end": 182.66,
+          "probability": 0.87255859375
+        },
+        {
+          "word": " always",
+          "start": 182.66,
+          "end": 183.08,
+          "probability": 0.97021484375
+        },
+        {
+          "word": " felt",
+          "start": 183.08,
+          "end": 183.46,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " like",
+          "start": 183.46,
+          "end": 183.68,
+          "probability": 0.9560546875
+        },
+        {
+          "word": " it",
+          "start": 183.68,
+          "end": 183.84,
+          "probability": 0.77294921875
+        },
+        {
+          "word": " wasn't",
+          "start": 183.84,
+          "end": 184.2,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " fair.",
+          "start": 184.2,
+          "end": 184.58,
+          "probability": 0.9990234375
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "seek": 17556,
+      "start": 185.12,
+      "end": 192.22,
+      "text": " And to be honest, he thought it wasn't fair that Yudhisthira should be king.",
+      "tokens": [
+        50859,
+        400,
+        281,
+        312,
+        3245,
+        11,
+        415,
+        1194,
+        309,
+        2067,
+        380,
+        3143,
+        300,
+        398,
+        532,
+        18300,
+        392,
+        4271,
+        820,
+        312,
+        4867,
+        13,
+        51210
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30715599488676265,
+      "compression_ratio": 1.560693641618497,
+      "no_speech_prob": 0.022802503779530525,
+      "words": [
+        {
+          "word": " And",
+          "start": 185.12,
+          "end": 185.8,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " to",
+          "start": 185.8,
+          "end": 185.94,
+          "probability": 0.99072265625
+        },
+        {
+          "word": " be",
+          "start": 185.94,
+          "end": 186.04,
+          "probability": 1.0
+        },
+        {
+          "word": " honest,",
+          "start": 186.04,
+          "end": 186.32,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 186.36,
+          "end": 186.52,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " thought",
+          "start": 186.52,
+          "end": 186.7,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " it",
+          "start": 186.7,
+          "end": 186.88,
+          "probability": 1.0
+        },
+        {
+          "word": " wasn't",
+          "start": 186.88,
+          "end": 187.2,
+          "probability": 1.0
+        },
+        {
+          "word": " fair",
+          "start": 187.2,
+          "end": 187.5,
+          "probability": 1.0
+        },
+        {
+          "word": " that",
+          "start": 187.5,
+          "end": 188.58,
+          "probability": 0.1031494140625
+        },
+        {
+          "word": " Yudhisthira",
+          "start": 188.58,
+          "end": 189.48,
+          "probability": 0.92578125
+        },
+        {
+          "word": " should",
+          "start": 189.48,
+          "end": 191.56,
+          "probability": 0.9462890625
+        },
+        {
+          "word": " be",
+          "start": 191.56,
+          "end": 191.94,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 191.94,
+          "end": 192.22,
+          "probability": 0.99951171875
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "seek": 17556,
+      "start": 193.18,
+      "end": 199.86,
+      "text": " Because his dad at that point, Dhrashtra, his dad was king.",
+      "tokens": [
+        51255,
+        1436,
+        702,
+        3546,
+        412,
+        300,
+        935,
+        11,
+        413,
+        1703,
+        296,
+        357,
+        424,
+        11,
+        702,
+        3546,
+        390,
+        4867,
+        13,
+        51597
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30715599488676265,
+      "compression_ratio": 1.560693641618497,
+      "no_speech_prob": 0.022802503779530525,
+      "words": [
+        {
+          "word": " Because",
+          "start": 193.18,
+          "end": 193.86,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " his",
+          "start": 193.86,
+          "end": 194.32,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " dad",
+          "start": 194.32,
+          "end": 195.04,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " at",
+          "start": 195.04,
+          "end": 195.5,
+          "probability": 0.6708984375
+        },
+        {
+          "word": " that",
+          "start": 195.5,
+          "end": 195.78,
+          "probability": 1.0
+        },
+        {
+          "word": " point,",
+          "start": 195.78,
+          "end": 196.32,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " Dhrashtra,",
+          "start": 196.48,
+          "end": 197.62,
+          "probability": 0.64990234375
+        },
+        {
+          "word": " his",
+          "start": 197.62,
+          "end": 197.96,
+          "probability": 0.99609375
+        },
+        {
+          "word": " dad",
+          "start": 197.96,
+          "end": 198.44,
+          "probability": 1.0
+        },
+        {
+          "word": " was",
+          "start": 198.44,
+          "end": 199.36,
+          "probability": 0.83203125
+        },
+        {
+          "word": " king.",
+          "start": 199.36,
+          "end": 199.86,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "seek": 17556,
+      "start": 200.78,
+      "end": 205.02,
+      "text": " So it didn't make sense to Duryodhana that he wasn't king.",
+      "tokens": [
+        51629,
+        407,
+        309,
+        994,
+        380,
+        652,
+        2020,
+        281,
+        413,
+        2598,
+        378,
+        39907,
+        300,
+        415,
+        2067,
+        380,
+        4867,
+        13,
+        51849
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30715599488676265,
+      "compression_ratio": 1.560693641618497,
+      "no_speech_prob": 0.022802503779530525,
+      "words": [
+        {
+          "word": " So",
+          "start": 200.78,
+          "end": 201.46,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " it",
+          "start": 201.46,
+          "end": 201.62,
+          "probability": 0.82421875
+        },
+        {
+          "word": " didn't",
+          "start": 201.62,
+          "end": 201.88,
+          "probability": 1.0
+        },
+        {
+          "word": " make",
+          "start": 201.88,
+          "end": 202.02,
+          "probability": 1.0
+        },
+        {
+          "word": " sense",
+          "start": 202.02,
+          "end": 202.48,
+          "probability": 1.0
+        },
+        {
+          "word": " to",
+          "start": 202.48,
+          "end": 202.82,
+          "probability": 1.0
+        },
+        {
+          "word": " Duryodhana",
+          "start": 202.82,
+          "end": 203.38,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " that",
+          "start": 203.38,
+          "end": 203.96,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " he",
+          "start": 203.96,
+          "end": 204.18,
+          "probability": 1.0
+        },
+        {
+          "word": " wasn't",
+          "start": 204.18,
+          "end": 204.72,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 204.72,
+          "end": 205.02,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "seek": 20556,
+      "start": 205.56,
+      "end": 207.82,
+      "text": " So, I mean, he wasn't a great guy.",
+      "tokens": [
+        50365,
+        407,
+        11,
+        286,
+        914,
+        11,
+        415,
+        2067,
+        380,
+        257,
+        869,
+        2146,
+        13,
+        50489
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19844253775999718,
+      "compression_ratio": 1.6243654822335025,
+      "no_speech_prob": 0.02280459553003311,
+      "words": [
+        {
+          "word": " So,",
+          "start": 205.56,
+          "end": 205.98,
+          "probability": 0.94775390625
+        },
+        {
+          "word": " I",
+          "start": 205.98,
+          "end": 206.12,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " mean,",
+          "start": 206.12,
+          "end": 206.26,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 206.3,
+          "end": 206.38,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " wasn't",
+          "start": 206.38,
+          "end": 206.88,
+          "probability": 1.0
+        },
+        {
+          "word": " a",
+          "start": 206.88,
+          "end": 207.04,
+          "probability": 1.0
+        },
+        {
+          "word": " great",
+          "start": 207.04,
+          "end": 207.36,
+          "probability": 1.0
+        },
+        {
+          "word": " guy.",
+          "start": 207.36,
+          "end": 207.82,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "seek": 20556,
+      "start": 208.34,
+      "end": 214.52,
+      "text": " But it's not like you can't understand why he kind of felt like he should be king.",
+      "tokens": [
+        50512,
+        583,
+        309,
+        311,
+        406,
+        411,
+        291,
+        393,
+        380,
+        1223,
+        983,
+        415,
+        733,
+        295,
+        2762,
+        411,
+        415,
+        820,
+        312,
+        4867,
+        13,
+        50824
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19844253775999718,
+      "compression_ratio": 1.6243654822335025,
+      "no_speech_prob": 0.02280459553003311,
+      "words": [
+        {
+          "word": " But",
+          "start": 208.34,
+          "end": 208.9,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " it's",
+          "start": 208.9,
+          "end": 209.12,
+          "probability": 0.99267578125
+        },
+        {
+          "word": " not",
+          "start": 209.12,
+          "end": 209.32,
+          "probability": 1.0
+        },
+        {
+          "word": " like",
+          "start": 209.32,
+          "end": 209.68,
+          "probability": 1.0
+        },
+        {
+          "word": " you",
+          "start": 209.68,
+          "end": 209.92,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " can't",
+          "start": 209.92,
+          "end": 210.48,
+          "probability": 1.0
+        },
+        {
+          "word": " understand",
+          "start": 210.48,
+          "end": 211.1,
+          "probability": 1.0
+        },
+        {
+          "word": " why",
+          "start": 211.1,
+          "end": 212.2,
+          "probability": 0.94189453125
+        },
+        {
+          "word": " he",
+          "start": 212.2,
+          "end": 212.5,
+          "probability": 1.0
+        },
+        {
+          "word": " kind",
+          "start": 212.5,
+          "end": 212.9,
+          "probability": 1.0
+        },
+        {
+          "word": " of",
+          "start": 212.9,
+          "end": 213.16,
+          "probability": 1.0
+        },
+        {
+          "word": " felt",
+          "start": 213.16,
+          "end": 213.42,
+          "probability": 1.0
+        },
+        {
+          "word": " like",
+          "start": 213.42,
+          "end": 213.68,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 213.68,
+          "end": 213.88,
+          "probability": 1.0
+        },
+        {
+          "word": " should",
+          "start": 213.88,
+          "end": 214.06,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 214.06,
+          "end": 214.24,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 214.24,
+          "end": 214.52,
+          "probability": 0.97607421875
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "seek": 20556,
+      "start": 215.2,
+      "end": 217.02,
+      "text": " You can relate to him.",
+      "tokens": [
+        50853,
+        509,
+        393,
+        10961,
+        281,
+        796,
+        13,
+        50943
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19844253775999718,
+      "compression_ratio": 1.6243654822335025,
+      "no_speech_prob": 0.02280459553003311,
+      "words": [
+        {
+          "word": " You",
+          "start": 215.2,
+          "end": 215.76,
+          "probability": 1.0
+        },
+        {
+          "word": " can",
+          "start": 215.76,
+          "end": 215.9,
+          "probability": 1.0
+        },
+        {
+          "word": " relate",
+          "start": 215.9,
+          "end": 216.42,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " to",
+          "start": 216.42,
+          "end": 216.8,
+          "probability": 1.0
+        },
+        {
+          "word": " him.",
+          "start": 216.8,
+          "end": 217.02,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "seek": 20556,
+      "start": 217.08,
+      "end": 221.76,
+      "text": " You can have what we call empathy for him.",
+      "tokens": [
+        50948,
+        509,
+        393,
+        362,
+        437,
+        321,
+        818,
+        18701,
+        337,
+        796,
+        13,
+        51182
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19844253775999718,
+      "compression_ratio": 1.6243654822335025,
+      "no_speech_prob": 0.02280459553003311,
+      "words": [
+        {
+          "word": " You",
+          "start": 217.08,
+          "end": 217.2,
+          "probability": 0.9970703125
+        },
+        {
+          "word": " can",
+          "start": 217.2,
+          "end": 217.44,
+          "probability": 1.0
+        },
+        {
+          "word": " have",
+          "start": 217.44,
+          "end": 219.0,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " what",
+          "start": 219.0,
+          "end": 219.58,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " we",
+          "start": 219.58,
+          "end": 220.38,
+          "probability": 0.99365234375
+        },
+        {
+          "word": " call",
+          "start": 220.38,
+          "end": 220.66,
+          "probability": 1.0
+        },
+        {
+          "word": " empathy",
+          "start": 220.66,
+          "end": 221.12,
+          "probability": 1.0
+        },
+        {
+          "word": " for",
+          "start": 221.12,
+          "end": 221.54,
+          "probability": 1.0
+        },
+        {
+          "word": " him.",
+          "start": 221.54,
+          "end": 221.76,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "seek": 20556,
+      "start": 222.22,
+      "end": 226.9,
+      "text": " Now, Yudhisthira, on the other hand, he thought he should be king.",
+      "tokens": [
+        51221,
+        823,
+        11,
+        398,
+        532,
+        18300,
+        392,
+        4271,
+        11,
+        322,
+        264,
+        661,
+        1011,
+        11,
+        415,
+        1194,
+        415,
+        820,
+        312,
+        4867,
+        13,
+        51443
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19844253775999718,
+      "compression_ratio": 1.6243654822335025,
+      "no_speech_prob": 0.02280459553003311,
+      "words": [
+        {
+          "word": " Now,",
+          "start": 222.22,
+          "end": 222.78,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " Yudhisthira,",
+          "start": 222.82,
+          "end": 223.38,
+          "probability": 0.58203125
+        },
+        {
+          "word": " on",
+          "start": 223.52,
+          "end": 223.64,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 223.64,
+          "end": 223.74,
+          "probability": 1.0
+        },
+        {
+          "word": " other",
+          "start": 223.74,
+          "end": 223.96,
+          "probability": 1.0
+        },
+        {
+          "word": " hand,",
+          "start": 223.96,
+          "end": 224.36,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 224.38,
+          "end": 225.46,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " thought",
+          "start": 225.46,
+          "end": 225.9,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 225.9,
+          "end": 226.14,
+          "probability": 1.0
+        },
+        {
+          "word": " should",
+          "start": 226.14,
+          "end": 226.38,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 226.38,
+          "end": 226.58,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 226.58,
+          "end": 226.9,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "seek": 20556,
+      "start": 229.44,
+      "end": 233.2,
+      "text": " Because his father had been made king.",
+      "tokens": [
+        51567,
+        1436,
+        702,
+        3086,
+        632,
+        668,
+        1027,
+        4867,
+        13,
+        51759
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19844253775999718,
+      "compression_ratio": 1.6243654822335025,
+      "no_speech_prob": 0.02280459553003311,
+      "words": [
+        {
+          "word": " Because",
+          "start": 229.44,
+          "end": 230.0,
+          "probability": 1.0
+        },
+        {
+          "word": " his",
+          "start": 230.0,
+          "end": 230.56,
+          "probability": 0.99365234375
+        },
+        {
+          "word": " father",
+          "start": 230.56,
+          "end": 231.2,
+          "probability": 1.0
+        },
+        {
+          "word": " had",
+          "start": 231.2,
+          "end": 232.2,
+          "probability": 1.0
+        },
+        {
+          "word": " been",
+          "start": 232.2,
+          "end": 232.42,
+          "probability": 1.0
+        },
+        {
+          "word": " made",
+          "start": 232.42,
+          "end": 232.72,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 232.72,
+          "end": 233.2,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "seek": 20556,
+      "start": 233.84,
+      "end": 235.54,
+      "text": " And then because his father...",
+      "tokens": [
+        51781,
+        400,
+        550,
+        570,
+        702,
+        3086,
+        485,
+        51859
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.19844253775999718,
+      "compression_ratio": 1.6243654822335025,
+      "no_speech_prob": 0.02280459553003311,
+      "words": [
+        {
+          "word": " And",
+          "start": 233.84,
+          "end": 234.4,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " then",
+          "start": 234.4,
+          "end": 234.6,
+          "probability": 1.0
+        },
+        {
+          "word": " because",
+          "start": 234.6,
+          "end": 234.84,
+          "probability": 0.96533203125
+        },
+        {
+          "word": " his",
+          "start": 234.84,
+          "end": 235.12,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " father...",
+          "start": 235.12,
+          "end": 235.54,
+          "probability": 0.8359375
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "seek": 23556,
+      "start": 235.56,
+      "end": 236.96,
+      "text": " Had to go away...",
+      "tokens": [
+        50365,
+        12298,
+        281,
+        352,
+        1314,
+        485,
+        50465
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " Had",
+          "start": 235.56,
+          "end": 235.64,
+          "probability": 0.02001953125
+        },
+        {
+          "word": " to",
+          "start": 235.64,
+          "end": 235.8,
+          "probability": 0.99462890625
+        },
+        {
+          "word": " go",
+          "start": 235.8,
+          "end": 236.08,
+          "probability": 0.99755859375
+        },
+        {
+          "word": " away...",
+          "start": 236.08,
+          "end": 236.96,
+          "probability": 0.5048828125
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "seek": 23556,
+      "start": 238.27999999999997,
+      "end": 240.66,
+      "text": " It was kind of...",
+      "tokens": [
+        50465,
+        467,
+        390,
+        733,
+        295,
+        485,
+        50615
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " It",
+          "start": 238.27999999999997,
+          "end": 238.79999999999998,
+          "probability": 0.98095703125
+        },
+        {
+          "word": " was",
+          "start": 238.79999999999998,
+          "end": 239.32,
+          "probability": 0.424072265625
+        },
+        {
+          "word": " kind",
+          "start": 239.32,
+          "end": 240.28,
+          "probability": 0.211181640625
+        },
+        {
+          "word": " of...",
+          "start": 240.28,
+          "end": 240.66,
+          "probability": 0.99609375
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "seek": 23556,
+      "start": 240.66,
+      "end": 241.12,
+      "text": " Huh?",
+      "tokens": [
+        50642,
+        8063,
+        30,
+        50654
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " Huh?",
+          "start": 240.66,
+          "end": 241.12,
+          "probability": 0.70947265625
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "seek": 23556,
+      "start": 243.57999999999998,
+      "end": 244.62,
+      "text": " Yudhisthira's dad.",
+      "tokens": [
+        50765,
+        398,
+        532,
+        18300,
+        392,
+        4271,
+        311,
+        3546,
+        13,
+        50834
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " Yudhisthira's",
+          "start": 243.57999999999998,
+          "end": 244.1,
+          "probability": 0.6513671875
+        },
+        {
+          "word": " dad.",
+          "start": 244.1,
+          "end": 244.62,
+          "probability": 0.97216796875
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "seek": 23556,
+      "start": 245.4,
+      "end": 246.74,
+      "text": " Yudhisthira's dad was Pondo.",
+      "tokens": [
+        50859,
+        398,
+        532,
+        18300,
+        392,
+        4271,
+        311,
+        3546,
+        390,
+        430,
+        27720,
+        13,
+        50928
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " Yudhisthira's",
+          "start": 245.4,
+          "end": 245.92,
+          "probability": 0.9970703125
+        },
+        {
+          "word": " dad",
+          "start": 245.92,
+          "end": 246.08,
+          "probability": 1.0
+        },
+        {
+          "word": " was",
+          "start": 246.08,
+          "end": 246.3,
+          "probability": 0.99267578125
+        },
+        {
+          "word": " Pondo.",
+          "start": 246.3,
+          "end": 246.74,
+          "probability": 0.5390625
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "seek": 23556,
+      "start": 246.86,
+      "end": 249.78,
+      "text": " That's why Yudhisthira and his brothers are called the Pondos.",
+      "tokens": [
+        50940,
+        663,
+        311,
+        983,
+        398,
+        532,
+        18300,
+        392,
+        4271,
+        293,
+        702,
+        8452,
+        366,
+        1219,
+        264,
+        430,
+        684,
+        329,
+        13,
+        51087
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " That's",
+          "start": 246.86,
+          "end": 247.28,
+          "probability": 0.9970703125
+        },
+        {
+          "word": " why",
+          "start": 247.28,
+          "end": 247.42,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " Yudhisthira",
+          "start": 247.42,
+          "end": 247.98,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " and",
+          "start": 247.98,
+          "end": 248.08,
+          "probability": 0.9970703125
+        },
+        {
+          "word": " his",
+          "start": 248.08,
+          "end": 248.2,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " brothers",
+          "start": 248.2,
+          "end": 248.52,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " are",
+          "start": 248.52,
+          "end": 248.74,
+          "probability": 0.52392578125
+        },
+        {
+          "word": " called",
+          "start": 248.74,
+          "end": 248.98,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 248.98,
+          "end": 249.14,
+          "probability": 0.9765625
+        },
+        {
+          "word": " Pondos.",
+          "start": 249.14,
+          "end": 249.78,
+          "probability": 0.982421875
+        }
+      ]
+    },
+    {
+      "id": 59,
+      "seek": 23556,
+      "start": 250.8,
+      "end": 252.4,
+      "text": " Their dad's name was Pondo.",
+      "tokens": [
+        51131,
+        6710,
+        3546,
+        311,
+        1315,
+        390,
+        430,
+        27720,
+        13,
+        51211
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " Their",
+          "start": 250.8,
+          "end": 251.32,
+          "probability": 0.99658203125
+        },
+        {
+          "word": " dad's",
+          "start": 251.32,
+          "end": 251.66,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " name",
+          "start": 251.66,
+          "end": 251.76,
+          "probability": 1.0
+        },
+        {
+          "word": " was",
+          "start": 251.76,
+          "end": 251.9,
+          "probability": 0.99365234375
+        },
+        {
+          "word": " Pondo.",
+          "start": 251.9,
+          "end": 252.4,
+          "probability": 0.98974609375
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "seek": 23556,
+      "start": 252.84,
+      "end": 255.62,
+      "text": " And him and his brothers are called the Pondos.",
+      "tokens": [
+        51243,
+        400,
+        796,
+        293,
+        702,
+        8452,
+        366,
+        1219,
+        264,
+        430,
+        684,
+        329,
+        13,
+        51380
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " And",
+          "start": 252.84,
+          "end": 253.36,
+          "probability": 0.9951171875
+        },
+        {
+          "word": " him",
+          "start": 253.36,
+          "end": 253.62,
+          "probability": 0.99365234375
+        },
+        {
+          "word": " and",
+          "start": 253.62,
+          "end": 253.72,
+          "probability": 1.0
+        },
+        {
+          "word": " his",
+          "start": 253.72,
+          "end": 253.84,
+          "probability": 1.0
+        },
+        {
+          "word": " brothers",
+          "start": 253.84,
+          "end": 254.16,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " are",
+          "start": 254.16,
+          "end": 254.38,
+          "probability": 0.998046875
+        },
+        {
+          "word": " called",
+          "start": 254.38,
+          "end": 254.6,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 254.6,
+          "end": 254.76,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " Pondos.",
+          "start": 254.76,
+          "end": 255.62,
+          "probability": 0.99951171875
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "seek": 23556,
+      "start": 256.92,
+      "end": 259.2,
+      "text": " And they might say Pondovas too, but...",
+      "tokens": [
+        51437,
+        400,
+        436,
+        1062,
+        584,
+        430,
+        684,
+        5179,
+        296,
+        886,
+        11,
+        457,
+        485,
+        51559
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " And",
+          "start": 256.92,
+          "end": 257.44,
+          "probability": 0.75830078125
+        },
+        {
+          "word": " they",
+          "start": 257.44,
+          "end": 257.52,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " might",
+          "start": 257.52,
+          "end": 257.68,
+          "probability": 1.0
+        },
+        {
+          "word": " say",
+          "start": 257.68,
+          "end": 257.8,
+          "probability": 1.0
+        },
+        {
+          "word": " Pondovas",
+          "start": 257.8,
+          "end": 258.44,
+          "probability": 0.7900390625
+        },
+        {
+          "word": " too,",
+          "start": 258.44,
+          "end": 258.7,
+          "probability": 0.8974609375
+        },
+        {
+          "word": " but...",
+          "start": 258.86,
+          "end": 259.2,
+          "probability": 0.92041015625
+        }
+      ]
+    },
+    {
+      "id": 62,
+      "seek": 23556,
+      "start": 259.2,
+      "end": 260.42,
+      "text": " Oh, we just say Pondos.",
+      "tokens": [
+        51559,
+        876,
+        11,
+        321,
+        445,
+        584,
+        430,
+        684,
+        329,
+        13,
+        51613
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " Oh,",
+          "start": 259.2,
+          "end": 259.46,
+          "probability": 0.53955078125
+        },
+        {
+          "word": " we",
+          "start": 259.46,
+          "end": 259.56,
+          "probability": 1.0
+        },
+        {
+          "word": " just",
+          "start": 259.56,
+          "end": 259.7,
+          "probability": 1.0
+        },
+        {
+          "word": " say",
+          "start": 259.7,
+          "end": 259.86,
+          "probability": 1.0
+        },
+        {
+          "word": " Pondos.",
+          "start": 259.86,
+          "end": 260.42,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 63,
+      "seek": 23556,
+      "start": 262.46000000000004,
+      "end": 262.98,
+      "text": " So...",
+      "tokens": [
+        51703,
+        407,
+        485,
+        51715
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " So...",
+          "start": 262.46000000000004,
+          "end": 262.98,
+          "probability": 0.9921875
+        }
+      ]
+    },
+    {
+      "id": 64,
+      "seek": 23556,
+      "start": 262.98,
+      "end": 263.38,
+      "text": " So...",
+      "tokens": [
+        51715,
+        407,
+        485,
+        51739
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " So...",
+          "start": 262.98,
+          "end": 263.38,
+          "probability": 0.49609375
+        }
+      ]
+    },
+    {
+      "id": 65,
+      "seek": 23556,
+      "start": 264.32,
+      "end": 264.84,
+      "text": " When...",
+      "tokens": [
+        51739,
+        1133,
+        485,
+        51815
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.30034922778121825,
+      "compression_ratio": 1.808139534883721,
+      "no_speech_prob": 0.006381186190992594,
+      "words": [
+        {
+          "word": " When...",
+          "start": 264.32,
+          "end": 264.84,
+          "probability": 0.998046875
+        }
+      ]
+    },
+    {
+      "id": 66,
+      "seek": 26556,
+      "start": 267.14,
+      "end": 271.1,
+      "text": " So Yudhisthira, his whole life was like, well, I'm supposed to be king.",
+      "tokens": [
+        50365,
+        407,
+        398,
+        532,
+        18300,
+        392,
+        4271,
+        11,
+        702,
+        1379,
+        993,
+        390,
+        411,
+        11,
+        731,
+        11,
+        286,
+        478,
+        3442,
+        281,
+        312,
+        4867,
+        13,
+        50649
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1528859345809273,
+      "compression_ratio": 1.7453703703703705,
+      "no_speech_prob": 0.03208029270172119,
+      "words": [
+        {
+          "word": " So",
+          "start": 267.14,
+          "end": 267.58,
+          "probability": 0.78955078125
+        },
+        {
+          "word": " Yudhisthira,",
+          "start": 267.58,
+          "end": 268.02,
+          "probability": 0.5859375
+        },
+        {
+          "word": " his",
+          "start": 268.12,
+          "end": 268.26,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " whole",
+          "start": 268.26,
+          "end": 268.46,
+          "probability": 1.0
+        },
+        {
+          "word": " life",
+          "start": 268.46,
+          "end": 268.82,
+          "probability": 1.0
+        },
+        {
+          "word": " was",
+          "start": 268.82,
+          "end": 269.12,
+          "probability": 0.5673828125
+        },
+        {
+          "word": " like,",
+          "start": 269.12,
+          "end": 269.32,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " well,",
+          "start": 269.4,
+          "end": 269.52,
+          "probability": 0.9453125
+        },
+        {
+          "word": " I'm",
+          "start": 269.68,
+          "end": 269.96,
+          "probability": 1.0
+        },
+        {
+          "word": " supposed",
+          "start": 269.96,
+          "end": 270.48,
+          "probability": 0.99072265625
+        },
+        {
+          "word": " to",
+          "start": 270.48,
+          "end": 270.8,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 270.8,
+          "end": 270.88,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 270.88,
+          "end": 271.1,
+          "probability": 0.98876953125
+        }
+      ]
+    },
+    {
+      "id": 67,
+      "seek": 26556,
+      "start": 271.36,
+      "end": 273.38,
+      "text": " Everybody told him he was supposed to be king.",
+      "tokens": [
+        50663,
+        7646,
+        1907,
+        796,
+        415,
+        390,
+        3442,
+        281,
+        312,
+        4867,
+        13,
+        50762
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1528859345809273,
+      "compression_ratio": 1.7453703703703705,
+      "no_speech_prob": 0.03208029270172119,
+      "words": [
+        {
+          "word": " Everybody",
+          "start": 271.36,
+          "end": 271.8,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " told",
+          "start": 271.8,
+          "end": 272.14,
+          "probability": 1.0
+        },
+        {
+          "word": " him",
+          "start": 272.14,
+          "end": 272.4,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 272.4,
+          "end": 272.5,
+          "probability": 1.0
+        },
+        {
+          "word": " was",
+          "start": 272.5,
+          "end": 272.62,
+          "probability": 1.0
+        },
+        {
+          "word": " supposed",
+          "start": 272.62,
+          "end": 272.8,
+          "probability": 1.0
+        },
+        {
+          "word": " to",
+          "start": 272.8,
+          "end": 273.02,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 273.02,
+          "end": 273.1,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 273.1,
+          "end": 273.38,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 68,
+      "seek": 26556,
+      "start": 275.34,
+      "end": 280.7,
+      "text": " You know, he kind of knew that he was, like, good king material.",
+      "tokens": [
+        50858,
+        509,
+        458,
+        11,
+        415,
+        733,
+        295,
+        2586,
+        300,
+        415,
+        390,
+        11,
+        411,
+        11,
+        665,
+        4867,
+        2527,
+        13,
+        51135
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1528859345809273,
+      "compression_ratio": 1.7453703703703705,
+      "no_speech_prob": 0.03208029270172119,
+      "words": [
+        {
+          "word": " You",
+          "start": 275.34,
+          "end": 275.78,
+          "probability": 0.66796875
+        },
+        {
+          "word": " know,",
+          "start": 275.78,
+          "end": 275.94,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 275.96,
+          "end": 276.16,
+          "probability": 1.0
+        },
+        {
+          "word": " kind",
+          "start": 276.16,
+          "end": 276.6,
+          "probability": 0.9853515625
+        },
+        {
+          "word": " of",
+          "start": 276.6,
+          "end": 276.88,
+          "probability": 1.0
+        },
+        {
+          "word": " knew",
+          "start": 276.88,
+          "end": 277.06,
+          "probability": 1.0
+        },
+        {
+          "word": " that",
+          "start": 277.06,
+          "end": 277.3,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 277.3,
+          "end": 277.42,
+          "probability": 1.0
+        },
+        {
+          "word": " was,",
+          "start": 277.42,
+          "end": 277.82,
+          "probability": 1.0
+        },
+        {
+          "word": " like,",
+          "start": 277.82,
+          "end": 278.96,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " good",
+          "start": 279.08,
+          "end": 279.86,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " king",
+          "start": 279.86,
+          "end": 280.12,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " material.",
+          "start": 280.12,
+          "end": 280.7,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 69,
+      "seek": 26556,
+      "start": 281.4,
+      "end": 282.04,
+      "text": " You know?",
+      "tokens": [
+        51178,
+        509,
+        458,
+        30,
+        51195
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1528859345809273,
+      "compression_ratio": 1.7453703703703705,
+      "no_speech_prob": 0.03208029270172119,
+      "words": [
+        {
+          "word": " You",
+          "start": 281.4,
+          "end": 281.84,
+          "probability": 0.94140625
+        },
+        {
+          "word": " know?",
+          "start": 281.84,
+          "end": 282.04,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 70,
+      "seek": 26556,
+      "start": 282.46,
+      "end": 287.7,
+      "text": " He knew he would probably be a good king and a fair king for the most part.",
+      "tokens": [
+        51221,
+        634,
+        2586,
+        415,
+        576,
+        1391,
+        312,
+        257,
+        665,
+        4867,
+        293,
+        257,
+        3143,
+        4867,
+        337,
+        264,
+        881,
+        644,
+        13,
+        51479
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1528859345809273,
+      "compression_ratio": 1.7453703703703705,
+      "no_speech_prob": 0.03208029270172119,
+      "words": [
+        {
+          "word": " He",
+          "start": 282.46,
+          "end": 282.9,
+          "probability": 0.99609375
+        },
+        {
+          "word": " knew",
+          "start": 282.9,
+          "end": 283.14,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 283.14,
+          "end": 283.28,
+          "probability": 1.0
+        },
+        {
+          "word": " would",
+          "start": 283.28,
+          "end": 283.42,
+          "probability": 1.0
+        },
+        {
+          "word": " probably",
+          "start": 283.42,
+          "end": 283.72,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 283.72,
+          "end": 283.98,
+          "probability": 1.0
+        },
+        {
+          "word": " a",
+          "start": 283.98,
+          "end": 284.14,
+          "probability": 1.0
+        },
+        {
+          "word": " good",
+          "start": 284.14,
+          "end": 284.36,
+          "probability": 1.0
+        },
+        {
+          "word": " king",
+          "start": 284.36,
+          "end": 284.76,
+          "probability": 1.0
+        },
+        {
+          "word": " and",
+          "start": 284.76,
+          "end": 284.98,
+          "probability": 0.89990234375
+        },
+        {
+          "word": " a",
+          "start": 284.98,
+          "end": 285.06,
+          "probability": 1.0
+        },
+        {
+          "word": " fair",
+          "start": 285.06,
+          "end": 285.28,
+          "probability": 1.0
+        },
+        {
+          "word": " king",
+          "start": 285.28,
+          "end": 285.6,
+          "probability": 1.0
+        },
+        {
+          "word": " for",
+          "start": 285.6,
+          "end": 287.0,
+          "probability": 0.8896484375
+        },
+        {
+          "word": " the",
+          "start": 287.0,
+          "end": 287.1,
+          "probability": 1.0
+        },
+        {
+          "word": " most",
+          "start": 287.1,
+          "end": 287.32,
+          "probability": 1.0
+        },
+        {
+          "word": " part.",
+          "start": 287.32,
+          "end": 287.7,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 71,
+      "seek": 26556,
+      "start": 290.1,
+      "end": 292.66,
+      "text": " So he thought it was his right to be king.",
+      "tokens": [
+        51589,
+        407,
+        415,
+        1194,
+        309,
+        390,
+        702,
+        558,
+        281,
+        312,
+        4867,
+        13,
+        51725
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1528859345809273,
+      "compression_ratio": 1.7453703703703705,
+      "no_speech_prob": 0.03208029270172119,
+      "words": [
+        {
+          "word": " So",
+          "start": 290.1,
+          "end": 290.54,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " he",
+          "start": 290.54,
+          "end": 290.98,
+          "probability": 0.80322265625
+        },
+        {
+          "word": " thought",
+          "start": 290.98,
+          "end": 291.48,
+          "probability": 1.0
+        },
+        {
+          "word": " it",
+          "start": 291.48,
+          "end": 291.62,
+          "probability": 1.0
+        },
+        {
+          "word": " was",
+          "start": 291.62,
+          "end": 291.72,
+          "probability": 1.0
+        },
+        {
+          "word": " his",
+          "start": 291.72,
+          "end": 291.92,
+          "probability": 1.0
+        },
+        {
+          "word": " right",
+          "start": 291.92,
+          "end": 292.14,
+          "probability": 1.0
+        },
+        {
+          "word": " to",
+          "start": 292.14,
+          "end": 292.3,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 292.3,
+          "end": 292.38,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 292.38,
+          "end": 292.66,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 72,
+      "seek": 26556,
+      "start": 292.74,
+      "end": 293.86,
+      "text": " He thought he would be a good king.",
+      "tokens": [
+        51729,
+        634,
+        1194,
+        415,
+        576,
+        312,
+        257,
+        665,
+        4867,
+        13,
+        51784
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1528859345809273,
+      "compression_ratio": 1.7453703703703705,
+      "no_speech_prob": 0.03208029270172119,
+      "words": [
+        {
+          "word": " He",
+          "start": 292.74,
+          "end": 292.84,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " thought",
+          "start": 292.84,
+          "end": 293.02,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 293.02,
+          "end": 293.12,
+          "probability": 1.0
+        },
+        {
+          "word": " would",
+          "start": 293.12,
+          "end": 293.2,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 293.2,
+          "end": 293.34,
+          "probability": 1.0
+        },
+        {
+          "word": " a",
+          "start": 293.34,
+          "end": 293.46,
+          "probability": 1.0
+        },
+        {
+          "word": " good",
+          "start": 293.46,
+          "end": 293.6,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 293.6,
+          "end": 293.86,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 73,
+      "seek": 26556,
+      "start": 293.98,
+      "end": 295.28,
+      "text": " And, I mean, he generally...",
+      "tokens": [
+        51784,
+        400,
+        11,
+        286,
+        914,
+        11,
+        415,
+        5101,
+        485,
+        51834
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.1528859345809273,
+      "compression_ratio": 1.7453703703703705,
+      "no_speech_prob": 0.03208029270172119,
+      "words": [
+        {
+          "word": " And,",
+          "start": 293.98,
+          "end": 294.36,
+          "probability": 0.955078125
+        },
+        {
+          "word": " I",
+          "start": 294.4,
+          "end": 294.5,
+          "probability": 1.0
+        },
+        {
+          "word": " mean,",
+          "start": 294.5,
+          "end": 294.6,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 294.62,
+          "end": 294.76,
+          "probability": 0.99755859375
+        },
+        {
+          "word": " generally...",
+          "start": 294.76,
+          "end": 295.28,
+          "probability": 0.505859375
+        }
+      ]
+    },
+    {
+      "id": 74,
+      "seek": 29556,
+      "start": 295.56,
+      "end": 299.06,
+      "text": " Wanted to do right by people.",
+      "tokens": [
+        50365,
+        11773,
+        292,
+        281,
+        360,
+        558,
+        538,
+        561,
+        13,
+        50552
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.23164514664116256,
+      "compression_ratio": 1.6451612903225807,
+      "no_speech_prob": 0.001823720638640225,
+      "words": [
+        {
+          "word": " Wanted",
+          "start": 295.56,
+          "end": 296.04,
+          "probability": 0.6953125
+        },
+        {
+          "word": " to",
+          "start": 296.04,
+          "end": 296.38,
+          "probability": 0.94970703125
+        },
+        {
+          "word": " do",
+          "start": 296.38,
+          "end": 297.64,
+          "probability": 0.441650390625
+        },
+        {
+          "word": " right",
+          "start": 297.64,
+          "end": 298.04,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " by",
+          "start": 298.04,
+          "end": 298.48,
+          "probability": 0.96875
+        },
+        {
+          "word": " people.",
+          "start": 298.48,
+          "end": 299.06,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 75,
+      "seek": 29556,
+      "start": 299.3,
+      "end": 301.6,
+      "text": " I think there were a lot of times when he...",
+      "tokens": [
+        50563,
+        286,
+        519,
+        456,
+        645,
+        257,
+        688,
+        295,
+        1413,
+        562,
+        415,
+        485,
+        50690
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.23164514664116256,
+      "compression_ratio": 1.6451612903225807,
+      "no_speech_prob": 0.001823720638640225,
+      "words": [
+        {
+          "word": " I",
+          "start": 299.3,
+          "end": 299.54,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " think",
+          "start": 299.54,
+          "end": 300.0,
+          "probability": 0.998046875
+        },
+        {
+          "word": " there",
+          "start": 300.0,
+          "end": 300.18,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " were",
+          "start": 300.18,
+          "end": 300.32,
+          "probability": 1.0
+        },
+        {
+          "word": " a",
+          "start": 300.32,
+          "end": 300.4,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " lot",
+          "start": 300.4,
+          "end": 300.56,
+          "probability": 1.0
+        },
+        {
+          "word": " of",
+          "start": 300.56,
+          "end": 300.66,
+          "probability": 1.0
+        },
+        {
+          "word": " times",
+          "start": 300.66,
+          "end": 300.94,
+          "probability": 1.0
+        },
+        {
+          "word": " when",
+          "start": 300.94,
+          "end": 301.26,
+          "probability": 0.7314453125
+        },
+        {
+          "word": " he...",
+          "start": 301.26,
+          "end": 301.6,
+          "probability": 0.5322265625
+        }
+      ]
+    },
+    {
+      "id": 76,
+      "seek": 29556,
+      "start": 301.6,
+      "end": 305.0,
+      "text": " When he said it would be okay if he wasn't king.",
+      "tokens": [
+        50690,
+        1133,
+        415,
+        848,
+        309,
+        576,
+        312,
+        1392,
+        498,
+        415,
+        2067,
+        380,
+        4867,
+        13,
+        50849
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.23164514664116256,
+      "compression_ratio": 1.6451612903225807,
+      "no_speech_prob": 0.001823720638640225,
+      "words": [
+        {
+          "word": " When",
+          "start": 301.6,
+          "end": 302.5,
+          "probability": 0.9609375
+        },
+        {
+          "word": " he",
+          "start": 302.5,
+          "end": 302.74,
+          "probability": 1.0
+        },
+        {
+          "word": " said",
+          "start": 302.74,
+          "end": 303.06,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " it",
+          "start": 303.06,
+          "end": 303.42,
+          "probability": 0.998046875
+        },
+        {
+          "word": " would",
+          "start": 303.42,
+          "end": 303.58,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 303.58,
+          "end": 303.72,
+          "probability": 1.0
+        },
+        {
+          "word": " okay",
+          "start": 303.72,
+          "end": 304.0,
+          "probability": 0.99462890625
+        },
+        {
+          "word": " if",
+          "start": 304.0,
+          "end": 304.2,
+          "probability": 0.99853515625
+        },
+        {
+          "word": " he",
+          "start": 304.2,
+          "end": 304.34,
+          "probability": 1.0
+        },
+        {
+          "word": " wasn't",
+          "start": 304.34,
+          "end": 304.76,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 304.76,
+          "end": 305.0,
+          "probability": 0.97265625
+        }
+      ]
+    },
+    {
+      "id": 77,
+      "seek": 29556,
+      "start": 305.56,
+      "end": 308.38,
+      "text": " But I also think he kind of felt like he should be king.",
+      "tokens": [
+        50873,
+        583,
+        286,
+        611,
+        519,
+        415,
+        733,
+        295,
+        2762,
+        411,
+        415,
+        820,
+        312,
+        4867,
+        13,
+        51015
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.23164514664116256,
+      "compression_ratio": 1.6451612903225807,
+      "no_speech_prob": 0.001823720638640225,
+      "words": [
+        {
+          "word": " But",
+          "start": 305.56,
+          "end": 306.04,
+          "probability": 1.0
+        },
+        {
+          "word": " I",
+          "start": 306.04,
+          "end": 306.16,
+          "probability": 0.982421875
+        },
+        {
+          "word": " also",
+          "start": 306.16,
+          "end": 306.4,
+          "probability": 1.0
+        },
+        {
+          "word": " think",
+          "start": 306.4,
+          "end": 306.74,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 306.74,
+          "end": 306.9,
+          "probability": 1.0
+        },
+        {
+          "word": " kind",
+          "start": 306.9,
+          "end": 307.1,
+          "probability": 0.994140625
+        },
+        {
+          "word": " of",
+          "start": 307.1,
+          "end": 307.28,
+          "probability": 1.0
+        },
+        {
+          "word": " felt",
+          "start": 307.28,
+          "end": 307.42,
+          "probability": 1.0
+        },
+        {
+          "word": " like",
+          "start": 307.42,
+          "end": 307.62,
+          "probability": 1.0
+        },
+        {
+          "word": " he",
+          "start": 307.62,
+          "end": 307.76,
+          "probability": 1.0
+        },
+        {
+          "word": " should",
+          "start": 307.76,
+          "end": 307.98,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " be",
+          "start": 307.98,
+          "end": 308.14,
+          "probability": 1.0
+        },
+        {
+          "word": " king.",
+          "start": 308.14,
+          "end": 308.38,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 78,
+      "seek": 29556,
+      "start": 309.62,
+      "end": 313.8,
+      "text": " So they both wanted to be king for kind of a lot of reasons.",
+      "tokens": [
+        51074,
+        407,
+        436,
+        1293,
+        1415,
+        281,
+        312,
+        4867,
+        337,
+        733,
+        295,
+        257,
+        688,
+        295,
+        4112,
+        13,
+        51288
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.23164514664116256,
+      "compression_ratio": 1.6451612903225807,
+      "no_speech_prob": 0.001823720638640225,
+      "words": [
+        {
+          "word": " So",
+          "start": 309.62,
+          "end": 310.1,
+          "probability": 0.9990234375
+        },
+        {
+          "word": " they",
+          "start": 310.1,
+          "end": 310.24,
+          "probability": 0.916015625
+        },
+        {
+          "word": " both",
+          "start": 310.24,
+          "end": 310.46,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " wanted",
+          "start": 310.46,
+          "end": 310.82,
+          "probability": 1.0
+        },
+        {
+          "word": " to",
+          "start": 310.82,
+          "end": 310.94,
+          "probability": 1.0
+        },
+        {
+          "word": " be",
+          "start": 310.94,
+          "end": 311.04,
+          "probability": 1.0
+        },
+        {
+          "word": " king",
+          "start": 311.04,
+          "end": 311.34,
+          "probability": 1.0
+        },
+        {
+          "word": " for",
+          "start": 311.34,
+          "end": 311.94,
+          "probability": 0.59130859375
+        },
+        {
+          "word": " kind",
+          "start": 311.94,
+          "end": 312.52,
+          "probability": 0.8955078125
+        },
+        {
+          "word": " of",
+          "start": 312.52,
+          "end": 312.8,
+          "probability": 1.0
+        },
+        {
+          "word": " a",
+          "start": 312.8,
+          "end": 312.92,
+          "probability": 1.0
+        },
+        {
+          "word": " lot",
+          "start": 312.92,
+          "end": 313.18,
+          "probability": 1.0
+        },
+        {
+          "word": " of",
+          "start": 313.18,
+          "end": 313.38,
+          "probability": 1.0
+        },
+        {
+          "word": " reasons.",
+          "start": 313.38,
+          "end": 313.8,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 79,
+      "seek": 29556,
+      "start": 315.97999999999996,
+      "end": 317.92,
+      "text": " I just told you all the reasons.",
+      "tokens": [
+        51408,
+        286,
+        445,
+        1907,
+        291,
+        439,
+        264,
+        4112,
+        13,
+        51488
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.23164514664116256,
+      "compression_ratio": 1.6451612903225807,
+      "no_speech_prob": 0.001823720638640225,
+      "words": [
+        {
+          "word": " I",
+          "start": 315.97999999999996,
+          "end": 316.46,
+          "probability": 0.0859375
+        },
+        {
+          "word": " just",
+          "start": 316.46,
+          "end": 316.94,
+          "probability": 0.9951171875
+        },
+        {
+          "word": " told",
+          "start": 316.94,
+          "end": 317.16,
+          "probability": 1.0
+        },
+        {
+          "word": " you",
+          "start": 317.16,
+          "end": 317.4,
+          "probability": 1.0
+        },
+        {
+          "word": " all",
+          "start": 317.4,
+          "end": 317.52,
+          "probability": 1.0
+        },
+        {
+          "word": " the",
+          "start": 317.52,
+          "end": 317.64,
+          "probability": 1.0
+        },
+        {
+          "word": " reasons.",
+          "start": 317.64,
+          "end": 317.92,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 80,
+      "seek": 29556,
+      "start": 319.7,
+      "end": 320.66,
+      "text": " Well, I...",
+      "tokens": [
+        51582,
+        1042,
+        11,
+        286,
+        485,
+        51645
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.23164514664116256,
+      "compression_ratio": 1.6451612903225807,
+      "no_speech_prob": 0.001823720638640225,
+      "words": [
+        {
+          "word": " Well,",
+          "start": 319.7,
+          "end": 320.18,
+          "probability": 0.61083984375
+        },
+        {
+          "word": " I...",
+          "start": 320.24,
+          "end": 320.66,
+          "probability": 0.227294921875
+        }
+      ]
+    },
+    {
+      "id": 81,
+      "seek": 29556,
+      "start": 320.66,
+      "end": 323.58,
+      "text": " We can talk about it again tomorrow.",
+      "tokens": [
+        51645,
+        492,
+        393,
+        751,
+        466,
+        309,
+        797,
+        4153,
+        13,
+        51777
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.23164514664116256,
+      "compression_ratio": 1.6451612903225807,
+      "no_speech_prob": 0.001823720638640225,
+      "words": [
+        {
+          "word": " We",
+          "start": 320.66,
+          "end": 321.28,
+          "probability": 0.98974609375
+        },
+        {
+          "word": " can",
+          "start": 321.28,
+          "end": 322.06,
+          "probability": 0.9833984375
+        },
+        {
+          "word": " talk",
+          "start": 322.06,
+          "end": 322.32,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " about",
+          "start": 322.32,
+          "end": 322.5,
+          "probability": 0.9951171875
+        },
+        {
+          "word": " it",
+          "start": 322.5,
+          "end": 322.88,
+          "probability": 1.0
+        },
+        {
+          "word": " again",
+          "start": 322.88,
+          "end": 323.16,
+          "probability": 1.0
+        },
+        {
+          "word": " tomorrow.",
+          "start": 323.16,
+          "end": 323.58,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 82,
+      "seek": 29556,
+      "start": 323.84,
+      "end": 325.08,
+      "text": " Because now we got to go to sleep.",
+      "tokens": [
+        51787,
+        1436,
+        586,
+        321,
+        658,
+        281,
+        352,
+        281,
+        2817,
+        13,
+        51849
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.23164514664116256,
+      "compression_ratio": 1.6451612903225807,
+      "no_speech_prob": 0.001823720638640225,
+      "words": [
+        {
+          "word": " Because",
+          "start": 323.84,
+          "end": 324.06,
+          "probability": 0.978515625
+        },
+        {
+          "word": " now",
+          "start": 324.06,
+          "end": 324.26,
+          "probability": 1.0
+        },
+        {
+          "word": " we",
+          "start": 324.26,
+          "end": 324.4,
+          "probability": 0.99951171875
+        },
+        {
+          "word": " got",
+          "start": 324.4,
+          "end": 324.5,
+          "probability": 0.59033203125
+        },
+        {
+          "word": " to",
+          "start": 324.5,
+          "end": 324.64,
+          "probability": 1.0
+        },
+        {
+          "word": " go",
+          "start": 324.64,
+          "end": 324.74,
+          "probability": 1.0
+        },
+        {
+          "word": " to",
+          "start": 324.74,
+          "end": 324.84,
+          "probability": 1.0
+        },
+        {
+          "word": " sleep.",
+          "start": 324.84,
+          "end": 325.08,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 83,
+      "seek": 32556,
+      "start": 326.82,
+      "end": 327.74,
+      "text": " Okay?",
+      "tokens": [
+        50365,
+        1033,
+        30,
+        50477
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.7690413979923024,
+      "compression_ratio": 0.8409090909090909,
+      "no_speech_prob": 0.004717051982879639,
+      "words": [
+        {
+          "word": " Okay?",
+          "start": 326.82,
+          "end": 327.74,
+          "probability": 0.77685546875
+        }
+      ]
+    },
+    {
+      "id": 84,
+      "seek": 32556,
+      "start": 328.48,
+      "end": 330.62,
+      "text": " We talked for one minute.",
+      "tokens": [
+        50511,
+        492,
+        2825,
+        337,
+        472,
+        3456,
+        13,
+        50622
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.7690413979923024,
+      "compression_ratio": 0.8409090909090909,
+      "no_speech_prob": 0.004717051982879639,
+      "words": [
+        {
+          "word": " We",
+          "start": 328.40000000000003,
+          "end": 328.86,
+          "probability": 0.98291015625
+        },
+        {
+          "word": " talked",
+          "start": 328.86,
+          "end": 329.18,
+          "probability": 0.970703125
+        },
+        {
+          "word": " for",
+          "start": 329.18,
+          "end": 329.78,
+          "probability": 0.9375
+        },
+        {
+          "word": " one",
+          "start": 329.78,
+          "end": 330.02,
+          "probability": 0.9951171875
+        },
+        {
+          "word": " minute.",
+          "start": 330.02,
+          "end": 330.62,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "id": 85,
+      "seek": 32556,
+      "start": 333.22,
+      "end": 334.14,
+      "text": " Okay.",
+      "tokens": [
+        50868,
+        1033,
+        13,
+        50918
+      ],
+      "temperature": 0.0,
+      "avg_logprob": -0.7690413979923024,
+      "compression_ratio": 0.8409090909090909,
+      "no_speech_prob": 0.004717051982879639,
+      "words": [
+        {
+          "word": " Okay.",
+          "start": 333.22,
+          "end": 334.14,
+          "probability": 0.24072265625
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "model": "qwen3:8b",
+  "approach": "full_transcript",
+  "transcript_length": 3235,
+  "result": {
+    "corrections": [
+      {
+        "transcribed": "fondos",
+        "correct": "Pandavas"
+      },
+      {
+        "transcribed": "goros",
+        "correct": "Kauravas"
+      },
+      {
+        "transcribed": "Yudister",
+        "correct": "Yudhishthira"
+      },
+      {
+        "transcribed": "Dhrashtra",
+        "correct": "Dhritarashtra"
+      },
+      {
+        "transcribed": "Fondo",
+        "correct": "Pandu"
+      }
+    ]
+  },
+  "ground_truth": [
+    "dhrashtra",
+    "yudister",
+    "goros",
+    "fondo",
+    "fondos"
+  ],
+  "found": [
+    "dhrashtra",
+    "fondo",
+    "fondos",
+    "yudister",
+    "goros"
+  ],
+  "recall": 1.0,
+  "hits": [
+    "dhrashtra",
+    "fondo",
+    "fondos",
+    "yudister",
+    "goros"
+  ],
+  "missed": [],
+  "extra": []
+}
