@@ -123,3 +123,97 @@ def test_apply_empty_corrections():
     assert count == 0
     assert result["segments"][0]["words"][0]["word"] == " hello"
     assert result["segments"][0]["words"][1]["word"] == " world"
+
+
+def test_apply_possessive_straight_apostrophe():
+    """Possessive 's with straight apostrophe is stripped before lookup."""
+    transcript = _make_transcript(" arjuna's")
+    corrections = [{"transcribed": "arjuna", "correct": "Arjuna"}]
+
+    result, count = apply_corrections(transcript, corrections, "dictionary")
+
+    word = result["segments"][0]["words"][0]
+    assert word["word"] == " Arjuna's"
+    assert word["_original"] == "arjuna's"
+    assert word["_corrections"] == [
+        {"stage": "dictionary", "from": "arjuna", "to": "Arjuna"}
+    ]
+    assert count == 1
+
+
+def test_apply_possessive_curly_apostrophe():
+    """Possessive 's with curly apostrophe (U+2019) is stripped before lookup."""
+    transcript = _make_transcript(" arjuna\u2019s")
+    corrections = [{"transcribed": "arjuna", "correct": "Arjuna"}]
+
+    result, count = apply_corrections(transcript, corrections, "dictionary")
+
+    word = result["segments"][0]["words"][0]
+    assert word["word"] == " Arjuna\u2019s"
+    assert count == 1
+
+
+def test_apply_possessive_with_trailing_punct():
+    """Possessive with trailing punctuation: both are stripped and reattached."""
+    transcript = _make_transcript(" arjuna's,")
+    corrections = [{"transcribed": "arjuna", "correct": "Arjuna"}]
+
+    result, count = apply_corrections(transcript, corrections, "dictionary")
+
+    word = result["segments"][0]["words"][0]
+    assert word["word"] == " Arjuna's,"
+    assert count == 1
+
+
+def test_apply_contraction_not_stripped():
+    """Contractions like don't are not affected — apostrophe is mid-word."""
+    transcript = _make_transcript(" don't")
+    corrections = [{"transcribed": "don", "correct": "Dan"}]
+
+    result, count = apply_corrections(transcript, corrections, "dictionary")
+
+    assert count == 0
+
+
+def test_apply_possessive_chained():
+    """Two-pass correction on possessive word preserves _original."""
+    transcript = _make_transcript(" yudhisthir's")
+
+    # Pass 1: LLM
+    result, _ = apply_corrections(
+        transcript, [{"transcribed": "yudhisthir", "correct": "Yudhisthir"}], "llm"
+    )
+
+    # Pass 2: dictionary
+    result, _ = apply_corrections(
+        result,
+        [{"transcribed": "Yudhisthir", "correct": "Yudhishthira"}],
+        "dictionary",
+    )
+
+    word = result["segments"][0]["words"][0]
+    assert word["word"] == " Yudhishthira's"
+    assert word["_original"] == "yudhisthir's"
+    assert len(word["_corrections"]) == 2
+
+
+def test_apply_plural_possessive():
+    """Plural possessive (pandavas') already works via trailing punct — regression guard."""
+    transcript = _make_transcript(" pandavas'")
+    corrections = [{"transcribed": "pandavas", "correct": "Pandavas"}]
+
+    result, count = apply_corrections(transcript, corrections, "dictionary")
+
+    word = result["segments"][0]["words"][0]
+    assert word["word"] == " Pandavas'"
+    assert count == 1
+
+
+def test_apply_contraction_its_treated_as_possessive():
+    """it's is indistinguishable from possessive — documents known behavior."""
+    transcript = _make_transcript(" it's")
+    corrections = [{"transcribed": "it", "correct": "IT"}]
+    result, count = apply_corrections(transcript, corrections, "dictionary")
+    word = result["segments"][0]["words"][0]
+    assert word["word"] == " IT's"
+    assert count == 1

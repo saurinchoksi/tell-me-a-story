@@ -6,8 +6,13 @@ skipped -- apply_corrections matches per-word only. Single-word matches like
 """
 
 import copy
+import re
 
 _NORMALIZED_SCHEMA_VERSION = "1.1.0"
+
+# Punctuation that Whisper attaches to words (trailing only)
+_TRAILING_PUNCT = re.compile(r'^(.*?)([.,;:!?"\)\]\}\']+\.{0,3})$')
+_POSSESSIVE_S = re.compile(r"^(.+)(['\u2019]s)$")
 
 
 def extract_text(transcript: dict) -> str:
@@ -36,7 +41,8 @@ def apply_corrections(
 
     Deep-copies the transcript, then for each word in each segment, checks
     if the word matches any correction (case-insensitive, stripped). Multi-word
-    corrections are silently skipped.
+    corrections are silently skipped. Trailing punctuation is stripped before
+    lookup and reattached after correction.
 
     On match, the word dict gains:
         _original: The stripped original word (set only on first correction)
@@ -67,26 +73,44 @@ def apply_corrections(
         for word in segment.get("words", []):
             raw = word["word"]
             stripped = raw.strip()
-            key = stripped.lower()
+
+            # Separate trailing punctuation before lookup
+            punct_match = _TRAILING_PUNCT.match(stripped)
+            if punct_match:
+                bare = punct_match.group(1)
+                trailing_punct = punct_match.group(2)
+            else:
+                bare = stripped
+                trailing_punct = ""
+
+            # Separate possessive suffix before lookup
+            # (also matches it's/he's — safe because corrections target proper nouns)
+            possessive_suffix = ""
+            poss_match = _POSSESSIVE_S.match(bare)
+            if poss_match:
+                bare = poss_match.group(1)
+                possessive_suffix = poss_match.group(2)
+
+            key = bare.lower()
 
             if key not in lookup:
                 continue
 
-            correct = lookup[key]
+            corrected_with_punct = lookup[key] + possessive_suffix + trailing_punct
 
             # Preserve _original from the very first correction
             if "_original" not in word:
                 word["_original"] = stripped
 
             # Append to corrections history
-            entry = {"stage": stage, "from": stripped, "to": correct}
+            entry = {"stage": stage, "from": bare, "to": lookup[key]}
             if "_corrections" not in word:
                 word["_corrections"] = []
             word["_corrections"].append(entry)
 
             # Update the word, preserving leading space
             leading_space = " " if raw.startswith(" ") else ""
-            word["word"] = leading_space + correct
+            word["word"] = leading_space + corrected_with_punct
 
             count += 1
 
