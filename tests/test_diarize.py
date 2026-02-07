@@ -49,12 +49,18 @@ def test_convert_to_wav_16k_correct_sample_rate():
 
 @pytest.mark.slow
 def test_diarize_returns_expected_structure():
-    """diarize() should return list of dicts with start, end, speaker."""
-    segments = diarize("sessions/00000000-000000/audio.m4a")
-    
+    """diarize() should return dict with schema version and segments."""
+    result = diarize("sessions/00000000-000000/audio.m4a")
+
+    assert isinstance(result, dict)
+    assert "_schema_version" in result
+    assert "_generator_version" in result
+    assert "segments" in result
+
+    segments = result["segments"]
     assert isinstance(segments, list)
     assert len(segments) > 0
-    
+
     # Check first segment has expected keys
     first = segments[0]
     assert "start" in first
@@ -65,8 +71,9 @@ def test_diarize_returns_expected_structure():
 @pytest.mark.slow
 def test_diarize_segments_have_valid_timestamps():
     """Each segment should have valid timestamps (end > start)."""
-    segments = diarize("sessions/00000000-000000/audio.m4a")
-    
+    result = diarize("sessions/00000000-000000/audio.m4a")
+    segments = result["segments"]
+
     for seg in segments:
         assert isinstance(seg["start"], float)
         assert isinstance(seg["end"], float)
@@ -76,8 +83,9 @@ def test_diarize_segments_have_valid_timestamps():
 @pytest.mark.slow
 def test_diarize_segments_are_chronological():
     """Segments should be in chronological order."""
-    segments = diarize("sessions/00000000-000000/audio.m4a")
-    
+    result = diarize("sessions/00000000-000000/audio.m4a")
+    segments = result["segments"]
+
     for i in range(1, len(segments)):
         # Each segment should start at or after the previous one started
         assert segments[i]["start"] >= segments[i-1]["start"]
