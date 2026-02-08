@@ -34,6 +34,11 @@
   --word-active-bg: rgba(168, 104, 64, 0.25);
   --focus-ring: rgba(168, 104, 64, 0.4);
 
+  --filter-opacity: 0.4;
+  --filter-border: rgba(138, 128, 120, 0.3);
+  --filter-badge-bg: rgba(138, 128, 120, 0.12);
+  --filter-badge-color: var(--text-tertiary);
+
   /* WaveSurfer colors (read by JS via getComputedStyle) */
   --wave-color: #B0A798;
   --wave-progress: #A86840;
@@ -81,6 +86,11 @@
   --segment-active-bg: rgba(184, 122, 86, 0.08);
   --word-active-bg: rgba(184, 122, 86, 0.25);
   --focus-ring: rgba(184, 122, 86, 0.4);
+
+  --filter-opacity: 0.4;
+  --filter-border: rgba(138, 128, 120, 0.3);
+  --filter-badge-bg: rgba(138, 128, 120, 0.12);
+  --filter-badge-color: var(--text-tertiary);
 
   --wave-color: #4A4540;
   --wave-progress: #B87A56;
@@ -300,6 +310,22 @@ body.notes-panel-open #segments {
   box-shadow: 0 2px 8px rgba(199, 123, 88, 0.12);
 }
 
+.segment-card.filtered {
+  opacity: var(--filter-opacity);
+  border-left-color: var(--filter-border);
+  transition: opacity 0.3s, border-left-color 0.3s, transform 0.25s, box-shadow 0.25s, background 0.25s;
+}
+
+.segment-card.filtered:hover {
+  opacity: 0.65;
+  transform: translateY(-1px);
+}
+
+.segment-card.filtered.active {
+  opacity: 0.55;
+  border-left-color: var(--accent);
+}
+
 .segment-header {
   display: flex;
   align-items: center;
@@ -357,6 +383,32 @@ body.notes-panel-open #segments {
   background: var(--accent-soft);
   color: var(--accent);
   border: none;
+}
+
+.badge-filter {
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.badge-filter-silence-gap {
+  background: var(--filter-badge-bg);
+  color: var(--filter-badge-color);
+  border: 1px dashed var(--filter-border);
+}
+
+.badge-filter-near-zero {
+  background: var(--prob-low-bg);
+  color: var(--prob-low);
+}
+
+.badge-filter-duplicate {
+  background: var(--prob-mid-bg);
+  color: var(--prob-mid);
 }
 
 .segment-meta {

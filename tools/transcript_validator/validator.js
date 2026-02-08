@@ -21,6 +21,45 @@ const state = {
   contextTarget: null,  // { type: 'segment'|'word', segmentIndex, wordIndex }
 };
 
+// --- Client-side filter predicates (mirrors src/filters.py) ---
+
+function isSilenceGap(segment) {
+  const words = segment.words || [];
+  if (words.length !== 1) return false;
+  const speaker = words[0]._speaker || {};
+  return speaker.label === null && speaker.coverage === 0.0;
+}
+
+function isNearZeroProbability(segment) {
+  const words = segment.words || [];
+  if (words.length !== 1) return false;
+  const prob = words[0].probability;
+  return prob != null && prob < 0.01;
+}
+
+function findDuplicateSegmentIds(segments) {
+  const seen = {};
+  const duplicates = new Set();
+  for (const seg of segments) {
+    const text = (seg.text || '').trim();
+    if (!text) continue;
+    if (text in seen) {
+      duplicates.add(seg.id);
+    } else {
+      seen[text] = seg.id;
+    }
+  }
+  return duplicates;
+}
+
+function getFilterReasons(segment, duplicateIds) {
+  const reasons = [];
+  if (state.silenceGapEnabled && isSilenceGap(segment)) reasons.push('silence-gap');
+  if (state.nearZeroEnabled && isNearZeroProbability(segment)) reasons.push('near-zero');
+  if (state.duplicatesEnabled && duplicateIds.has(segment.id)) reasons.push('duplicate');
+  return reasons;
+}
+
 // DOM elements
 const sessionSelect = document.getElementById('session-select');
 const segmentsContainer = document.getElementById('segments');
@@ -149,13 +188,17 @@ function segmentHasNotes(segmentId) {
 // Render segments
 function renderSegments() {
   if (!state.segments || state.segments.length === 0) {
-    const anyFilterActive = state.silenceGapEnabled || state.nearZeroEnabled || state.duplicatesEnabled;
-    const message = anyFilterActive
-      ? 'No segments remain after filtering'
-      : 'No segments found';
-    segmentsContainer.innerHTML = `<div class="empty-state">${message}</div>`;
+    segmentsContainer.innerHTML = '<div class="empty-state">No segments found</div>';
     return;
   }
+
+  state._cachedDuplicateIds = findDuplicateSegmentIds(state.segments);
+
+  const filterBadgeMap = {
+    'silence-gap': '<span class="badge badge-filter badge-filter-silence-gap">silence gap</span>',
+    'near-zero': '<span class="badge badge-filter badge-filter-near-zero">near zero</span>',
+    'duplicate': '<span class="badge badge-filter badge-filter-duplicate">duplicate</span>',
+  };
 
   segmentsContainer.innerHTML = state.segments.map((segment, index) => {
     const hasHighTemp = segment.temperature === 1.0;
@@ -167,6 +210,10 @@ function renderSegments() {
     if (hasHighComp) badges.push('<span class="badge badge-comp">high comp</span>');
     if (hasNotes) badges.push('<span class="badge badge-note">note</span>');
 
+    const filterReasons = getFilterReasons(segment, state._cachedDuplicateIds);
+    const isFiltered = filterReasons.length > 0;
+    filterReasons.forEach(r => badges.push(filterBadgeMap[r]));
+
     const words = (segment.words || []).map((word, wordIndex) => {
       const probClass = getWordProbabilityClass(word.probability || 0);
       const duration = ((word.end || 0) - (word.start || 0)).toFixed(3);
@@ -175,7 +222,7 @@ function renderSegments() {
     }).join(' ');
 
     return `
-      <div class="segment-card" data-segment="${index}" id="segment-${index}" style="animation-delay: ${index * 0.03}s">
+      <div class="segment-card${isFiltered ? ' filtered' : ''}" data-segment="${index}" id="segment-${index}" style="animation-delay: ${index * 0.03}s">
         <div class="segment-header" data-start="${segment.start}">
           <span class="segment-id">Segment ${segment.id ?? index}</span>
           <span class="segment-time">${segment.start.toFixed(2)}s - ${segment.end.toFixed(2)}s</span>
@@ -289,50 +336,29 @@ function updateActiveSegment(time) {
   }
 }
 
-// Reload transcript (used by filter toggle and loadSession)
+// Reload transcript (used by loadSession)
 async function reloadTranscript() {
   if (!state.filename) return;
-
-  let url = `/transcript/${state.filename}`;
-  const params = [];
-  if (state.silenceGapEnabled) params.push('silence_gap=1');
-  if (state.nearZeroEnabled) params.push('near_zero=1');
-  if (state.duplicatesEnabled) params.push('duplicates=1');
-  if (params.length) url += '?' + params.join('&');
-
-  const res = await fetch(url);
+  const res = await fetch(`/transcript/${state.filename}`);
   if (!res.ok) throw new Error('Failed to load transcript');
   const data = await res.json();
   state.segments = data.segments || [];
+  // Same reference — filtering is purely visual (CSS .filtered class), not array-level
+  state.allSegments = state.segments;
   renderSegments();
   updateActiveSegment(state.currentTime);
 }
 
 // Generic filter toggle helper
-async function toggleFilterState(key, btn) {
+function toggleFilterState(key, btn) {
   state[key] = !state[key];
   btn.classList.toggle('active', state[key]);
-
-  const wasPlaying = wavesurfer && wavesurfer.isPlaying();
-  const currentTime = state.currentTime;
-
-  try {
-    await reloadTranscript();
-  } catch (error) {
-    state[key] = !state[key];
-    btn.classList.toggle('active', state[key]);
-    console.error(`Error toggling ${key}:`, error);
-    return;
-  }
+  renderSegments();
+  updateActiveSegment(state.currentTime);
 
   if (notesPanel.classList.contains('open')) {
     renderNotesList();
     renderLowConfidenceList();
-  }
-
-  if (wavesurfer) {
-    wavesurfer.setTime(currentTime);
-    if (wasPlaying) wavesurfer.play();
   }
 }
 
@@ -387,15 +413,7 @@ async function loadSession(stem) {
   state.currentWordIndex = -1;
 
   try {
-    // Load transcript (respects filter state)
     await reloadTranscript();
-
-    // Always load unfiltered segments for timestamp lookups
-    const allRes = await fetch(`/transcript/${stem}`);
-    if (allRes.ok) {
-      const allData = await allRes.json();
-      state.allSegments = allData.segments || [];
-    }
 
     // Load notes
     try {
@@ -676,11 +694,9 @@ function renderLowConfidenceList() {
     return;
   }
 
-  const filteredSegmentIds = new Set(state.segments.map(s => s.id));
-
   lowConfidenceList.innerHTML = groups.map(group => {
-    const anyFilterActive = state.silenceGapEnabled || state.nearZeroEnabled || state.duplicatesEnabled;
-    const isFilteredOut = anyFilterActive && !filteredSegmentIds.has(group.segmentId);
+    const parentSegment = state.segments.find(s => s.id === group.segmentId);
+    const isFilteredOut = parentSegment ? getFilterReasons(parentSegment, state._cachedDuplicateIds || new Set()).length > 0 : false;
     const chips = group.words.map(w =>
       `<button class="filtered-word-chip${isFilteredOut ? ' filter-active' : ''}" data-start="${w.start}">` +
         `${escapeHtml(w.word)} <span class="word-prob">${w.probability.toFixed(2)}</span>` +
@@ -803,8 +819,7 @@ function renderNotesList() {
     const allSegment = note.segmentId != null
       ? state.allSegments.find(s => s.id === note.segmentId)
       : null;
-    // Segment is filtered out if note has a segmentId but segment not found in current state.segments
-    const isFilteredOut = note.segmentId != null && !segment;
+    const isFilteredOut = note.segmentId != null && segment != null && getFilterReasons(segment, state._cachedDuplicateIds || new Set()).length > 0;
     let location, time;
 
     if (note.segmentId == null) {
@@ -828,13 +843,13 @@ function renderNotesList() {
       <div class="note-item ${isFilteredOut ? 'filtered-out' : ''}" data-note-id="${note.id}">
         <div class="note-item-header">
           <span class="note-item-location">${location}</span>
-          ${isFilteredOut ? '<span class="note-filtered-badge">hidden</span>' : ''}
+          ${isFilteredOut ? '<span class="note-filtered-badge">filtered</span>' : ''}
           <span>${time}</span>
         </div>
         <div class="note-item-text">${escapeHtml(textPreview)}</div>
         <div class="note-item-actions">
-          <button class="note-action-btn" onclick="jumpToNote('${note.id}')" ${isFilteredOut ? 'disabled' : ''} title="Jump to location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
-          <button class="note-action-btn" onclick="editNoteFromPanel('${note.id}')" ${isFilteredOut ? 'disabled' : ''} title="Edit note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="note-action-btn" onclick="jumpToNote('${note.id}')" title="Jump to location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>
+          <button class="note-action-btn" onclick="editNoteFromPanel('${note.id}')" title="Edit note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
           <button class="note-action-btn delete" onclick="deleteNote('${note.id}')" title="Delete note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
         </div>
       </div>
@@ -898,9 +913,10 @@ window.editNoteFromPanel = function(noteId) {
     target = { type: 'timestamp', timestamp: note.timestamp };
   } else {
     const segmentIndex = state.segments.findIndex(s => s.id === note.segmentId);
+    if (segmentIndex === -1) return;  // Segment no longer in transcript
     target = {
       type: note.wordIndex != null ? 'word' : 'segment',
-      segmentIndex: segmentIndex,  // Still need index for openNoteModal
+      segmentIndex: segmentIndex,
       segmentId: note.segmentId,
       wordIndex: note.wordIndex
     };
@@ -1001,16 +1017,22 @@ function handleKeyboard(e) {
     case 'ArrowUp':
       e.preventDefault();
       if (state.currentSegmentIndex > 0) {
-        const prevSegment = state.segments[state.currentSegmentIndex - 1];
-        seekAndPlay(prevSegment.start);
+        let prev = state.currentSegmentIndex - 1;
+        while (prev >= 0 && getFilterReasons(state.segments[prev], state._cachedDuplicateIds || new Set()).length > 0) {
+          prev--;
+        }
+        if (prev >= 0) seekAndPlay(state.segments[prev].start);
       }
       break;
 
     case 'ArrowDown':
       e.preventDefault();
-      if (state.currentSegmentIndex < state.segments.length - 1) {
-        const nextSegment = state.segments[state.currentSegmentIndex + 1];
-        seekAndPlay(nextSegment.start);
+      if (state.segments.length > 0) {
+        let next = (state.currentSegmentIndex >= 0 ? state.currentSegmentIndex : -1) + 1;
+        while (next < state.segments.length && getFilterReasons(state.segments[next], state._cachedDuplicateIds || new Set()).length > 0) {
+          next++;
+        }
+        if (next < state.segments.length) seekAndPlay(state.segments[next].start);
       }
       break;
 
