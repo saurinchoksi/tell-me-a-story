@@ -11,15 +11,15 @@ const state = {
   currentSegmentIndex: -1,
   currentWordIndex: -1,
   playbackRate: 1,
-  filterEnabled: false,
+  silenceGapEnabled: false,
+  nearZeroEnabled: false,
+  duplicatesEnabled: false,
   userScrolledAway: false,
   activeDrawerTab: 'notes',
   scrollTimeout: null,
   // Context menu state
   contextTarget: null,  // { type: 'segment'|'word', segmentIndex, wordIndex }
 };
-
-const FILTER_PROBABILITY_THRESHOLD = 0.5;
 
 // DOM elements
 const sessionSelect = document.getElementById('session-select');
@@ -42,7 +42,9 @@ const notesPanelClose = document.getElementById('notes-panel-close');
 const notesToggleBtn = document.getElementById('notes-toggle-btn');
 const notesList = document.getElementById('notes-list');
 const notesCountBadge = document.getElementById('notes-count-badge');
-const filterToggleBtn = document.getElementById('filter-toggle-btn');
+const silenceGapToggleBtn = document.getElementById('silence-gap-toggle-btn');
+const nearZeroToggleBtn = document.getElementById('near-zero-toggle-btn');
+const duplicatesToggleBtn = document.getElementById('duplicates-toggle-btn');
 const tabContentNotes = document.getElementById('tab-content-notes');
 const tabContentLowConfidence = document.getElementById('tab-content-low-confidence');
 const lowConfidenceList = document.getElementById('low-confidence-list');
@@ -147,8 +149,9 @@ function segmentHasNotes(segmentId) {
 // Render segments
 function renderSegments() {
   if (!state.segments || state.segments.length === 0) {
-    const message = state.filterEnabled
-      ? 'No words above confidence threshold'
+    const anyFilterActive = state.silenceGapEnabled || state.nearZeroEnabled || state.duplicatesEnabled;
+    const message = anyFilterActive
+      ? 'No segments remain after filtering'
       : 'No segments found';
     segmentsContainer.innerHTML = `<div class="empty-state">${message}</div>`;
     return;
@@ -290,9 +293,12 @@ function updateActiveSegment(time) {
 async function reloadTranscript() {
   if (!state.filename) return;
 
-  const url = state.filterEnabled
-    ? `/transcript/${state.filename}?min_prob=${FILTER_PROBABILITY_THRESHOLD}`
-    : `/transcript/${state.filename}`;
+  let url = `/transcript/${state.filename}`;
+  const params = [];
+  if (state.silenceGapEnabled) params.push('silence_gap=1');
+  if (state.nearZeroEnabled) params.push('near_zero=1');
+  if (state.duplicatesEnabled) params.push('duplicates=1');
+  if (params.length) url += '?' + params.join('&');
 
   const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to load transcript');
@@ -302,10 +308,10 @@ async function reloadTranscript() {
   updateActiveSegment(state.currentTime);
 }
 
-// Toggle probability filter
-async function toggleFilter() {
-  state.filterEnabled = !state.filterEnabled;
-  filterToggleBtn.classList.toggle('active', state.filterEnabled);
+// Generic filter toggle helper
+async function toggleFilterState(key, btn) {
+  state[key] = !state[key];
+  btn.classList.toggle('active', state[key]);
 
   const wasPlaying = wavesurfer && wavesurfer.isPlaying();
   const currentTime = state.currentTime;
@@ -313,14 +319,12 @@ async function toggleFilter() {
   try {
     await reloadTranscript();
   } catch (error) {
-    // Revert state on failure
-    state.filterEnabled = !state.filterEnabled;
-    filterToggleBtn.classList.toggle('active', state.filterEnabled);
-    console.error('Error toggling filter:', error);
+    state[key] = !state[key];
+    btn.classList.toggle('active', state[key]);
+    console.error(`Error toggling ${key}:`, error);
     return;
   }
 
-  // Refresh notes panel if open (filtered-out status may have changed)
   if (notesPanel.classList.contains('open')) {
     renderNotesList();
     renderLowConfidenceList();
@@ -331,6 +335,10 @@ async function toggleFilter() {
     if (wasPlaying) wavesurfer.play();
   }
 }
+
+function toggleSilenceGap() { toggleFilterState('silenceGapEnabled', silenceGapToggleBtn); }
+function toggleNearZero() { toggleFilterState('nearZeroEnabled', nearZeroToggleBtn); }
+function toggleDuplicates() { toggleFilterState('duplicatesEnabled', duplicatesToggleBtn); }
 
 // Toggle theme
 function toggleTheme() {
@@ -671,7 +679,8 @@ function renderLowConfidenceList() {
   const filteredSegmentIds = new Set(state.segments.map(s => s.id));
 
   lowConfidenceList.innerHTML = groups.map(group => {
-    const isFilteredOut = state.filterEnabled && !filteredSegmentIds.has(group.segmentId);
+    const anyFilterActive = state.silenceGapEnabled || state.nearZeroEnabled || state.duplicatesEnabled;
+    const isFilteredOut = anyFilterActive && !filteredSegmentIds.has(group.segmentId);
     const chips = group.words.map(w =>
       `<button class="filtered-word-chip${isFilteredOut ? ' filter-active' : ''}" data-start="${w.start}">` +
         `${escapeHtml(w.word)} <span class="word-prob">${w.probability.toFixed(2)}</span>` +
@@ -712,7 +721,7 @@ function getFilteredWords() {
   for (const segment of state.allSegments) {
     const lowConfWords = [];
     for (const word of (segment.words || [])) {
-      if (word.probability < FILTER_PROBABILITY_THRESHOLD) {
+      if (word.probability < 0.5) {
         lowConfWords.push({
           word: word.word,
           probability: word.probability,
@@ -1015,9 +1024,19 @@ function handleKeyboard(e) {
       toggleNotesPanel();
       break;
 
-    case 'f':
+    case 'g':
       e.preventDefault();
-      toggleFilter();
+      toggleSilenceGap();
+      break;
+
+    case 'z':
+      e.preventDefault();
+      toggleNearZero();
+      break;
+
+    case 'd':
+      e.preventDefault();
+      toggleDuplicates();
       break;
 
     case 't':
@@ -1061,7 +1080,9 @@ notesPanelClose.addEventListener('click', closeNotesPanel);
 document.querySelectorAll('.drawer-tab').forEach(tab => {
   tab.addEventListener('click', () => switchDrawerTab(tab.dataset.tab));
 });
-filterToggleBtn.addEventListener('click', toggleFilter);
+silenceGapToggleBtn.addEventListener('click', toggleSilenceGap);
+nearZeroToggleBtn.addEventListener('click', toggleNearZero);
+duplicatesToggleBtn.addEventListener('click', toggleDuplicates);
 
 document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 

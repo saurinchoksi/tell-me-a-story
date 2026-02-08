@@ -45,9 +45,17 @@
     <button class="notes-toggle-btn" id="notes-toggle-btn">
       Notes <span class="note-count" id="notes-count-badge">0</span>
     </button>
-    <button class="filter-toggle-btn" id="filter-toggle-btn"
-            title="Hide words where Whisper's transcription confidence is below 50%. Low-confidence words are often guesses from unclear or quiet speech.">
-      Apply Filter
+    <button class="filter-toggle-btn" id="silence-gap-toggle-btn"
+            title="Hide single-word segments where diarization detected no speaker.">
+      Silence Gap
+    </button>
+    <button class="filter-toggle-btn" id="near-zero-toggle-btn"
+            title="Hide single-word segments where Whisper has near-zero confidence (prob &lt; 0.01).">
+      Near-Zero Prob
+    </button>
+    <button class="filter-toggle-btn" id="duplicates-toggle-btn"
+            title="Hide segments whose text duplicates an earlier segment. Review aid — real repetitions may also match.">
+      Duplicates
     </button>
     <button class="theme-toggle-btn" id="theme-toggle" title="Toggle light/dark mode">
       <span class="theme-icon-light">☀</span>
@@ -131,7 +139,9 @@
     <span><kbd>↑</kbd><kbd>↓</kbd> Prev/Next Segment</span>
     <span><kbd>N</kbd> Add Note</span>
     <span><kbd>Shift+N</kbd> Notes Panel</span>
-    <span><kbd>F</kbd> Apply Filter</span>
+    <span><kbd>G</kbd> Silence Gap</span>
+    <span><kbd>Z</kbd> Near-Zero Prob</span>
+    <span><kbd>D</kbd> Duplicates</span>
     <span><kbd>T</kbd> Toggle Theme</span>
   </div>
 

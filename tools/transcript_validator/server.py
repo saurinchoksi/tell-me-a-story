@@ -16,7 +16,7 @@ SESSIONS_DIR = PROJECT_ROOT / "sessions"
 
 # Add src/ to path for filter imports
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
-from filters import min_probability
+from filters import silence_gap, near_zero_probability, find_duplicate_segments
 
 
 def get_session_paths(stem: str) -> dict:
@@ -91,7 +91,7 @@ def get_audio(stem: str):
 
 @app.route("/transcript/<stem>")
 def get_transcript(stem: str):
-    """Return transcript content, optionally filtered by probability."""
+    """Return transcript content, optionally filtered for hallucinations."""
     try:
         validate_path(SESSIONS_DIR, Path(stem))
         paths = get_session_paths(stem)
@@ -102,23 +102,33 @@ def get_transcript(stem: str):
         with open(paths["transcript"]) as f:
             transcript = json.load(f)
 
-        # Apply probability filter if requested
-        min_prob = request.args.get("min_prob")
-        if min_prob is not None:
-            try:
-                threshold = float(min_prob)
-            except ValueError:
-                return jsonify({"error": "Invalid min_prob value"}), 400
-
-            if not (0.0 <= threshold <= 1.0):
-                return jsonify({"error": "min_prob must be between 0 and 1"}), 400
-
-            predicate = min_probability(threshold)
-            filtered_segments = [
+        # Apply silence-gap hallucination filter if requested
+        if request.args.get("silence_gap") == "1":
+            transcript["segments"] = [
                 seg for seg in transcript.get("segments", [])
-                if any(predicate(w) for w in seg.get("words", []))
+                if not (
+                    len(seg.get("words", [])) == 1
+                    and silence_gap(seg["words"][0])
+                )
             ]
-            transcript["segments"] = filtered_segments
+
+        # Apply near-zero probability filter if requested
+        if request.args.get("near_zero") == "1":
+            transcript["segments"] = [
+                seg for seg in transcript.get("segments", [])
+                if not (
+                    len(seg.get("words", [])) == 1
+                    and near_zero_probability(seg["words"][0])
+                )
+            ]
+
+        # Apply duplicate segment filter if requested
+        if request.args.get("duplicates") == "1":
+            dup_ids = find_duplicate_segments(transcript.get("segments", []))
+            transcript["segments"] = [
+                seg for seg in transcript.get("segments", [])
+                if seg.get("id") not in dup_ids
+            ]
 
         return jsonify(transcript)
     except ValueError:
