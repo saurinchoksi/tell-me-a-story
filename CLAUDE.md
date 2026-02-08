@@ -27,6 +27,7 @@ python src/pipeline.py sessions/<session-id>/audio.m4a
 # Run individual modules
 python src/transcribe.py <audio_file>
 python src/diarize.py <audio_file>
+python src/enrich.py sessions/<session-id>  # Re-enrich existing session
 
 # Tests
 pytest                    # All tests

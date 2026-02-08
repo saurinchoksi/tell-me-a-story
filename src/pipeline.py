@@ -12,13 +12,9 @@ from transcribe import transcribe, clean_transcript, _SCHEMA_VERSION as TRANSCRI
 from diarize import diarize
 from query import assign_speakers, to_utterances, format_transcript
 from inspect_audio import get_audio_info
-from normalize import normalize as llm_normalize
-from dictionary import load_library, build_variant_map, normalize_variants
-from corrections import extract_text, apply_corrections
-from enrichment import enrich_with_diarization, _ENRICHED_SCHEMA_VERSION
+from enrich import enrich_transcript
+from enrichment import _ENRICHED_SCHEMA_VERSION
 
-_DEFAULT_LIBRARY_PATH = str(Path(__file__).parent.parent / "data" / "mahabharata.json")
-_LLM_MODEL = "qwen3:8b"
 logger = logging.getLogger(__name__)
 
 
@@ -147,61 +143,6 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     raw_transcript = transcribe(audio_path, word_timestamps=True, model=model)
     transcript = clean_transcript(raw_transcript)
 
-    # Normalization
-    processing = [
-        {"stage": "transcription", "model": model, "status": "success"}
-    ]
-
-    llm_count = 0
-    dict_count = 0
-
-    # Pass 1: LLM normalization
-    try:
-        text = extract_text(transcript)
-        llm_corrections = llm_normalize(text, model=_LLM_MODEL)
-        transcript, llm_count = apply_corrections(transcript, llm_corrections, "llm")
-        processing.append({
-            "stage": "llm_normalization",
-            "model": _LLM_MODEL,
-            "status": "success",
-            "corrections_applied": llm_count,
-        })
-        if verbose:
-            logger.info(f"LLM normalization: {llm_count} corrections applied")
-    except Exception as e:
-        logger.warning(f"LLM normalization failed: {e}")
-        processing.append({
-            "stage": "llm_normalization",
-            "model": _LLM_MODEL,
-            "status": "error",
-            "error": str(e),
-        })
-
-    # Pass 2: Dictionary normalization
-    lib_path = library_path or _DEFAULT_LIBRARY_PATH
-    try:
-        library = load_library(lib_path)
-        variant_map = build_variant_map(library)
-        text = extract_text(transcript)
-        dict_corrections = normalize_variants(text, variant_map)
-        transcript, dict_count = apply_corrections(transcript, dict_corrections, "dictionary")
-        processing.append({
-            "stage": "dictionary_normalization",
-            "library": lib_path,
-            "status": "success",
-            "corrections_applied": dict_count,
-        })
-        if verbose:
-            logger.info(f"Dictionary normalization: {dict_count} corrections applied")
-    except Exception as e:
-        logger.warning(f"Dictionary normalization failed: {e}")
-        processing.append({
-            "stage": "dictionary_normalization",
-            "library": lib_path,
-            "status": "error",
-            "error": str(e),
-        })
-
     # Diarization
     if verbose:
         print("\nDiarizing (this takes a few minutes)...")
@@ -210,23 +151,16 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     diarization = diarize(audio_path)
     diarization_model = "pyannote/speaker-diarization-community-1"
 
-    # Diarization enrichment
-    try:
-        transcript = enrich_with_diarization(transcript, diarization)
-        processing.append({
-            "stage": "diarization_enrichment",
-            "model": diarization_model,
-            "status": "success",
-        })
-    except Exception as e:
-        logger.warning(f"Diarization enrichment failed: {e}")
-        processing.append({
-            "stage": "diarization_enrichment",
-            "model": diarization_model,
-            "status": "error",
-            "error": str(e),
-        })
+    # Enrichment (normalization + diarization)
+    transcript, enrichment_processing, counts = enrich_transcript(
+        transcript, diarization, library_path=library_path, verbose=verbose
+    )
+    llm_count = counts["llm_count"]
+    dict_count = counts["dict_count"]
 
+    processing = [
+        {"stage": "transcription", "model": model, "status": "success"}
+    ] + enrichment_processing
     transcript["_processing"] = processing
     transcript["_schema_version"] = _ENRICHED_SCHEMA_VERSION
 
