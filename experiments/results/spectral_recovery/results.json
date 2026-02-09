@@ -1,0 +1,28 @@
+{
+  "experiment": "spectral_recovery",
+  "timestamp": "2026-02-08T17:15:42.762732",
+  "source_audio": "sessions/00000000-000002/audio.m4a",
+  "window": {
+    "start": 220.0,
+    "end": 260.0
+  },
+  "target": {
+    "start": 241.0,
+    "end": 243.5
+  },
+  "noise_profiles": {
+    "short": {
+      "start": 236.97,
+      "end": 238.68
+    },
+    "long": {
+      "start": 177.47,
+      "end": 181.84
+    }
+  },
+  "bandpass": {
+    "low_hz": 200,
+    "high_hz": 4000
+  },
+  "expected_text": "Who's father had to go away?",
+  "baseline_snr_db": 

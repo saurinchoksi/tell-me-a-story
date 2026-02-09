@@ -1,0 +1,489 @@
+{
+  "experiment": "quiet_speech_recovery",
+  "timestamp": "2026-02-08T17:04:07.883155",
+  "source_audio": "sessions/00000000-000002/audio.m4a",
+  "window": {
+    "start": 220.0,
+    "end": 260.0
+  },
+  "target": {
+    "start": 241.0,
+    "end": 243.5
+  },
+  "expected_text": "Who's father had to go away?",
+  "prompts": {
+    "no_prompt": null,
+    "vocab_prompt": "Mahabharata, Yudhishthira, Pandu, Pandavas, Kauravas, Duryodhana, Dhritarashtra, Bhima, Arjuna"
+  },
+  "model": "mlx-community/whisper-large-v3-mlx",
+  "results": [
+    {
+      "variant": "baseline",
+      "prompt": "no_prompt",
+      "run_name": "baseline__no_prompt",
+      "gain_db": 0,
+      "highpass_hz": null,
+      "elapsed_seconds": 9.8,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9761
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.42,
+          "end_original": 244.02,
+          "probability": 0.999
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.72,
+          "end_original": 241.16
+        },
+        {
+          "text": " Yudister's dad.",
+          "start_original": 243.42,
+          "end_original": 244.62
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "variant": "baseline",
+      "prompt": "vocab_prompt",
+      "run_name": "baseline__vocab_prompt",
+      "gain_db": 0,
+      "highpass_hz": null,
+      "elapsed_seconds": 7.1,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9849
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.42,
+          "end_original": 244.02,
+          "probability": 0.9961
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.14,
+          "end_original": 241.16
+        },
+        {
+          "text": " Yudhishthira's dad.",
+          "start_original": 243.42,
+          "end_original": 244.62
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pando."
+    },
+    {
+      "variant": "gain_10db",
+      "prompt": "no_prompt",
+      "run_name": "gain_10db__no_prompt",
+      "gain_db": 10,
+      "highpass_hz": null,
+      "elapsed_seconds": 6.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.18,
+          "probability": 0.9795
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.42,
+          "end_original": 244.02,
+          "probability": 0.999
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.14,
+          "end_original": 241.18
+        },
+        {
+          "text": " Yudister's dad.",
+          "start_original": 243.42,
+          "end_original": 244.62
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "variant": "gain_10db",
+      "prompt": "vocab_prompt",
+      "run_name": "gain_10db__vocab_prompt",
+      "gain_db": 10,
+      "highpass_hz": null,
+      "elapsed_seconds": 6.5,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.18,
+          "probability": 0.9727
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh?",
+          "start_original": 222.78,
+          "end_original": 241.18
+        }
+      ],
+      "full_text": " Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pando."
+    },
+    {
+      "variant": "gain_15db",
+      "prompt": "no_prompt",
+      "run_name": "gain_15db__no_prompt",
+      "gain_db": 15,
+      "highpass_hz": null,
+      "elapsed_seconds": 6.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9702
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.44,
+          "end_original": 244.04,
+          "probability": 0.999
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.12,
+          "end_original": 241.16
+        },
+        {
+          "text": " Yudister's dad.",
+          "start_original": 243.44,
+          "end_original": 244.64
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "variant": "gain_15db",
+      "prompt": "vocab_prompt",
+      "run_name": "gain_15db__vocab_prompt",
+      "gain_db": 15,
+      "highpass_hz": null,
+      "elapsed_seconds": 7.3,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9771
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.44,
+          "end_original": 244.04,
+          "probability": 0.9946
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.12,
+          "end_original": 241.16
+        },
+        {
+          "text": " Yudhishthira's dad.",
+          "start_original": 243.44,
+          "end_original": 244.64
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pandavas."
+    },
+    {
+      "variant": "gain_20db",
+      "prompt": "no_prompt",
+      "run_name": "gain_20db__no_prompt",
+      "gain_db": 20,
+      "highpass_hz": null,
+      "elapsed_seconds": 6.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9702
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.36,
+          "end_original": 244.0,
+          "probability": 0.999
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.08,
+          "end_original": 241.16
+        },
+        {
+          "text": " Yudister's dad.",
+          "start_original": 243.36,
+          "end_original": 244.64
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondovas."
+    },
+    {
+      "variant": "gain_20db",
+      "prompt": "vocab_prompt",
+      "run_name": "gain_20db__vocab_prompt",
+      "gain_db": 20,
+      "highpass_hz": null,
+      "elapsed_seconds": 7.1,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.14,
+          "probability": 0.9771
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.46,
+          "end_original": 244.06,
+          "probability": 0.9946
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.12,
+          "end_original": 241.14
+        },
+        {
+          "text": " Yudhishthira's dad.",
+          "start_original": 243.46,
+          "end_original": 244.66
+        }
+      ],
+      "full_text": " and what we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pandavas."
+    },
+    {
+      "variant": "hp200_gain_15db",
+      "prompt": "no_prompt",
+      "run_name": "hp200_gain_15db__no_prompt",
+      "gain_db": 15,
+      "highpass_hz": 200,
+      "elapsed_seconds": 6.8,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.979
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.44,
+          "end_original": 244.04,
+          "probability": 0.999
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.12,
+          "end_original": 241.16
+        },
+        {
+          "text": " Yudister's dad.",
+          "start_original": 243.44,
+          "end_original": 244.64
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "variant": "hp200_gain_15db",
+      "prompt": "vocab_prompt",
+      "run_name": "hp200_gain_15db__vocab_prompt",
+      "gain_db": 15,
+      "highpass_hz": 200,
+      "elapsed_seconds": 7.1,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.14,
+          "probability": 0.9824
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.44,
+          "end_original": 244.04,
+          "probability": 0.9951
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.14,
+          "end_original": 241.14
+        },
+        {
+          "text": " Yudhishthira's dad.",
+          "start_original": 243.44,
+          "end_original": 244.64
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pandavas."
+    },
+    {
+      "variant": "hp200_gain_20db",
+      "prompt": "no_prompt",
+      "run_name": "hp200_gain_20db__no_prompt",
+      "gain_db": 20,
+      "highpass_hz": 200,
+      "elapsed_seconds": 6.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9487
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.36,
+          "end_original": 244.0,
+          "probability": 0.999
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.08,
+          "end_original": 241.16
+        },
+        {
+          "text": " Yudister's dad.",
+          "start_original": 243.36,
+          "end_original": 244.64
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Pando. That's why Yudister and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandovas too, but we just say Pandovas."
+    },
+    {
+      "variant": "hp200_gain_20db",
+      "prompt": "vocab_prompt",
+      "run_name": "hp200_gain_20db__vocab_prompt",
+      "gain_db": 20,
+      "highpass_hz": 200,
+      "elapsed_seconds": 7.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.958
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.48,
+          "end_original": 244.06,
+          "probability": 0.9956
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.18,
+          "end_original": 241.16
+        },
+        {
+          "text": " Yudhishthira's dad.",
+          "start_original": 243.48,
+          "end_original": 244.64
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pandavas."
+    },
+    {
+      "variant": "hp300_gain_20db",
+      "prompt": "no_prompt",
+      "run_name": "hp300_gain_20db__no_prompt",
+      "gain_db": 20,
+      "highpass_hz": 300,
+      "elapsed_seconds": 6.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.16,
+          "probability": 0.9722
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.48,
+          "end_original": 244.06,
+          "probability": 0.999
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.16,
+          "end_original": 241.16
+        },
+        {
+          "text": " Yudister's dad.",
+          "start_original": 243.48,
+          "end_original": 244.64
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Pondo. That's why Yudister and his brothers are called the Pondos. Their dad's name was Pondo and him and his brothers are called the Pondos. And they might say Pondovas too, but we just say Pondovas."
+    },
+    {
+      "variant": "hp300_gain_20db",
+      "prompt": "vocab_prompt",
+      "run_name": "hp300_gain_20db__vocab_prompt",
+      "gain_db": 20,
+      "highpass_hz": 300,
+      "elapsed_seconds": 7.1,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9751
+        }
+      ],
+      "target_segments": [
+        {
+          "text": " it was kind of, huh?",
+          "start_original": 238.2,
+          "end_original": 241.16
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pandavas."
+    }
+  ]
+}

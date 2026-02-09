@@ -1,0 +1,4394 @@
+{
+  "experiment": "source_separation_v3",
+  "timestamp": "2026-02-08T23:39:16.278305",
+  "source_audio": "sessions/00000000-000002/audio.m4a",
+  "window": {
+    "start": 220.0,
+    "end": 260.0
+  },
+  "tight_window": {
+    "start": 238.0,
+    "end": 246.0
+  },
+  "target": {
+    "start": 241.0,
+    "end": 243.5
+  },
+  "expected_text": "Who's father had to go away?",
+  "model": "mlx-community/whisper-large-v3-mlx",
+  "separation_models": {
+    "convtasnet": [
+      "experiments/results/source_separation_v3/clips/convtasnet_source0.wav",
+      "experiments/results/source_separation_v3/clips/convtasnet_source1.wav"
+    ],
+    "hdemucs": [
+      "experiments/results/source_separation_v3/clips/hdemucs_drums.wav",
+      "experiments/results/source_separation_v3/clips/hdemucs_bass.wav",
+      "experiments/results/source_separation_v3/clips/hdemucs_other.wav",
+      "experiments/results/source_separation_v3/clips/hdemucs_vocals.wav"
+    ],
+    "mossformer2_se": [
+      "experiments/results/source_separation_v3/clips/mossformer2_se.wav"
+    ],
+    "mossformer2_ss": [
+      "experiments/results/source_separation_v3/clips/mossformer2_ss_source0.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_ss_source1.wav"
+    ]
+  },
+  "post_processed": {
+    "convtasnet_postprocessed": [
+      "experiments/results/source_separation_v3/clips/convtasnet_source0_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/convtasnet_source0_gain20db.wav",
+      "experiments/results/source_separation_v3/clips/convtasnet_source0_drc_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/convtasnet_source0_drc_gain20db.wav",
+      "experiments/results/source_separation_v3/clips/convtasnet_source1_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/convtasnet_source1_gain20db.wav",
+      "experiments/results/source_separation_v3/clips/convtasnet_source1_drc_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/convtasnet_source1_drc_gain20db.wav"
+    ],
+    "hdemucs_postprocessed": [
+      "experiments/results/source_separation_v3/clips/hdemucs_vocals_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/hdemucs_vocals_gain20db.wav",
+      "experiments/results/source_separation_v3/clips/hdemucs_vocals_drc_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/hdemucs_vocals_drc_gain20db.wav"
+    ],
+    "mossformer2_se_postprocessed": [
+      "experiments/results/source_separation_v3/clips/mossformer2_se_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_se_gain20db.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_se_drc_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_se_drc_gain20db.wav"
+    ],
+    "mossformer2_ss_postprocessed": [
+      "experiments/results/source_separation_v3/clips/mossformer2_ss_source0_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_ss_source0_gain20db.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_ss_source0_drc_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_ss_source0_drc_gain20db.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_ss_source1_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_ss_source1_gain20db.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_ss_source1_drc_gain15db.wav",
+      "experiments/results/source_separation_v3/clips/mossformer2_ss_source1_drc_gain20db.wav"
+    ]
+  },
+  "results": [
+    {
+      "source": "baseline",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "baseline__full__no_prompt",
+      "elapsed_seconds": 10.2,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9761
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.42,
+          "end_original": 244.02,
+          "probability": 0.999
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "source": "baseline",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "baseline__full__vocab_prompt",
+      "elapsed_seconds": 7.4,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9844
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.42,
+          "end_original": 244.02,
+          "probability": 0.9961
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pando."
+    },
+    {
+      "source": "baseline",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "baseline__tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start_original": 240.64,
+          "end_original": 241.16,
+          "probability": 0.5757
+        },
+        {
+          "word": " You",
+          "start_original": 242.42,
+          "end_original": 243.36,
+          "probability": 0.9731
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.36,
+          "end_original": 243.82,
+          "probability": 0.9829
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed their dad. You dissed their..."
+    },
+    {
+      "source": "baseline",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "baseline__tight__vocab_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.1,
+          "probability": 0.9863
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 242.94,
+          "end_original": 243.98,
+          "probability": 0.6206
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira's dad."
+    },
+    {
+      "source": "convtasnet_source0",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source0__full__no_prompt",
+      "elapsed_seconds": 36.7,
+      "target_words": [
+        {
+          "word": " Tel",
+          "start_original": 241.76,
+          "end_original": 242.52,
+          "probability": 0.9551
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.52,
+          "probability": 0.9565
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.52,
+          "probability": 0.9575
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.7,
+          "probability": 0.9585
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.7,
+          "probability": 0.96
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.76,
+          "probability": 0.96
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9648
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.78,
+          "probability": 0.9653
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.78,
+          "end_original": 242.78,
+          "probability": 0.9668
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.78,
+          "end_original": 242.84,
+          "probability": 0.9775
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9785
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.979
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9858
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9868
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 243.84,
+          "probability": 0.9873
+        }
+      ],
+      "full_text": " Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Takk for ating medietekst."
+    },
+    {
+      "source": "convtasnet_source0",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source0__full__vocab_prompt",
+      "elapsed_seconds": 43.2,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 229.46,
+          "end_original": 242.62,
+          "probability": 0.8877
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.917
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9316
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9404
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9448
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9482
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9512
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9541
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9551
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9575
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.959
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.96
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9619
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9629
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9639
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9658
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9663
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.62,
+          "probability": 0.9673
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.62,
+          "end_original": 242.74,
+          "probability": 0.9688
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.9688
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.9697
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.9707
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.9712
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.74,
+          "end_original": 242.76,
+          "probability": 0.9727
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9736
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9746
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9751
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9756
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9766
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9775
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9775
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9785
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9795
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9805
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9805
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.84,
+          "probability": 0.9814
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9819
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9824
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9834
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9834
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 244.04,
+          "probability": 0.9844
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Tel Stavros Stavros Stavros"
+    },
+    {
+      "source": "convtasnet_source0",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source0__tight__no_prompt",
+      "elapsed_seconds": 2.7,
+      "target_words": [
+        {
+          "word": " watching!",
+          "start_original": 240.9,
+          "end_original": 242.44,
+          "probability": 0.5952
+        }
+      ],
+      "full_text": " Takk for watching!"
+    },
+    {
+      "source": "convtasnet_source0",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source0__tight__vocab_prompt",
+      "elapsed_seconds": 36.3,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 240.78,
+          "end_original": 241.38,
+          "probability": 0.0006
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.38,
+          "end_original": 241.98,
+          "probability": 0.3057
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.98,
+          "end_original": 242.16,
+          "probability": 0.5981
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.16,
+          "end_original": 242.46,
+          "probability": 0.8145
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.46,
+          "end_original": 242.7,
+          "probability": 0.9097
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.7,
+          "end_original": 243.12,
+          "probability": 0.9336
+        },
+        {
+          "word": " Telak",
+          "start_original": 243.12,
+          "end_original": 244.5,
+          "probability": 0.9482
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Tel"
+    },
+    {
+      "source": "convtasnet_source1",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source1__full__no_prompt",
+      "elapsed_seconds": 7.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.2,
+          "probability": 0.9883
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.48,
+          "end_original": 244.08,
+          "probability": 0.9883
+        }
+      ],
+      "full_text": " what you call empathy for him. Now, Yudister, on the other hand, he thought he should be king because his father had to make king, and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad is Fondo. That's why Yudister and his brother are called the Fondos. Their dad's name is Fondo, and him and his brother are called the Fondos. We might say Fondovod too, but I'll leave it at that."
+    },
+    {
+      "source": "convtasnet_source1",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source1__full__vocab_prompt",
+      "elapsed_seconds": 12.2,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.2,
+          "probability": 0.9395
+        },
+        {
+          "word": " You",
+          "start_original": 241.2,
+          "end_original": 241.2,
+          "probability": 0.1157
+        },
+        {
+          "word": " know,",
+          "start_original": 241.2,
+          "end_original": 241.2,
+          "probability": 0.0757
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 241.36,
+          "end_original": 244.12,
+          "probability": 0.4131
+        }
+      ],
+      "full_text": " and what you call empathy for him. Now Yudhishthira on the other hand, he thought he should be king because his father had to make kings and then because his father had to go away, it was kind of, huh? You know, Yudhishthira's dad, Yudhishthira's dad is Pando, that's why Yudhishthira and his brothers are called the Pando's. Their dad's name is Pando and him and his brothers are called the Pando's. You might say Pandavas too but I'll leave it at that."
+    },
+    {
+      "source": "convtasnet_source1",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source1__tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.22,
+          "probability": 0.9565
+        },
+        {
+          "word": " You",
+          "start_original": 242.76,
+          "end_original": 243.36,
+          "probability": 0.8599
+        },
+        {
+          "word": " get",
+          "start_original": 243.36,
+          "end_original": 243.64,
+          "probability": 0.2474
+        }
+      ],
+      "full_text": " It was kind of, huh? You get it, dad. You get it?"
+    },
+    {
+      "source": "convtasnet_source1",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source1__tight__vocab_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.22,
+          "probability": 0.9565
+        },
+        {
+          "word": " Yudhishthira,",
+          "start_original": 242.98,
+          "end_original": 244.02,
+          "probability": 0.2964
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira, Dad."
+    },
+    {
+      "source": "hdemucs_drums",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_drums__full__no_prompt",
+      "elapsed_seconds": 3.4,
+      "target_words": [],
+      "full_text": " Thank you."
+    },
+    {
+      "source": "hdemucs_drums",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_drums__full__vocab_prompt",
+      "elapsed_seconds": 8.0,
+      "target_words": [
+        {
+          "word": " Yudhishthira,",
+          "start_original": 232.42,
+          "end_original": 247.92,
+          "probability": 0.9502
+        }
+      ],
+      "full_text": " and Kauravas, and Yudhishthira, Pandu, Pandavas, and Yudhishthira, Pandu, Pandavas, and Yudhishthira, Pandavas, and Yudhishthira, Pandavas, and Yudhishthira, Pandavas, and Yudhishthira,"
+    },
+    {
+      "source": "hdemucs_drums",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_drums__tight__no_prompt",
+      "elapsed_seconds": 2.6,
+      "target_words": [],
+      "full_text": " Thank you."
+    },
+    {
+      "source": "hdemucs_drums",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_drums__tight__vocab_prompt",
+      "elapsed_seconds": 3.6,
+      "target_words": [],
+      "full_text": " Satsang with Mooji"
+    },
+    {
+      "source": "hdemucs_bass",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_bass__full__no_prompt",
+      "elapsed_seconds": 3.6,
+      "target_words": [],
+      "full_text": " Thank you."
+    },
+    {
+      "source": "hdemucs_bass",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_bass__full__vocab_prompt",
+      "elapsed_seconds": 7.9,
+      "target_words": [
+        {
+          "word": " Arjuna",
+          "start_original": 240.64,
+          "end_original": 249.54,
+          "probability": 0.2549
+        }
+      ],
+      "full_text": " and Yudhishthira, Pandu, Pandavas, Kauravas, Duryodhana, Dhritarashtra, Bhima, Arjuna and Yudhishthira, Pandavas, Duryodhana, Dhritarashtra, Bhima, Arjuna"
+    },
+    {
+      "source": "hdemucs_bass",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_bass__tight__no_prompt",
+      "elapsed_seconds": 2.6,
+      "target_words": [],
+      "full_text": " Thank you."
+    },
+    {
+      "source": "hdemucs_bass",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_bass__tight__vocab_prompt",
+      "elapsed_seconds": 32.8,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 240.86,
+          "end_original": 242.06,
+          "probability": 0.08
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.06,
+          "end_original": 242.66,
+          "probability": 0.5854
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.66,
+          "end_original": 242.74,
+          "probability": 0.8564
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak"
+    },
+    {
+      "source": "hdemucs_other",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_other__full__no_prompt",
+      "elapsed_seconds": 2.6,
+      "target_words": [],
+      "full_text": ""
+    },
+    {
+      "source": "hdemucs_other",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_other__full__vocab_prompt",
+      "elapsed_seconds": 26.2,
+      "target_words": [
+        {
+          "word": " Telakakashtra.",
+          "start_original": 240.96,
+          "end_original": 241.62,
+          "probability": 0.9937
+        },
+        {
+          "word": " Telakakashtra.",
+          "start_original": 241.62,
+          "end_original": 242.54,
+          "probability": 0.9937
+        },
+        {
+          "word": " Telakakashtra.",
+          "start_original": 242.7,
+          "end_original": 244.1,
+          "probability": 0.9941
+        }
+      ],
+      "full_text": " Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra. Telakakashtra."
+    },
+    {
+      "source": "hdemucs_other",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_other__tight__no_prompt",
+      "elapsed_seconds": 2.6,
+      "target_words": [
+        {
+          "word": " you.",
+          "start_original": 240.2,
+          "end_original": 243.42,
+          "probability": 0.9907
+        }
+      ],
+      "full_text": " Thank you."
+    },
+    {
+      "source": "hdemucs_other",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_other__tight__vocab_prompt",
+      "elapsed_seconds": 30.6,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 240.9,
+          "end_original": 241.44,
+          "probability": 0.0001
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.44,
+          "end_original": 241.98,
+          "probability": 0.0852
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.98,
+          "end_original": 242.38,
+          "probability": 0.6182
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.38,
+          "end_original": 242.38,
+          "probability": 0.8574
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.38,
+          "end_original": 244.24,
+          "probability": 0.9307
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak"
+    },
+    {
+      "source": "hdemucs_vocals",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_vocals__full__no_prompt",
+      "elapsed_seconds": 7.3,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9761
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.42,
+          "end_original": 244.02,
+          "probability": 0.999
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "source": "hdemucs_vocals",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_vocals__full__vocab_prompt",
+      "elapsed_seconds": 7.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9902
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king. And then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando. And him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pando."
+    },
+    {
+      "source": "hdemucs_vocals",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_vocals__tight__no_prompt",
+      "elapsed_seconds": 3.1,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start_original": 240.64,
+          "end_original": 241.16,
+          "probability": 0.5752
+        },
+        {
+          "word": " You",
+          "start_original": 242.42,
+          "end_original": 243.36,
+          "probability": 0.9741
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.36,
+          "end_original": 243.82,
+          "probability": 0.9829
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed their dad. You dissed their..."
+    },
+    {
+      "source": "hdemucs_vocals",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_vocals__tight__vocab_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.1,
+          "probability": 0.9854
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 242.94,
+          "end_original": 243.98,
+          "probability": 0.6221
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira's dad."
+    },
+    {
+      "source": "mossformer2_se",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_se__full__no_prompt",
+      "elapsed_seconds": 7.3,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start_original": 240.64,
+          "end_original": 241.18,
+          "probability": 0.6929
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.34,
+          "end_original": 243.98,
+          "probability": 0.9995
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudister on the other hand. He thought he should be king. Because. His father. Had been made king. And then because his father had to go away. It was kind of. Huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo. And him and his brothers are called the Fondos. And they might say Fondovas too."
+    },
+    {
+      "source": "mossformer2_se",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_se__full__vocab_prompt",
+      "elapsed_seconds": 7.4,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.18,
+          "probability": 0.9937
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king. And then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando, and him and his brothers are called the Pando's. And they might say Pandavas too, but..."
+    },
+    {
+      "source": "mossformer2_se",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_se__tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.14,
+          "probability": 0.9775
+        },
+        {
+          "word": " You",
+          "start_original": 242.9,
+          "end_original": 243.34,
+          "probability": 0.9824
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.34,
+          "end_original": 243.74,
+          "probability": 0.9668
+        }
+      ],
+      "full_text": " It was kind of, huh? You dissed their dad. You dissed their..."
+    },
+    {
+      "source": "mossformer2_se",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_se__tight__vocab_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.14,
+          "probability": 0.9775
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 242.94,
+          "end_original": 243.98,
+          "probability": 0.6187
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira's dad."
+    },
+    {
+      "source": "mossformer2_ss_source0",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source0__full__no_prompt",
+      "elapsed_seconds": 6.9,
+      "target_words": [
+        {
+          "word": " just",
+          "start_original": 240.84,
+          "end_original": 243.5,
+          "probability": 0.1738
+        },
+        {
+          "word": " saw",
+          "start_original": 243.5,
+          "end_original": 243.92,
+          "probability": 0.9585
+        }
+      ],
+      "full_text": " What we can see is that the What I just saw on the other hand was different to what I saw because this bird was in my hand and then because the bird was at the corner of my hand it was kind of you just saw something. You just saw a panda. That's why we just saw a human as red as a type of panda. But the other panda, a human as red as a type of panda. And it's incredible."
+    },
+    {
+      "source": "mossformer2_ss_source0",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source0__full__vocab_prompt",
+      "elapsed_seconds": 32.7,
+      "target_words": [
+        {
+          "word": " Telakakashtra",
+          "start_original": 240.26,
+          "end_original": 241.06,
+          "probability": 0.9956
+        },
+        {
+          "word": " Telakakashtra",
+          "start_original": 241.06,
+          "end_original": 241.46,
+          "probability": 0.9956
+        },
+        {
+          "word": " Telakakashtra",
+          "start_original": 241.46,
+          "end_original": 241.52,
+          "probability": 0.9956
+        },
+        {
+          "word": " Telakakashtra",
+          "start_original": 241.52,
+          "end_original": 244.18,
+          "probability": 0.9961
+        }
+      ],
+      "full_text": " Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra Telakakashtra And the other one is being there. And the woman is running to her to being there with her. And that's the end of it. I love you guys."
+    },
+    {
+      "source": "mossformer2_ss_source0",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source0__tight__no_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " fun.",
+          "start_original": 240.58,
+          "end_original": 241.1,
+          "probability": 0.3298
+        },
+        {
+          "word": " It",
+          "start_original": 242.9,
+          "end_original": 243.42,
+          "probability": 0.4155
+        },
+        {
+          "word": " just",
+          "start_original": 243.42,
+          "end_original": 243.66,
+          "probability": 0.668
+        }
+      ],
+      "full_text": " It was kind of fun. It just felt good."
+    },
+    {
+      "source": "mossformer2_ss_source0",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source0__tight__vocab_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " fun.",
+          "start_original": 240.58,
+          "end_original": 241.1,
+          "probability": 0.3293
+        }
+      ],
+      "full_text": " It was kind of fun."
+    },
+    {
+      "source": "mossformer2_ss_source1",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source1__full__no_prompt",
+      "elapsed_seconds": 6.7,
+      "target_words": [],
+      "full_text": " Now we gotta actually go home. Let me just start on the other side. It's a... It's a nice day. It's time to have a go around. Wow. This is kind of funny. I'm a defender. I'm trying to get things running like I have a camera. I'm a defender. I'm gonna be fighting this guy. I'm gonna be fighting this guy. I'm gonna be fighting this guy."
+    },
+    {
+      "source": "mossformer2_ss_source1",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source1__full__vocab_prompt",
+      "elapsed_seconds": 6.8,
+      "target_words": [],
+      "full_text": " and we got our Akshaya for that. Now we just got another one. It's a It's a nice thing. It's kind of like a go around. Wow. This is kind of friendly. I find that this thing is running the same speed as mine. I can just kind of stand there and then it just passes me by and I just go. It's a friend of mine. It's a friend of mine."
+    },
+    {
+      "source": "mossformer2_ss_source1",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source1__tight__no_prompt",
+      "elapsed_seconds": 2.6,
+      "target_words": [
+        {
+          "word": " Wow.",
+          "start_original": 243.28,
+          "end_original": 244.68,
+          "probability": 0.6606
+        }
+      ],
+      "full_text": " Wow."
+    },
+    {
+      "source": "mossformer2_ss_source1",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source1__tight__vocab_prompt",
+      "elapsed_seconds": 32.0,
+      "target_words": [
+        {
+          "word": " Tel",
+          "start_original": 240.84,
+          "end_original": 241.46,
+          "probability": 0.7612
+        },
+        {
+          "word": " Tel",
+          "start_original": 241.46,
+          "end_original": 242.04,
+          "probability": 0.8262
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.04,
+          "end_original": 242.94,
+          "probability": 0.8716
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.94,
+          "end_original": 244.36,
+          "probability": 0.9033
+        }
+      ],
+      "full_text": " Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel"
+    },
+    {
+      "source": "convtasnet_source0_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source0_gain15db__full__no_prompt",
+      "elapsed_seconds": 35.9,
+      "target_words": [
+        {
+          "word": " Tel",
+          "start_original": 241.96,
+          "end_original": 242.5,
+          "probability": 0.9478
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.5,
+          "probability": 0.9497
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.5,
+          "probability": 0.9507
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.52,
+          "probability": 0.9521
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.52,
+          "probability": 0.9526
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.52,
+          "probability": 0.9546
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.7,
+          "probability": 0.9551
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.7,
+          "probability": 0.9565
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.74,
+          "probability": 0.9575
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.9585
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.96
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.74,
+          "end_original": 242.76,
+          "probability": 0.9604
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9648
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.78,
+          "probability": 0.9658
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.78,
+          "end_original": 242.78,
+          "probability": 0.9673
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.78,
+          "end_original": 242.84,
+          "probability": 0.978
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.979
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9795
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 243.84,
+          "probability": 0.9834
+        }
+      ],
+      "full_text": " Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Takk for ating medietekst."
+    },
+    {
+      "source": "convtasnet_source0_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source0_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 45.2,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 229.28,
+          "end_original": 242.64,
+          "probability": 0.8848
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9141
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9302
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9385
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9438
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9478
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9502
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9531
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9551
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.957
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9585
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.96
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9614
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9624
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9639
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.64,
+          "probability": 0.9648
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.72,
+          "probability": 0.9658
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.72,
+          "probability": 0.9668
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.72,
+          "probability": 0.9678
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.72,
+          "probability": 0.9688
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.72,
+          "probability": 0.9697
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.76,
+          "probability": 0.9707
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9717
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9727
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9736
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9741
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9751
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9756
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9766
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9771
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9775
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9785
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9795
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.98
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.84,
+          "probability": 0.9805
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9814
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9814
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9824
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9834
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9834
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9839
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 243.9,
+          "probability": 0.9844
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Tel Stavros Stavros Stavros"
+    },
+    {
+      "source": "convtasnet_source0_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source0_gain15db__tight__no_prompt",
+      "elapsed_seconds": 2.7,
+      "target_words": [
+        {
+          "word": " for",
+          "start_original": 240.44,
+          "end_original": 241.12,
+          "probability": 0.7041
+        },
+        {
+          "word": " watching!",
+          "start_original": 241.12,
+          "end_original": 242.44,
+          "probability": 0.5811
+        }
+      ],
+      "full_text": " Takk for watching!"
+    },
+    {
+      "source": "convtasnet_source0_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source0_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 36.0,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 240.86,
+          "end_original": 241.42,
+          "probability": 0.0006
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.42,
+          "end_original": 241.98,
+          "probability": 0.2998
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.98,
+          "end_original": 242.16,
+          "probability": 0.5977
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.16,
+          "end_original": 242.5,
+          "probability": 0.811
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.5,
+          "end_original": 242.72,
+          "probability": 0.9097
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 243.16,
+          "probability": 0.9355
+        },
+        {
+          "word": " Telak",
+          "start_original": 243.16,
+          "end_original": 244.4,
+          "probability": 0.9492
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Tel"
+    },
+    {
+      "source": "convtasnet_source0_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source0_gain20db__full__no_prompt",
+      "elapsed_seconds": 42.9,
+      "target_words": [
+        {
+          "word": " Tel",
+          "start_original": 241.98,
+          "end_original": 242.5,
+          "probability": 0.9463
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.5,
+          "probability": 0.9478
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.5,
+          "probability": 0.9492
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.52,
+          "probability": 0.9507
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.52,
+          "probability": 0.9517
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.52,
+          "probability": 0.9531
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.7,
+          "probability": 0.9536
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.7,
+          "probability": 0.9551
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.7,
+          "probability": 0.9565
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.74,
+          "probability": 0.957
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.9585
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.9585
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.74,
+          "end_original": 242.76,
+          "probability": 0.96
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9614
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9624
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9639
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.78,
+          "probability": 0.9644
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.78,
+          "end_original": 242.78,
+          "probability": 0.9658
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.78,
+          "end_original": 242.84,
+          "probability": 0.9771
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.978
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9785
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 243.84,
+          "probability": 0.9829
+        }
+      ],
+      "full_text": " Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Takk for ating medietekst."
+    },
+    {
+      "source": "convtasnet_source0_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source0_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 43.2,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 240.16,
+          "end_original": 241.76,
+          "probability": 0.9619
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.76,
+          "end_original": 242.64,
+          "probability": 0.9629
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.72,
+          "probability": 0.9648
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.72,
+          "probability": 0.9653
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.72,
+          "probability": 0.9668
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.74,
+          "probability": 0.9678
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.74,
+          "end_original": 242.76,
+          "probability": 0.9707
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9722
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9727
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9736
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9746
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9756
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.84,
+          "probability": 0.9761
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9766
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 244.04,
+          "probability": 0.9805
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Takk for ating medietekst."
+    },
+    {
+      "source": "convtasnet_source0_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source0_gain20db__tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " watching!",
+          "start_original": 240.82,
+          "end_original": 242.44,
+          "probability": 0.5728
+        }
+      ],
+      "full_text": " Takk for watching!"
+    },
+    {
+      "source": "convtasnet_source0_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source0_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 41.0,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 241.02,
+          "end_original": 241.5,
+          "probability": 0.0006
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.5,
+          "end_original": 241.98,
+          "probability": 0.2966
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.98,
+          "end_original": 242.16,
+          "probability": 0.6064
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.16,
+          "end_original": 242.48,
+          "probability": 0.8135
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.48,
+          "end_original": 242.72,
+          "probability": 0.9102
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 243.16,
+          "probability": 0.9355
+        },
+        {
+          "word": " Telak",
+          "start_original": 243.16,
+          "end_original": 244.5,
+          "probability": 0.9492
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Tel"
+    },
+    {
+      "source": "convtasnet_source0_drc_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source0_drc_gain15db__full__no_prompt",
+      "elapsed_seconds": 39.8,
+      "target_words": [
+        {
+          "word": " Tel",
+          "start_original": 241.72,
+          "end_original": 242.5,
+          "probability": 0.9482
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.5,
+          "probability": 0.9497
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.5,
+          "probability": 0.9512
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.52,
+          "probability": 0.9521
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.52,
+          "probability": 0.9536
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.52,
+          "probability": 0.9551
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.52,
+          "end_original": 242.76,
+          "probability": 0.9585
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.96
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.96
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9644
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.78,
+          "probability": 0.9658
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.78,
+          "end_original": 242.78,
+          "probability": 0.9673
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.78,
+          "end_original": 242.8,
+          "probability": 0.9756
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.8,
+          "end_original": 242.8,
+          "probability": 0.9766
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.8,
+          "end_original": 242.8,
+          "probability": 0.9771
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.8,
+          "end_original": 242.84,
+          "probability": 0.9775
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9785
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9795
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 243.84,
+          "probability": 0.9839
+        }
+      ],
+      "full_text": " Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Takk for ating medietekst."
+    },
+    {
+      "source": "convtasnet_source0_drc_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source0_drc_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 43.4,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 240.16,
+          "end_original": 241.76,
+          "probability": 0.9629
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.76,
+          "end_original": 242.64,
+          "probability": 0.9639
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.72,
+          "probability": 0.9653
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.72,
+          "probability": 0.9663
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.72,
+          "probability": 0.9668
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.74,
+          "probability": 0.9688
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.74,
+          "end_original": 242.76,
+          "probability": 0.9692
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9697
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9707
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9756
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9761
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9766
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.84,
+          "probability": 0.9775
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 243.84,
+          "probability": 0.9805
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Takk for watching!"
+    },
+    {
+      "source": "convtasnet_source0_drc_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source0_drc_gain15db__tight__no_prompt",
+      "elapsed_seconds": 2.7,
+      "target_words": [
+        {
+          "word": " for",
+          "start_original": 240.44,
+          "end_original": 241.12,
+          "probability": 0.7017
+        },
+        {
+          "word": " watching!",
+          "start_original": 241.12,
+          "end_original": 242.44,
+          "probability": 0.5898
+        }
+      ],
+      "full_text": " Takk for watching!"
+    },
+    {
+      "source": "convtasnet_source0_drc_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source0_drc_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 42.7,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 240.06,
+          "end_original": 241.02,
+          "probability": 0.0006
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.02,
+          "end_original": 241.98,
+          "probability": 0.2979
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.98,
+          "end_original": 242.16,
+          "probability": 0.5957
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.16,
+          "end_original": 242.5,
+          "probability": 0.8105
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.5,
+          "end_original": 242.72,
+          "probability": 0.9102
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 243.2,
+          "probability": 0.9355
+        },
+        {
+          "word": " Telak",
+          "start_original": 243.2,
+          "end_original": 244.4,
+          "probability": 0.9492
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Tel"
+    },
+    {
+      "source": "convtasnet_source0_drc_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source0_drc_gain20db__full__no_prompt",
+      "elapsed_seconds": 38.1,
+      "target_words": [
+        {
+          "word": " Tel",
+          "start_original": 241.98,
+          "end_original": 242.5,
+          "probability": 0.9478
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.5,
+          "probability": 0.9497
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.5,
+          "probability": 0.9512
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.5,
+          "end_original": 242.56,
+          "probability": 0.9517
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.56,
+          "end_original": 242.7,
+          "probability": 0.9526
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.7,
+          "probability": 0.9546
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.7,
+          "probability": 0.9551
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.7,
+          "probability": 0.9565
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.74,
+          "probability": 0.958
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.959
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.96
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.74,
+          "end_original": 242.76,
+          "probability": 0.9604
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9648
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 242.78,
+          "probability": 0.9658
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.78,
+          "end_original": 242.78,
+          "probability": 0.9668
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.78,
+          "end_original": 242.84,
+          "probability": 0.978
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9785
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.979
+        }
+      ],
+      "full_text": " Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Takk for ating medietekst."
+    },
+    {
+      "source": "convtasnet_source0_drc_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source0_drc_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 65.9,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 240.16,
+          "end_original": 241.76,
+          "probability": 0.9629
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.76,
+          "end_original": 242.64,
+          "probability": 0.9639
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.64,
+          "end_original": 242.72,
+          "probability": 0.9648
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.72,
+          "probability": 0.9658
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.72,
+          "probability": 0.9668
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 242.74,
+          "probability": 0.9678
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.9688
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.74,
+          "end_original": 242.74,
+          "probability": 0.9697
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.74,
+          "end_original": 242.76,
+          "probability": 0.9707
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9751
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.76,
+          "probability": 0.9756
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.76,
+          "end_original": 242.84,
+          "probability": 0.9766
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9775
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 242.84,
+          "probability": 0.9805
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.84,
+          "end_original": 243.84,
+          "probability": 0.9814
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel"
+    },
+    {
+      "source": "convtasnet_source0_drc_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source0_drc_gain20db__tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " for",
+          "start_original": 240.44,
+          "end_original": 241.12,
+          "probability": 0.7051
+        },
+        {
+          "word": " watching!",
+          "start_original": 241.12,
+          "end_original": 242.44,
+          "probability": 0.5796
+        }
+      ],
+      "full_text": " Takk for watching!"
+    },
+    {
+      "source": "convtasnet_source0_drc_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source0_drc_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 34.4,
+      "target_words": [
+        {
+          "word": " Telak",
+          "start_original": 240.86,
+          "end_original": 241.42,
+          "probability": 0.0006
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.42,
+          "end_original": 241.98,
+          "probability": 0.2993
+        },
+        {
+          "word": " Telak",
+          "start_original": 241.98,
+          "end_original": 242.16,
+          "probability": 0.5962
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.16,
+          "end_original": 242.5,
+          "probability": 0.8096
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.5,
+          "end_original": 242.72,
+          "probability": 0.9102
+        },
+        {
+          "word": " Telak",
+          "start_original": 242.72,
+          "end_original": 243.16,
+          "probability": 0.9355
+        },
+        {
+          "word": " Telak",
+          "start_original": 243.16,
+          "end_original": 244.4,
+          "probability": 0.9492
+        }
+      ],
+      "full_text": " Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Telak Tel"
+    },
+    {
+      "source": "convtasnet_source1_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source1_gain15db__full__no_prompt",
+      "elapsed_seconds": 7.3,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.2,
+          "probability": 0.9883
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.48,
+          "end_original": 244.08,
+          "probability": 0.9873
+        }
+      ],
+      "full_text": " what you call empathy for him. Now, Yudister, on the other hand, he thought he should be king because his father had to make king, and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad is Fondo. That's why Yudister and his brother are called the Fondos. Their dad's name is Fondo, and him and his brother are called the Fondos. We might say Fondovod too, but I'll leave it at that."
+    },
+    {
+      "source": "convtasnet_source1_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source1_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 7.2,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.2,
+          "probability": 0.9639
+        }
+      ],
+      "full_text": " what you call empathy for him. Now Yudhishthira on the other hand, he thought he should be king because his father had to make kings and then because his father had to go away it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad is Pandu. That's why Yudhishthira and his brother were called Pandu. Their dad's name is Pando and him and his brothers are called Pando's. We might say Pandavas too, but I'll leave it at that."
+    },
+    {
+      "source": "convtasnet_source1_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source1_gain15db__tight__no_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.22,
+          "probability": 0.9551
+        },
+        {
+          "word": " You",
+          "start_original": 242.76,
+          "end_original": 243.36,
+          "probability": 0.8647
+        },
+        {
+          "word": " get",
+          "start_original": 243.36,
+          "end_original": 243.64,
+          "probability": 0.2347
+        }
+      ],
+      "full_text": " It was kind of, huh? You get it, dad. You get it?"
+    },
+    {
+      "source": "convtasnet_source1_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source1_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.22,
+          "probability": 0.9551
+        },
+        {
+          "word": " Yudhishthira,",
+          "start_original": 242.98,
+          "end_original": 244.02,
+          "probability": 0.2974
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira, Dad."
+    },
+    {
+      "source": "convtasnet_source1_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source1_gain20db__full__no_prompt",
+      "elapsed_seconds": 7.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.2,
+          "probability": 0.9888
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.48,
+          "end_original": 244.08,
+          "probability": 0.9873
+        }
+      ],
+      "full_text": " what you call empathy for him. Now, Yudister, on the other hand, he thought he should be king because his father had to make kings, and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad is Fondo. That's why Yudister and his brother are called the Fondos. Their dad's name is Fondo, and him and his brother are called the Fondos. We might say Fondovod too, but I'll leave it at that."
+    },
+    {
+      "source": "convtasnet_source1_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source1_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 7.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.2,
+          "probability": 0.9634
+        }
+      ],
+      "full_text": " what you call empathy for him. Now Yudhishthira on the other hand, he thought he should be king because his father had to make kings and then because his father had to go away it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad is Pandu. That's why Yudhishthira and his brother were called Pandu. Their dad's name is Pando and him and his brothers are called Pando's. We might say Pandavas too, but I'll leave it at that."
+    },
+    {
+      "source": "convtasnet_source1_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source1_gain20db__tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.24,
+          "probability": 0.9556
+        },
+        {
+          "word": " You",
+          "start_original": 242.76,
+          "end_original": 243.36,
+          "probability": 0.8628
+        },
+        {
+          "word": " get",
+          "start_original": 243.36,
+          "end_original": 243.64,
+          "probability": 0.2343
+        }
+      ],
+      "full_text": " It was kind of, huh? You get it, dad. You get it?"
+    },
+    {
+      "source": "convtasnet_source1_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source1_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.24,
+          "probability": 0.9556
+        },
+        {
+          "word": " Yudhishthira,",
+          "start_original": 242.96,
+          "end_original": 244.02,
+          "probability": 0.2966
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira, Dad."
+    },
+    {
+      "source": "convtasnet_source1_drc_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source1_drc_gain15db__full__no_prompt",
+      "elapsed_seconds": 7.1,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.2,
+          "probability": 0.9883
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.48,
+          "end_original": 244.08,
+          "probability": 0.9873
+        }
+      ],
+      "full_text": " what you call empathy for him. Now, Yudister, on the other hand, he thought he should be king because his father had to make king, and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad is Fondo. That's why Yudister and his brother are called the Fondos. Their dad's name is Fondo, and him and his brother are called the Fondos. We might say Fondovod too, but I'll leave it at that."
+    },
+    {
+      "source": "convtasnet_source1_drc_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source1_drc_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 7.3,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.2,
+          "probability": 0.9648
+        }
+      ],
+      "full_text": " what you call empathy for him. Now Yudhishthira on the other hand, he thought he should be king because his father had to make kings and then because his father had to go away it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad is Pandu. That's why Yudhishthira and his brother were called Pandu. Their dad's name is Pando and him and his brothers are called Pando's. We might say Pandavas too, but I'll leave it at that."
+    },
+    {
+      "source": "convtasnet_source1_drc_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source1_drc_gain15db__tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.22,
+          "probability": 0.9551
+        },
+        {
+          "word": " You",
+          "start_original": 242.76,
+          "end_original": 243.36,
+          "probability": 0.8657
+        },
+        {
+          "word": " get",
+          "start_original": 243.36,
+          "end_original": 243.64,
+          "probability": 0.2386
+        }
+      ],
+      "full_text": " It was kind of, huh? You get it, dad. You get it?"
+    },
+    {
+      "source": "convtasnet_source1_drc_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source1_drc_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.22,
+          "probability": 0.9551
+        },
+        {
+          "word": " Yudhishthira,",
+          "start_original": 242.98,
+          "end_original": 244.02,
+          "probability": 0.3
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira, Dad."
+    },
+    {
+      "source": "convtasnet_source1_drc_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source1_drc_gain20db__full__no_prompt",
+      "elapsed_seconds": 7.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.2,
+          "probability": 0.9888
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.48,
+          "end_original": 244.08,
+          "probability": 0.9868
+        }
+      ],
+      "full_text": " what you call empathy for him. Now, Yudister, on the other hand, he thought he should be king because his father had to make kings, and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad is Fondo. That's why Yudister and his brother are called the Fondos. Their dad's name is Fondo, and him and his brother are called the Fondos. We might say Fondovod too, but I'll leave it at that."
+    },
+    {
+      "source": "convtasnet_source1_drc_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source1_drc_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 7.2,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.2,
+          "probability": 0.9644
+        }
+      ],
+      "full_text": " what you call empathy for him. Now Yudhishthira on the other hand, he thought he should be king because his father had to make kings and then because his father had to go away it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad is Pandu. That's why Yudhishthira and his brother were called Pandu. Their dad's name is Pando and him and his brothers are called Pando's. We might say Pandavas too, but I'll leave it at that."
+    },
+    {
+      "source": "convtasnet_source1_drc_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "convtasnet_source1_drc_gain20db__tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.22,
+          "probability": 0.9551
+        },
+        {
+          "word": " You",
+          "start_original": 242.76,
+          "end_original": 243.36,
+          "probability": 0.8633
+        },
+        {
+          "word": " get",
+          "start_original": 243.36,
+          "end_original": 243.64,
+          "probability": 0.2323
+        }
+      ],
+      "full_text": " It was kind of, huh? You get it, dad. You get it?"
+    },
+    {
+      "source": "convtasnet_source1_drc_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "convtasnet_source1_drc_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.22,
+          "probability": 0.9551
+        },
+        {
+          "word": " Yudhishthira,",
+          "start_original": 242.98,
+          "end_original": 244.02,
+          "probability": 0.2974
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira, Dad."
+    },
+    {
+      "source": "hdemucs_vocals_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_vocals_gain15db__full__no_prompt",
+      "elapsed_seconds": 7.1,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9702
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.44,
+          "end_original": 244.04,
+          "probability": 0.999
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "source": "hdemucs_vocals_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_vocals_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 7.3,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9775
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.44,
+          "end_original": 244.04,
+          "probability": 0.9946
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pandavas."
+    },
+    {
+      "source": "hdemucs_vocals_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_vocals_gain15db__tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start_original": 240.64,
+          "end_original": 241.1,
+          "probability": 0.54
+        },
+        {
+          "word": " You",
+          "start_original": 242.44,
+          "end_original": 243.36,
+          "probability": 0.9429
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.36,
+          "end_original": 243.82,
+          "probability": 0.9746
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed their dad. You dissed their..."
+    },
+    {
+      "source": "hdemucs_vocals_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_vocals_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start_original": 240.64,
+          "end_original": 241.1,
+          "probability": 0.54
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 242.94,
+          "end_original": 243.98,
+          "probability": 0.5366
+        }
+      ],
+      "full_text": " It was kind of... Huh? Yudhishthira's dad."
+    },
+    {
+      "source": "hdemucs_vocals_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_vocals_gain20db__full__no_prompt",
+      "elapsed_seconds": 7.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9707
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.36,
+          "end_original": 244.0,
+          "probability": 0.999
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondovas."
+    },
+    {
+      "source": "hdemucs_vocals_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_vocals_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 7.3,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.12,
+          "probability": 0.9751
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.44,
+          "end_original": 244.04,
+          "probability": 0.9941
+        }
+      ],
+      "full_text": " and what we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pandavas."
+    },
+    {
+      "source": "hdemucs_vocals_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_vocals_gain20db__tight__no_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start_original": 240.64,
+          "end_original": 241.1,
+          "probability": 0.4709
+        },
+        {
+          "word": " You",
+          "start_original": 242.9,
+          "end_original": 243.36,
+          "probability": 0.9116
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.36,
+          "end_original": 243.82,
+          "probability": 0.9487
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed his dad. You dissed his..."
+    },
+    {
+      "source": "hdemucs_vocals_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_vocals_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 2.8,
+      "target_words": [
+        {
+          "word": " huh",
+          "start_original": 240.6,
+          "end_original": 241.08,
+          "probability": 0.6006
+        },
+        {
+          "word": " you",
+          "start_original": 241.08,
+          "end_original": 243.34,
+          "probability": 0.7031
+        },
+        {
+          "word": " dish",
+          "start_original": 243.34,
+          "end_original": 243.68,
+          "probability": 0.0872
+        }
+      ],
+      "full_text": " it it was kind of huh you dish this dad you this is"
+    },
+    {
+      "source": "hdemucs_vocals_drc_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_vocals_drc_gain15db__full__no_prompt",
+      "elapsed_seconds": 6.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9756
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.46,
+          "end_original": 244.06,
+          "probability": 0.998
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Pando. That's why Yudister and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandovas too, but we just say Pandovas."
+    },
+    {
+      "source": "hdemucs_vocals_drc_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_vocals_drc_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 7.3,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.14,
+          "probability": 0.9805
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.5,
+          "end_original": 244.08,
+          "probability": 0.9937
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pandavas."
+    },
+    {
+      "source": "hdemucs_vocals_drc_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_vocals_drc_gain15db__tight__no_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start_original": 240.64,
+          "end_original": 241.08,
+          "probability": 0.4995
+        },
+        {
+          "word": " You",
+          "start_original": 242.48,
+          "end_original": 243.36,
+          "probability": 0.8628
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.36,
+          "end_original": 243.82,
+          "probability": 0.9604
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed his dad. You dissed his dad."
+    },
+    {
+      "source": "hdemucs_vocals_drc_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_vocals_drc_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 2.8,
+      "target_words": [
+        {
+          "word": " huh",
+          "start_original": 240.58,
+          "end_original": 241.14,
+          "probability": 0.2908
+        },
+        {
+          "word": " you",
+          "start_original": 241.14,
+          "end_original": 243.36,
+          "probability": 0.4636
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.36,
+          "end_original": 243.82,
+          "probability": 0.9248
+        }
+      ],
+      "full_text": " it was kind of huh you dissed this dad you dissed this"
+    },
+    {
+      "source": "hdemucs_vocals_drc_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_vocals_drc_gain20db__full__no_prompt",
+      "elapsed_seconds": 6.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.18,
+          "probability": 0.9648
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.38,
+          "end_original": 244.02,
+          "probability": 0.999
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Pando. That's why Yudister and his brothers are called the Pando's. Their dad's name is Pando and him and his brothers are called the Pando's. We might say Pandovas too, but I'll just say Pandovas."
+    },
+    {
+      "source": "hdemucs_vocals_drc_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_vocals_drc_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 6.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.18,
+          "probability": 0.981
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.46,
+          "end_original": 244.06,
+          "probability": 0.9961
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king. And then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name is Pando and him and his brothers are called the Pando's. We might say Pandavas too, but we'll just say Pandavas."
+    },
+    {
+      "source": "hdemucs_vocals_drc_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "hdemucs_vocals_drc_gain20db__tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.08,
+          "probability": 0.9102
+        },
+        {
+          "word": " You",
+          "start_original": 242.96,
+          "end_original": 243.36,
+          "probability": 0.7764
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.36,
+          "end_original": 243.76,
+          "probability": 0.9004
+        }
+      ],
+      "full_text": " It was kind of, huh? You dissed his dad. You dissed his dad."
+    },
+    {
+      "source": "hdemucs_vocals_drc_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "hdemucs_vocals_drc_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 2.8,
+      "target_words": [
+        {
+          "word": " huh",
+          "start_original": 240.56,
+          "end_original": 241.14,
+          "probability": 0.2922
+        },
+        {
+          "word": " you",
+          "start_original": 241.14,
+          "end_original": 243.36,
+          "probability": 0.4089
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.36,
+          "end_original": 243.76,
+          "probability": 0.8545
+        }
+      ],
+      "full_text": " it was kind of huh you dissed this dad you dissed his"
+    },
+    {
+      "source": "mossformer2_se_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_se_gain15db__full__no_prompt",
+      "elapsed_seconds": 6.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9854
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.46,
+          "end_original": 244.06,
+          "probability": 1.0
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but..."
+    },
+    {
+      "source": "mossformer2_se_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_se_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 15.9,
+      "target_words": [],
+      "full_text": " Empathy Pandavas"
+    },
+    {
+      "source": "mossformer2_se_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_se_gain15db__tight__no_prompt",
+      "elapsed_seconds": 10.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9707
+        },
+        {
+          "word": " You",
+          "start_original": 242.9,
+          "end_original": 243.34,
+          "probability": 0.9692
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.34,
+          "end_original": 243.74,
+          "probability": 0.9507
+        }
+      ],
+      "full_text": " It was kind of, huh? You dissed your dad. You dissed your dad."
+    },
+    {
+      "source": "mossformer2_se_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_se_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 10.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9707
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 242.92,
+          "end_original": 244.0,
+          "probability": 0.5884
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira's dad."
+    },
+    {
+      "source": "mossformer2_se_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_se_gain20db__full__no_prompt",
+      "elapsed_seconds": 22.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.18,
+          "probability": 0.9912
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.42,
+          "end_original": 244.04,
+          "probability": 1.0
+        }
+      ],
+      "full_text": " what we call empathy for him. Now, Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Pando. That's why Yudister and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. They might say Pandovas too, but..."
+    },
+    {
+      "source": "mossformer2_se_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_se_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 27.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.16,
+          "probability": 0.9937
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.48,
+          "end_original": 244.08,
+          "probability": 0.9971
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king. And then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando, and him and his brothers are called the Pando's. And they might say Pandavas too, but..."
+    },
+    {
+      "source": "mossformer2_se_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_se_gain20db__tight__no_prompt",
+      "elapsed_seconds": 10.4,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start_original": 240.64,
+          "end_original": 241.16,
+          "probability": 0.4917
+        },
+        {
+          "word": " You",
+          "start_original": 242.86,
+          "end_original": 243.34,
+          "probability": 0.9443
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.34,
+          "end_original": 243.82,
+          "probability": 0.9204
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed his dad. You dissed his..."
+    },
+    {
+      "source": "mossformer2_se_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_se_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 10.1,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start_original": 240.64,
+          "end_original": 241.16,
+          "probability": 0.4917
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 242.96,
+          "end_original": 244.0,
+          "probability": 0.5737
+        }
+      ],
+      "full_text": " It was kind of... Huh? Yudhishthira's dad."
+    },
+    {
+      "source": "mossformer2_se_drc_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_se_drc_gain15db__full__no_prompt",
+      "elapsed_seconds": 21.9,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start_original": 240.66,
+          "end_original": 241.18,
+          "probability": 0.8472
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.42,
+          "end_original": 244.02,
+          "probability": 0.999
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudister on the other hand. He thought he should be king. Because. His father. Had been made king. And then because his father had to go away. It was. Kind of. Huh? Yudister's dad. Yudister's dad was Pando. That's why Yudister and his brothers are called the Pando's. Their dad's name was Pando. And him and his brothers are called the Pando's. And they might say Pandovas too."
+    },
+    {
+      "source": "mossformer2_se_drc_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_se_drc_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 22.8,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.18,
+          "probability": 0.9907
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.48,
+          "end_original": 244.08,
+          "probability": 0.9966
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. They might say Pandavas too, but oh."
+    },
+    {
+      "source": "mossformer2_se_drc_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_se_drc_gain15db__tight__no_prompt",
+      "elapsed_seconds": 10.3,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.16,
+          "probability": 0.9565
+        },
+        {
+          "word": " You",
+          "start_original": 242.94,
+          "end_original": 243.34,
+          "probability": 0.9639
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.34,
+          "end_original": 243.74,
+          "probability": 0.9395
+        }
+      ],
+      "full_text": " It was kind of, huh? You dissed his dad. You dissed his dad."
+    },
+    {
+      "source": "mossformer2_se_drc_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_se_drc_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 10.1,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.18,
+          "probability": 0.9565
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 242.88,
+          "end_original": 244.0,
+          "probability": 0.5742
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira's dad."
+    },
+    {
+      "source": "mossformer2_se_drc_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_se_drc_gain20db__full__no_prompt",
+      "elapsed_seconds": 22.2,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.18,
+          "probability": 0.9902
+        },
+        {
+          "word": " Yudister's",
+          "start_original": 243.38,
+          "end_original": 244.02,
+          "probability": 1.0
+        }
+      ],
+      "full_text": " what we call empathy for him. Now, Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Pando. That's why Yudister and his brothers are called the Pando's. Their dad's name is Pando and him and his brothers are called the Pando's. We might say Pandovas too, but..."
+    },
+    {
+      "source": "mossformer2_se_drc_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_se_drc_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 21.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.18,
+          "probability": 0.9937
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 243.48,
+          "end_original": 244.08,
+          "probability": 0.9971
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king. And then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name is Pando, and him and his brothers are called the Pando's. We might say Pandavas too, but oh."
+    },
+    {
+      "source": "mossformer2_se_drc_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_se_drc_gain20db__tight__no_prompt",
+      "elapsed_seconds": 11.0,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.16,
+          "probability": 0.9268
+        },
+        {
+          "word": " You",
+          "start_original": 242.52,
+          "end_original": 243.32,
+          "probability": 0.9468
+        },
+        {
+          "word": " dissed",
+          "start_original": 243.32,
+          "end_original": 243.74,
+          "probability": 0.9062
+        }
+      ],
+      "full_text": " It was kind of, huh? You dissed his dad. You dissed his dad."
+    },
+    {
+      "source": "mossformer2_se_drc_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_se_drc_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 10.3,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.64,
+          "end_original": 241.16,
+          "probability": 0.9268
+        },
+        {
+          "word": " Yudhishthira's",
+          "start_original": 242.98,
+          "end_original": 244.02,
+          "probability": 0.5645
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira's dad. Yudhishthira's dad."
+    },
+    {
+      "source": "mossformer2_ss_source0_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source0_gain15db__full__no_prompt",
+      "elapsed_seconds": 23.9,
+      "target_words": [
+        {
+          "word": " you",
+          "start_original": 240.62,
+          "end_original": 241.26,
+          "probability": 0.2576
+        },
+        {
+          "word": " know,",
+          "start_original": 241.26,
+          "end_original": 241.38,
+          "probability": 0.5679
+        },
+        {
+          "word": " you're",
+          "start_original": 242.94,
+          "end_original": 243.48,
+          "probability": 0.5815
+        },
+        {
+          "word": " just",
+          "start_original": 243.48,
+          "end_original": 243.66,
+          "probability": 0.96
+        }
+      ],
+      "full_text": " What we can't get the picture of. What I just saw on the other day, I thought it was a big thing, because this bird, had been lying there, and then because the bird had been going away, it was kind of, you know, you're just a, you're just a kind of panda. That's why you're just saying a human is one of a type of panda. A bird is a panda? A human is one of a type of panda. A human is one of a type of panda. A human is a panda. How is it a panda?"
+    },
+    {
+      "source": "mossformer2_ss_source0_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source0_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 22.9,
+      "target_words": [
+        {
+          "word": " Yudhishthira",
+          "start_original": 243.34,
+          "end_original": 243.94,
+          "probability": 0.385
+        }
+      ],
+      "full_text": " what we call empathy together. What I just saw on the other hand, is different, you should be told. Because, this bird, sat in my chair, and then because this bird had to go away, it was kind of a Yudhishthira Yudhishthira Yudhishthira and a Pandu. That's why I was just saying this bird is a type of Pandu. But the other one is Pandu? The human is one of a type of Pandu. What is a Pandu? How is it a Pandu?"
+    },
+    {
+      "source": "mossformer2_ss_source0_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source0_gain15db__tight__no_prompt",
+      "elapsed_seconds": 10.4,
+      "target_words": [
+        {
+          "word": " fun.",
+          "start_original": 240.6,
+          "end_original": 241.26,
+          "probability": 0.3689
+        },
+        {
+          "word": " It",
+          "start_original": 242.92,
+          "end_original": 243.44,
+          "probability": 0.6118
+        },
+        {
+          "word": " just",
+          "start_original": 243.44,
+          "end_original": 243.7,
+          "probability": 0.6455
+        }
+      ],
+      "full_text": " It was kind of fun. It just was fun. It just was fun."
+    },
+    {
+      "source": "mossformer2_ss_source0_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source0_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 9.7,
+      "target_words": [
+        {
+          "word": " fun.",
+          "start_original": 240.58,
+          "end_original": 241.26,
+          "probability": 0.3689
+        },
+        {
+          "word": " It",
+          "start_original": 242.84,
+          "end_original": 243.4,
+          "probability": 0.6118
+        },
+        {
+          "word": " just",
+          "start_original": 243.4,
+          "end_original": 243.64,
+          "probability": 0.6455
+        }
+      ],
+      "full_text": " It was kind of fun. It just was fun."
+    },
+    {
+      "source": "mossformer2_ss_source0_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source0_gain20db__full__no_prompt",
+      "elapsed_seconds": 42.1,
+      "target_words": [
+        {
+          "word": " you",
+          "start_original": 240.62,
+          "end_original": 241.12,
+          "probability": 0.4832
+        },
+        {
+          "word": " just",
+          "start_original": 241.12,
+          "end_original": 243.46,
+          "probability": 0.1309
+        },
+        {
+          "word": " saw",
+          "start_original": 243.46,
+          "end_original": 243.92,
+          "probability": 0.9624
+        }
+      ],
+      "full_text": " what we can't get the people to do. What I just saw on the other day, I thought, you should be cool, because this bird had been lying there, and then because this bird had been going away, it was kind of, you just saw you just saw a panda. That's why you just saw a human as red as a type of panda. A bad little panda? A human as red as a type of panda. A little panda. How is it a panda?"
+    },
+    {
+      "source": "mossformer2_ss_source0_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source0_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 25.3,
+      "target_words": [
+        {
+          "word": " Yudhishthira,",
+          "start_original": 243.34,
+          "end_original": 243.94,
+          "probability": 0.3333
+        }
+      ],
+      "full_text": " what we call empathy together. What I just saw in the other day, I thought, you should be cool, because this bird, had been lying there, and then because this bird had been going away, it was kind of, Yudhishthira, Yudhishthira saw a panda, and that's why he just said his brother's a type of panda. But there isn't a panda? A human is one of a type of pandas. What is a panda? How is it a panda?"
+    },
+    {
+      "source": "mossformer2_ss_source0_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source0_gain20db__tight__no_prompt",
+      "elapsed_seconds": 10.2,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start_original": 240.62,
+          "end_original": 241.26,
+          "probability": 0.7866
+        },
+        {
+          "word": " It",
+          "start_original": 242.97,
+          "end_original": 243.42,
+          "probability": 0.5742
+        },
+        {
+          "word": " just",
+          "start_original": 243.42,
+          "end_original": 243.66,
+          "probability": 0.8276
+        }
+      ],
+      "full_text": " It was kind of, huh? It just goes, it just goes."
+    },
+    {
+      "source": "mossformer2_ss_source0_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source0_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 9.9,
+      "target_words": [
+        {
+          "word": " a...",
+          "start_original": 240.6,
+          "end_original": 241.32,
+          "probability": 0.1167
+        },
+        {
+          "word": " Yudhishthira...",
+          "start_original": 242.78,
+          "end_original": 244.18,
+          "probability": 0.3201
+        }
+      ],
+      "full_text": " It was kind of a... Yudhishthira..."
+    },
+    {
+      "source": "mossformer2_ss_source0_drc_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source0_drc_gain15db__full__no_prompt",
+      "elapsed_seconds": 21.4,
+      "target_words": [
+        {
+          "word": " you're",
+          "start_original": 240.62,
+          "end_original": 241.26,
+          "probability": 0.1921
+        },
+        {
+          "word": " just",
+          "start_original": 241.26,
+          "end_original": 243.58,
+          "probability": 0.6777
+        }
+      ],
+      "full_text": " What we can't get the people to do. What I did say a minute ago, is that, you should be cool, because, this spider, got the light there. And then because the spider had to go away, it, it was kind of, you're just a you're just a spider. That's why you're just a spider. A spider? A human is a type of spider. A human is a type of spider."
+    },
+    {
+      "source": "mossformer2_ss_source0_drc_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source0_drc_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 87.5,
+      "target_words": [
+        {
+          "word": " hurt.",
+          "start_original": 240.62,
+          "end_original": 241.28,
+          "probability": 0.0292
+        },
+        {
+          "word": " Yudhishthira,",
+          "start_original": 243.36,
+          "end_original": 243.94,
+          "probability": 0.2869
+        }
+      ],
+      "full_text": " What we can't get the people to do. What I just saw in the other day, was different, to be simple. Because, this bird, had been lying there. And then because this bird had been going away, it was kind of, hurt. Yudhishthira, Yudhishthira, was standing. Yudhishthira was standing. That's why Yudhishthira's brother is a type of bandit. Yudhishthira's brother is a type of bandit. Yudhishthira's brother is a type of bandit. Yudhishthira Yudhishthira Yudhishthira Yudhishthira Yudhishthira Yudhishthira Yudhishthira"
+    },
+    {
+      "source": "mossformer2_ss_source0_drc_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source0_drc_gain15db__tight__no_prompt",
+      "elapsed_seconds": 10.7,
+      "target_words": [
+        {
+          "word": " fun.",
+          "start_original": 240.6,
+          "end_original": 241.12,
+          "probability": 0.2388
+        },
+        {
+          "word": " It",
+          "start_original": 243.12,
+          "end_original": 243.42,
+          "probability": 0.8916
+        },
+        {
+          "word": " just",
+          "start_original": 243.42,
+          "end_original": 243.72,
+          "probability": 0.6602
+        }
+      ],
+      "full_text": " It was kind of fun. It just was fun. It just was fun."
+    },
+    {
+      "source": "mossformer2_ss_source0_drc_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source0_drc_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 10.7,
+      "target_words": [
+        {
+          "word": " a...",
+          "start_original": 240.6,
+          "end_original": 241.32,
+          "probability": 0.2759
+        },
+        {
+          "word": " It",
+          "start_original": 242.0,
+          "end_original": 243.42,
+          "probability": 0.8047
+        },
+        {
+          "word": " just",
+          "start_original": 243.42,
+          "end_original": 243.66,
+          "probability": 0.8999
+        }
+      ],
+      "full_text": " It was kind of a... It just goes..."
+    },
+    {
+      "source": "mossformer2_ss_source0_drc_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source0_drc_gain20db__full__no_prompt",
+      "elapsed_seconds": 22.7,
+      "target_words": [
+        {
+          "word": " you",
+          "start_original": 240.62,
+          "end_original": 241.22,
+          "probability": 0.3723
+        },
+        {
+          "word": " know,",
+          "start_original": 241.22,
+          "end_original": 241.38,
+          "probability": 0.8398
+        },
+        {
+          "word": " you're",
+          "start_original": 242.86,
+          "end_original": 243.42,
+          "probability": 0.624
+        },
+        {
+          "word": " just",
+          "start_original": 243.42,
+          "end_original": 243.66,
+          "probability": 0.9497
+        }
+      ],
+      "full_text": " What we can't get the people to do. What I did start on the other day, I thought, to be simple, because this spider had been lying there, and then because this spider had been going away, it was kind of, you know, you're just a spider. You're just a spider's panda. I thought that this man was kind of a panda. But I'm not a panda. A human is not a panda. I'm not a panda. I'm not a panda."
+    },
+    {
+      "source": "mossformer2_ss_source0_drc_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source0_drc_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 22.3,
+      "target_words": [
+        {
+          "word": " Yudhishthira",
+          "start_original": 243.38,
+          "end_original": 243.94,
+          "probability": 0.3645
+        }
+      ],
+      "full_text": " What we can't get the people to know. What he did start in the other day, he started with a big thing, because his father had been late, and then because his father had been going away, it was kind of, Yudhishthira started with Pandu. Pandu, he's probably just as good as a type of Pandu. A bad one of Pandu? A human as good as a type of Pandu. What is a Pandu? What is a Pandu?"
+    },
+    {
+      "source": "mossformer2_ss_source0_drc_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source0_drc_gain20db__tight__no_prompt",
+      "elapsed_seconds": 10.9,
+      "target_words": [
+        {
+          "word": " fun.",
+          "start_original": 240.6,
+          "end_original": 241.12,
+          "probability": 0.2006
+        },
+        {
+          "word": " It",
+          "start_original": 242.98,
+          "end_original": 243.42,
+          "probability": 0.8389
+        },
+        {
+          "word": " was",
+          "start_original": 243.42,
+          "end_original": 243.58,
+          "probability": 0.332
+        }
+      ],
+      "full_text": " It was kind of fun. It was fun. It was fun."
+    },
+    {
+      "source": "mossformer2_ss_source0_drc_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source0_drc_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 10.3,
+      "target_words": [
+        {
+          "word": " It",
+          "start_original": 240.62,
+          "end_original": 241.38,
+          "probability": 0.8623
+        },
+        {
+          "word": " was...",
+          "start_original": 241.38,
+          "end_original": 241.38,
+          "probability": 0.8853
+        },
+        {
+          "word": " It",
+          "start_original": 242.0,
+          "end_original": 243.38,
+          "probability": 0.9805
+        },
+        {
+          "word": " was...",
+          "start_original": 243.38,
+          "end_original": 243.9,
+          "probability": 0.9541
+        }
+      ],
+      "full_text": " It was... It was... It was... It was... It was..."
+    },
+    {
+      "source": "mossformer2_ss_source1_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source1_gain15db__full__no_prompt",
+      "elapsed_seconds": 22.4,
+      "target_words": [],
+      "full_text": " Now we gotta actually go home. Let me just start in the other game. It's a... It's a nice game. It's fun and it can go around. Wow. This is a little standard. I thought that this game was better than the classic game though. I can just go and start in there. And then I can just go and start in the other game. I'm gonna have to burn the mouse too. I'm gonna just go..."
+    },
+    {
+      "source": "mossformer2_ss_source1_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source1_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 21.1,
+      "target_words": [],
+      "full_text": " Now we got our Antony behind. Let me just start in the other direction. I can make things. I can see how they're going to go around. Wow. This is kind of standard. I thought that this thing was running the time to time mode. I can make that a standard. I'm going to make that a standard time mode. I'm going to make that Pandavas too. I'm going to make that Pandavas too."
+    },
+    {
+      "source": "mossformer2_ss_source1_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source1_gain15db__tight__no_prompt",
+      "elapsed_seconds": 9.9,
+      "target_words": [
+        {
+          "word": " Wow.",
+          "start_original": 243.28,
+          "end_original": 244.68,
+          "probability": 0.5176
+        }
+      ],
+      "full_text": " Wow."
+    },
+    {
+      "source": "mossformer2_ss_source1_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source1_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 32.9,
+      "target_words": [
+        {
+          "word": " Tel",
+          "start_original": 239.6,
+          "end_original": 241.86,
+          "probability": 0.6753
+        },
+        {
+          "word": " Tel",
+          "start_original": 241.86,
+          "end_original": 241.94,
+          "probability": 0.7681
+        },
+        {
+          "word": " Tel",
+          "start_original": 241.94,
+          "end_original": 242.7,
+          "probability": 0.8208
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.96,
+          "probability": 0.8633
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.96,
+          "end_original": 243.78,
+          "probability": 0.8945
+        }
+      ],
+      "full_text": " Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel"
+    },
+    {
+      "source": "mossformer2_ss_source1_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source1_gain20db__full__no_prompt",
+      "elapsed_seconds": 6.4,
+      "target_words": [],
+      "full_text": " Now we gotta actually go home. Let me just start in the other room. It's a... It's a nice day. It's time for me to go home. Wow. This is a little standard. I thought that this thing was better than the classic anime. I can make it as standard. I'm living in a country that has a lot of anime. I'm gonna put randomize in a bit. I'm gonna just go..."
+    },
+    {
+      "source": "mossformer2_ss_source1_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source1_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 6.2,
+      "target_words": [],
+      "full_text": " Now we got our Antony behind. Let me just start in the other direction. I can make things. It's a good idea to go around. Wow. This is a little standard. I thought this thing was running the time to time mode. I can make that a standard. I'm going to make that a standard time mode. I'm going to make that Pandavas too. I'm going to make that Pandavas too."
+    },
+    {
+      "source": "mossformer2_ss_source1_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source1_gain20db__tight__no_prompt",
+      "elapsed_seconds": 2.6,
+      "target_words": [
+        {
+          "word": " Wow.",
+          "start_original": 243.28,
+          "end_original": 244.68,
+          "probability": 0.4224
+        }
+      ],
+      "full_text": " Wow."
+    },
+    {
+      "source": "mossformer2_ss_source1_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source1_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 28.8,
+      "target_words": [
+        {
+          "word": " Tel",
+          "start_original": 239.6,
+          "end_original": 241.86,
+          "probability": 0.7104
+        },
+        {
+          "word": " Tel",
+          "start_original": 241.86,
+          "end_original": 241.94,
+          "probability": 0.771
+        },
+        {
+          "word": " Tel",
+          "start_original": 241.94,
+          "end_original": 242.7,
+          "probability": 0.8174
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.7,
+          "end_original": 242.96,
+          "probability": 0.8589
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.96,
+          "end_original": 243.78,
+          "probability": 0.8911
+        }
+      ],
+      "full_text": " Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel"
+    },
+    {
+      "source": "mossformer2_ss_source1_drc_gain15db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source1_drc_gain15db__full__no_prompt",
+      "elapsed_seconds": 6.0,
+      "target_words": [
+        {
+          "word": " What?",
+          "start_original": 240.68,
+          "end_original": 241.2,
+          "probability": 0.1252
+        },
+        {
+          "word": " What?",
+          "start_original": 243.28,
+          "end_original": 244.5,
+          "probability": 0.0197
+        }
+      ],
+      "full_text": " I'm gonna have to leave the house. Let me just start a new one again. It's a... I've been making... I don't have to go away. What? What? What? What?"
+    },
+    {
+      "source": "mossformer2_ss_source1_drc_gain15db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source1_drc_gain15db__full__vocab_prompt",
+      "elapsed_seconds": 6.0,
+      "target_words": [],
+      "full_text": " and we got our empathy for them. Let me just start in the other game. I've been made to. I don't have to go away. Alright. Since I understand that, I'll try to just show you what I'm going to try to do. I'm going to start there. I'm going to start with Pandavas."
+    },
+    {
+      "source": "mossformer2_ss_source1_drc_gain15db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source1_drc_gain15db__tight__no_prompt",
+      "elapsed_seconds": 3.4,
+      "target_words": [
+        {
+          "word": " Wow.",
+          "start_original": 243.28,
+          "end_original": 244.68,
+          "probability": 0.2654
+        }
+      ],
+      "full_text": " Wow."
+    },
+    {
+      "source": "mossformer2_ss_source1_drc_gain15db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source1_drc_gain15db__tight__vocab_prompt",
+      "elapsed_seconds": 37.8,
+      "target_words": [
+        {
+          "word": " Tel",
+          "start_original": 240.38,
+          "end_original": 241.44,
+          "probability": 0.7808
+        },
+        {
+          "word": " Tel",
+          "start_original": 241.44,
+          "end_original": 241.9,
+          "probability": 0.8354
+        },
+        {
+          "word": " Tel",
+          "start_original": 241.9,
+          "end_original": 242.76,
+          "probability": 0.8784
+        },
+        {
+          "word": " Tel",
+          "start_original": 242.76,
+          "end_original": 243.9,
+          "probability": 0.9077
+        }
+      ],
+      "full_text": " Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel Tel"
+    },
+    {
+      "source": "mossformer2_ss_source1_drc_gain20db",
+      "window": "full",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source1_drc_gain20db__full__no_prompt",
+      "elapsed_seconds": 6.3,
+      "target_words": [],
+      "full_text": " Now we got an empty room. Let me just start in the other room. It's a... It's a nightclub. I don't have to go in there. Alright. It's a final stand-in. I'm trying to discover what's going on in the final stand-in. It's a stand-in. It's a stand-in. I'm just gonna..."
+    },
+    {
+      "source": "mossformer2_ss_source1_drc_gain20db",
+      "window": "full",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source1_drc_gain20db__full__vocab_prompt",
+      "elapsed_seconds": 6.8,
+      "target_words": [],
+      "full_text": " and we call it Antipater. Let me just start a little bit. It's a It's a nice thing. It's a nice thing. I don't have to go away. Alright. First I understand that. I find that this thing is running across the timeline. I can understand that. I can understand that. I can understand that. It's a Pandavas thing, right? I mean, just a"
+    },
+    {
+      "source": "mossformer2_ss_source1_drc_gain20db",
+      "window": "tight",
+      "prompt": "no_prompt",
+      "run_name": "mossformer2_ss_source1_drc_gain20db__tight__no_prompt",
+      "elapsed_seconds": 2.5,
+      "target_words": [
+        {
+          "word": " Wow.",
+          "start_original": 243.28,
+          "end_original": 244.68,
+          "probability": 0.1857
+        }
+      ],
+      "full_text": " Wow."
+    },
+    {
+      "source": "mossformer2_ss_source1_drc_gain20db",
+      "window": "tight",
+      "prompt": "vocab_prompt",
+      "run_name": "mossformer2_ss_source1_drc_gain20db__tight__vocab_prompt",
+      "elapsed_seconds": 3.8,
+      "target_words": [
+        {
+          "word": " Thank",
+          "start_original": 243.42,
+          "end_original": 244.82,
+          "probability": 0.0039
+        }
+      ],
+      "full_text": " Thank you for watching!"
+    }
+  ]
+}

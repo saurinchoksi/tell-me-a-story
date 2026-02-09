@@ -1,0 +1,1120 @@
+{
+  "experiment": "comprehensive_recovery",
+  "timestamp": "2026-02-08T22:04:54.817608",
+  "total_elapsed_seconds": 743.7,
+  "source_audio": "sessions/00000000-000002/audio.m4a",
+  "window": {
+    "start": 220.0,
+    "end": 260.0
+  },
+  "tight_window": {
+    "start": 238.0,
+    "end": 246.0
+  },
+  "target": {
+    "start": 241.0,
+    "end": 243.5
+  },
+  "expected_text": "Who's father had to go away?",
+  "mlx_model": "mlx-community/whisper-large-v3-mlx",
+  "vocab_prompt": "Mahabharata, Yudhishthira, Pandu, Pandavas, Kauravas, Duryodhana, Dhritarashtra, Bhima, Arjuna",
+  "phases": {
+    "phase1_separation": {
+      "models_tried": [
+        "sepformer-wsj02mix",
+        "sepformer-whamr",
+        "sepformer-whamr-enhancement",
+        "sepformer-dns4-16k-enhancement",
+        "sepformer_rescuespeech",
+        "metricgan-plus-voicebank"
+      ],
+      "outputs": 0
+    },
+    "phase2_compression": {
+      "method": "ffmpeg compand",
+      "outputs": 1
+    },
+    "phase4_harmonic": {
+      "method": "harmonic comb filter",
+      "outputs": 3
+    },
+    "phase3_asr": {
+      "backends": [
+        "mlx_whisper",
+        "hf_whisper",
+        "wav2vec2"
+      ],
+      "total_runs": 50
+    }
+  },
+  "audio_variants": [
+    {
+      "label": "raw",
+      "path": "experiments/results/comprehensive_recovery/clips/window_16k.wav"
+    },
+    {
+      "label": "raw_compressed",
+      "path": "experiments/results/comprehensive_recovery/clips/phase2_compressed/raw_compressed.wav"
+    },
+    {
+      "label": "raw_harmonic_347hz_6db",
+      "path": "experiments/results/comprehensive_recovery/clips/phase4_harmonic/raw_harmonic_347hz_6db.wav"
+    },
+    {
+      "label": "raw_harmonic_347hz_12db",
+      "path": "experiments/results/comprehensive_recovery/clips/phase4_harmonic/raw_harmonic_347hz_12db.wav"
+    },
+    {
+      "label": "raw_harmonic_347hz_18db",
+      "path": "experiments/results/comprehensive_recovery/clips/phase4_harmonic/raw_harmonic_347hz_18db.wav"
+    }
+  ],
+  "results": [
+    {
+      "audio": "raw",
+      "asr": "mlx_whisper",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw__mlx_whisper__no_prompt__full_window",
+      "elapsed_seconds": 9.8,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.16,
+          "probability": 0.9761
+        },
+        {
+          "word": " Yudister's",
+          "start": 243.42,
+          "end": 244.02,
+          "probability": 0.999
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "audio": "raw",
+      "asr": "mlx_whisper",
+      "prompt": "vocab_prompt",
+      "window": "full_window",
+      "run_name": "raw__mlx_whisper__vocab_prompt__full_window",
+      "elapsed_seconds": 7.1,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.16,
+          "probability": 0.9844
+        },
+        {
+          "word": " Yudhishthira's",
+          "start": 243.42,
+          "end": 244.02,
+          "probability": 0.9961
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pando."
+    },
+    {
+      "audio": "raw",
+      "asr": "hf_whisper",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw__hf_whisper__no_prompt__full_window",
+      "elapsed_seconds": 40.6,
+      "target_words": [],
+      "full_text": "ERROR: 'NoneType' object is not iterable"
+    },
+    {
+      "audio": "raw",
+      "asr": "hf_whisper",
+      "prompt": "vocab_prompt",
+      "window": "full_window",
+      "run_name": "raw__hf_whisper__vocab_prompt__full_window",
+      "elapsed_seconds": 10.6,
+      "target_words": [],
+      "full_text": "ERROR: torch.cat(): all input tensors must be on the same device. Received cpu and mps:0"
+    },
+    {
+      "audio": "raw",
+      "asr": "wav2vec2",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw__wav2vec2__no_prompt__full_window",
+      "elapsed_seconds": 10.7,
+      "target_words": [
+        {
+          "word": "H",
+          "start": 241.13,
+          "end": 241.15,
+          "probability": 0.0
+        },
+        {
+          "word": "A",
+          "start": 241.27,
+          "end": 241.29,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.39,
+          "end": 243.39,
+          "probability": 0.0
+        },
+        {
+          "word": "OU",
+          "start": 243.41,
+          "end": 243.45,
+          "probability": 0.0
+        }
+      ],
+      "full_text": "WHAT WE CALL EMPATHY FOR HIM NOW YOU THIS THERE ON THE OTHER HAND HE THOUGHT HE SHOULD BE KING BECAUSE HIS FATHER HAD BEEN MADE KING AND THEN BECAUSE HIS FATHER HAD TO GO AWAY IF IT WAS KIND OF HA YOU DIS THERES DAD YOU DISTERS DAD WAS FONDO THAT'S WHY YOU DISTER AND HIS BROTHERS ARE CALLED THE BONDOS THEY'RE DAD THEY WAS FONDO AND HIM AND HIS BROTHERS ARE CALLED THE BONDOS THEY MIGHT SAY BONDOVAS TOO BUT ALWAY JUST SAY"
+    },
+    {
+      "audio": "raw_compressed",
+      "asr": "mlx_whisper",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_compressed__mlx_whisper__no_prompt__full_window",
+      "elapsed_seconds": 19.6,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.14,
+          "probability": 0.9854
+        },
+        {
+          "word": " Yudister's",
+          "start": 243.42,
+          "end": 244.02,
+          "probability": 0.9985
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "audio": "raw_compressed",
+      "asr": "mlx_whisper",
+      "prompt": "vocab_prompt",
+      "window": "full_window",
+      "run_name": "raw_compressed__mlx_whisper__vocab_prompt__full_window",
+      "elapsed_seconds": 9.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.14,
+          "probability": 0.9868
+        },
+        {
+          "word": " Yudhishthira's",
+          "start": 243.5,
+          "end": 244.06,
+          "probability": 0.9956
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pandavas."
+    },
+    {
+      "audio": "raw_compressed",
+      "asr": "hf_whisper",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_compressed__hf_whisper__no_prompt__full_window",
+      "elapsed_seconds": 15.6,
+      "target_words": [],
+      "full_text": "ERROR: 'NoneType' object is not iterable"
+    },
+    {
+      "audio": "raw_compressed",
+      "asr": "hf_whisper",
+      "prompt": "vocab_prompt",
+      "window": "full_window",
+      "run_name": "raw_compressed__hf_whisper__vocab_prompt__full_window",
+      "elapsed_seconds": 8.5,
+      "target_words": [],
+      "full_text": "ERROR: torch.cat(): all input tensors must be on the same device. Received cpu and mps:0"
+    },
+    {
+      "audio": "raw_compressed",
+      "asr": "wav2vec2",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_compressed__wav2vec2__no_prompt__full_window",
+      "elapsed_seconds": 3.4,
+      "target_words": [
+        {
+          "word": "O",
+          "start": 241.27,
+          "end": 241.29,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.39,
+          "end": 243.37,
+          "probability": 0.0
+        },
+        {
+          "word": "OU",
+          "start": 243.41,
+          "end": 243.45,
+          "probability": 0.0
+        }
+      ],
+      "full_text": "WHAT WE CALL EMPATHY FOR HIM NOW YOU THIS THERE ON THE OTHER HAND HE THOUGHT HE SHOULD BE KING BECAUSE HIS FATHER HAD BEEN MADE KING AND THEN BECAUSE HIS FATHER HAD TO GO AWAY IT IT WAS KIND OF O YOU DIS THER'S DAD YOU DISERS DAD WAS FONDO THAT'S WHY YOU GISTER AND HIS BROTHERS ARE CALLED THE BONDOS THEY'RE DAD THEY WAS FONDO AND HIM AND HIS BROTHERS ARE CALLED THE BONDOS THEY MIGHT SAY BONDOVAS TOO BUT ALWAY US SAY"
+    },
+    {
+      "audio": "raw_harmonic_347hz_6db",
+      "asr": "mlx_whisper",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_6db__mlx_whisper__no_prompt__full_window",
+      "elapsed_seconds": 23.1,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.18,
+          "probability": 0.9854
+        },
+        {
+          "word": " Yudister's",
+          "start": 243.42,
+          "end": 244.02,
+          "probability": 0.999
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. They might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "audio": "raw_harmonic_347hz_6db",
+      "asr": "mlx_whisper",
+      "prompt": "vocab_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_6db__mlx_whisper__vocab_prompt__full_window",
+      "elapsed_seconds": 10.8,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.16,
+          "probability": 0.9893
+        },
+        {
+          "word": " Yudhishthira's",
+          "start": 243.44,
+          "end": 244.04,
+          "probability": 0.9966
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. They might say Pandavas too, but we just say Pando."
+    },
+    {
+      "audio": "raw_harmonic_347hz_6db",
+      "asr": "hf_whisper",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_6db__hf_whisper__no_prompt__full_window",
+      "elapsed_seconds": 31.5,
+      "target_words": [],
+      "full_text": "ERROR: 'NoneType' object is not iterable"
+    },
+    {
+      "audio": "raw_harmonic_347hz_6db",
+      "asr": "hf_whisper",
+      "prompt": "vocab_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_6db__hf_whisper__vocab_prompt__full_window",
+      "elapsed_seconds": 10.4,
+      "target_words": [],
+      "full_text": "ERROR: torch.cat(): all input tensors must be on the same device. Received cpu and mps:0"
+    },
+    {
+      "audio": "raw_harmonic_347hz_6db",
+      "asr": "wav2vec2",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_6db__wav2vec2__no_prompt__full_window",
+      "elapsed_seconds": 2.6,
+      "target_words": [
+        {
+          "word": "O",
+          "start": 241.27,
+          "end": 241.29,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.39,
+          "end": 243.39,
+          "probability": 0.0
+        },
+        {
+          "word": "OU",
+          "start": 243.41,
+          "end": 243.45,
+          "probability": 0.0
+        }
+      ],
+      "full_text": "WHAT WE CALL EMPATHY FOR HIM NOW YOU THIS THERE ON THE OTHER HAND HE THOUGHT HE SHOULD BE KING BECAUSE HIS FATHER HAD BEEN MADE KING AND THEN BECAUSE HIS FATHER HAD TO GO AWAY IF IT WAS KIND OF O YOU DIS THERS DAD OU DISTER DAD ROSPONDO THAT'S WHY YOU DISTER AND HIS BROTHERS ARE CALLED THE BONDOS THEY'RE DAD THEY WAS PONDO AND HIM AND HIS BROTHERS ARE CALLED THE BONDOS THEY MIGHT SAY BONDOVAS TOO BUT OWAY JUST SAY"
+    },
+    {
+      "audio": "raw_harmonic_347hz_12db",
+      "asr": "mlx_whisper",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_12db__mlx_whisper__no_prompt__full_window",
+      "elapsed_seconds": 28.2,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.64,
+          "end": 241.18,
+          "probability": 0.9824
+        },
+        {
+          "word": " Yudister's",
+          "start": 243.42,
+          "end": 244.02,
+          "probability": 0.9985
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. They might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "audio": "raw_harmonic_347hz_12db",
+      "asr": "mlx_whisper",
+      "prompt": "vocab_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_12db__mlx_whisper__vocab_prompt__full_window",
+      "elapsed_seconds": 8.7,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.18,
+          "probability": 0.9912
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king. And then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando, and him and his brothers are called the Pando's. They might say Pandavas too, but we just say Pando."
+    },
+    {
+      "audio": "raw_harmonic_347hz_12db",
+      "asr": "hf_whisper",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_12db__hf_whisper__no_prompt__full_window",
+      "elapsed_seconds": 33.1,
+      "target_words": [],
+      "full_text": "ERROR: 'NoneType' object is not iterable"
+    },
+    {
+      "audio": "raw_harmonic_347hz_12db",
+      "asr": "hf_whisper",
+      "prompt": "vocab_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_12db__hf_whisper__vocab_prompt__full_window",
+      "elapsed_seconds": 13.6,
+      "target_words": [],
+      "full_text": "ERROR: torch.cat(): all input tensors must be on the same device. Received cpu and mps:0"
+    },
+    {
+      "audio": "raw_harmonic_347hz_12db",
+      "asr": "wav2vec2",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_12db__wav2vec2__no_prompt__full_window",
+      "elapsed_seconds": 3.3,
+      "target_words": [
+        {
+          "word": "O",
+          "start": 241.27,
+          "end": 241.29,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.39,
+          "end": 243.39,
+          "probability": 0.0
+        },
+        {
+          "word": "OU",
+          "start": 243.41,
+          "end": 243.45,
+          "probability": 0.0
+        }
+      ],
+      "full_text": "WHAT WE CALL AMPATHY FOR HIM NOW YOU DI THERE ON THE OTHER HAND HE THOUGHT HE SHOULD BE KING BECAUSE HIS FATHER HAD BEEN MADE KING AND THEN BECAUSE HIS FATHER HAD TO GO AWAY IT IT WAS KIND OF O YOU DIS THERS DAD YOU TDISYERS DAN ROSPONDO THAT'S WHYT YOU DISTER AND HIS BROTHERS ARE CALLED THE BONDOS THEY'RE DAD THEY WAS PONDO AND HIM AND HIS BROTHERS ARE CALLED THE BONDOS THEY MIGHT SAY BONDOVAS TOO BUT ALWAYS JUST TAY"
+    },
+    {
+      "audio": "raw_harmonic_347hz_18db",
+      "asr": "mlx_whisper",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_18db__mlx_whisper__no_prompt__full_window",
+      "elapsed_seconds": 32.3,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.64,
+          "end": 241.2,
+          "probability": 0.9766
+        },
+        {
+          "word": " Yudister's",
+          "start": 243.42,
+          "end": 244.02,
+          "probability": 0.999
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. They might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "audio": "raw_harmonic_347hz_18db",
+      "asr": "mlx_whisper",
+      "prompt": "vocab_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_18db__mlx_whisper__vocab_prompt__full_window",
+      "elapsed_seconds": 12.4,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.64,
+          "end": 241.18,
+          "probability": 0.9888
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king. And then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando, and him and his brothers are called the Pando's. They might say Pandavas too, but we just say Pando."
+    },
+    {
+      "audio": "raw_harmonic_347hz_18db",
+      "asr": "hf_whisper",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_18db__hf_whisper__no_prompt__full_window",
+      "elapsed_seconds": 37.4,
+      "target_words": [],
+      "full_text": "ERROR: 'NoneType' object is not iterable"
+    },
+    {
+      "audio": "raw_harmonic_347hz_18db",
+      "asr": "hf_whisper",
+      "prompt": "vocab_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_18db__hf_whisper__vocab_prompt__full_window",
+      "elapsed_seconds": 13.8,
+      "target_words": [],
+      "full_text": "ERROR: torch.cat(): all input tensors must be on the same device. Received cpu and mps:0"
+    },
+    {
+      "audio": "raw_harmonic_347hz_18db",
+      "asr": "wav2vec2",
+      "prompt": "no_prompt",
+      "window": "full_window",
+      "run_name": "raw_harmonic_347hz_18db__wav2vec2__no_prompt__full_window",
+      "elapsed_seconds": 3.2,
+      "target_words": [
+        {
+          "word": "O",
+          "start": 239.57,
+          "end": 241.27,
+          "probability": 0.0
+        },
+        {
+          "word": "W",
+          "start": 241.29,
+          "end": 241.31,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.39,
+          "end": 243.39,
+          "probability": 0.0
+        },
+        {
+          "word": "OU",
+          "start": 243.41,
+          "end": 243.47,
+          "probability": 0.0
+        }
+      ],
+      "full_text": "WHATT WE CALL AMPATHY FOR HIM NOW YOU DI THERE ON THE OTHER HAND HE THOUGHT HE SHOULD BE KING BECAUSE HIS FATHER HAD BEEN MADE KING AND THEN BECAUSE HIS FATHER HAD TO GO AWAY IT IT WAS  OW YOU DIS THIS DAD YOU DIS ES DON ROSPONDO THAT'S WHY YOU DISTER AND HIS BROTHERS ARE CALLED THE BONDOS THEY'RE DAS TEMSPONDO AND HIM AND HIS BROTHERS ARE CALLED THE BONDOS THEY MIGT THINK PONOFAS TOO BUT ALWAYS  THAY"
+    },
+    {
+      "audio": "raw_tight",
+      "asr": "mlx_whisper",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_tight__mlx_whisper__no_prompt__tight_window",
+      "elapsed_seconds": 24.9,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start": 240.64,
+          "end": 241.16,
+          "probability": 0.5771
+        },
+        {
+          "word": " You",
+          "start": 242.42,
+          "end": 243.36,
+          "probability": 0.9736
+        },
+        {
+          "word": " dissed",
+          "start": 243.36,
+          "end": 243.82,
+          "probability": 0.9834
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed their dad. You dissed their..."
+    },
+    {
+      "audio": "raw_tight",
+      "asr": "mlx_whisper",
+      "prompt": "vocab_prompt",
+      "window": "tight_window",
+      "run_name": "raw_tight__mlx_whisper__vocab_prompt__tight_window",
+      "elapsed_seconds": 3.5,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.1,
+          "probability": 0.9863
+        },
+        {
+          "word": " Yudhishthira's",
+          "start": 242.94,
+          "end": 243.98,
+          "probability": 0.6201
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira's dad."
+    },
+    {
+      "audio": "raw_tight",
+      "asr": "hf_whisper",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_tight__hf_whisper__no_prompt__tight_window",
+      "elapsed_seconds": 33.9,
+      "target_words": [],
+      "full_text": "ERROR: 'NoneType' object is not iterable"
+    },
+    {
+      "audio": "raw_tight",
+      "asr": "hf_whisper",
+      "prompt": "vocab_prompt",
+      "window": "tight_window",
+      "run_name": "raw_tight__hf_whisper__vocab_prompt__tight_window",
+      "elapsed_seconds": 13.1,
+      "target_words": [],
+      "full_text": "ERROR: torch.cat(): all input tensors must be on the same device. Received cpu and mps:0"
+    },
+    {
+      "audio": "raw_tight",
+      "asr": "wav2vec2",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_tight__wav2vec2__no_prompt__tight_window",
+      "elapsed_seconds": 1.9,
+      "target_words": [
+        {
+          "word": "H",
+          "start": 241.13,
+          "end": 241.15,
+          "probability": 0.0
+        },
+        {
+          "word": "AL",
+          "start": 241.25,
+          "end": 241.29,
+          "probability": 0.0
+        },
+        {
+          "word": "L",
+          "start": 241.35,
+          "end": 241.37,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.41,
+          "end": 243.37,
+          "probability": 0.0
+        },
+        {
+          "word": "OU",
+          "start": 243.39,
+          "end": 243.43,
+          "probability": 0.0
+        }
+      ],
+      "full_text": "IF IT WAS KIND OF HALL YOU DISS THER'S DAD YOU DISS TER"
+    },
+    {
+      "audio": "raw_compressed_tight",
+      "asr": "mlx_whisper",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_compressed_tight__mlx_whisper__no_prompt__tight_window",
+      "elapsed_seconds": 21.2,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start": 240.64,
+          "end": 241.1,
+          "probability": 0.5508
+        },
+        {
+          "word": " You",
+          "start": 242.44,
+          "end": 243.36,
+          "probability": 0.9458
+        },
+        {
+          "word": " dissed",
+          "start": 243.36,
+          "end": 243.82,
+          "probability": 0.9746
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed their dad. You dissed their..."
+    },
+    {
+      "audio": "raw_compressed_tight",
+      "asr": "mlx_whisper",
+      "prompt": "vocab_prompt",
+      "window": "tight_window",
+      "run_name": "raw_compressed_tight__mlx_whisper__vocab_prompt__tight_window",
+      "elapsed_seconds": 3.4,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start": 240.64,
+          "end": 241.1,
+          "probability": 0.5508
+        },
+        {
+          "word": " Yudhishthira's",
+          "start": 242.94,
+          "end": 243.98,
+          "probability": 0.5386
+        }
+      ],
+      "full_text": " It was kind of... Huh? Yudhishthira's dad."
+    },
+    {
+      "audio": "raw_compressed_tight",
+      "asr": "hf_whisper",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_compressed_tight__hf_whisper__no_prompt__tight_window",
+      "elapsed_seconds": 25.1,
+      "target_words": [],
+      "full_text": "ERROR: 'NoneType' object is not iterable"
+    },
+    {
+      "audio": "raw_compressed_tight",
+      "asr": "hf_whisper",
+      "prompt": "vocab_prompt",
+      "window": "tight_window",
+      "run_name": "raw_compressed_tight__hf_whisper__vocab_prompt__tight_window",
+      "elapsed_seconds": 14.4,
+      "target_words": [],
+      "full_text": "ERROR: torch.cat(): all input tensors must be on the same device. Received cpu and mps:0"
+    },
+    {
+      "audio": "raw_compressed_tight",
+      "asr": "wav2vec2",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_compressed_tight__wav2vec2__no_prompt__tight_window",
+      "elapsed_seconds": 2.0,
+      "target_words": [
+        {
+          "word": "H",
+          "start": 241.11,
+          "end": 241.13,
+          "probability": 0.0
+        },
+        {
+          "word": "AL",
+          "start": 241.25,
+          "end": 241.29,
+          "probability": 0.0
+        },
+        {
+          "word": "L",
+          "start": 241.35,
+          "end": 241.37,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.41,
+          "end": 241.75,
+          "probability": 0.0
+        },
+        {
+          "word": "O",
+          "start": 241.79,
+          "end": 241.81,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.97,
+          "end": 243.37,
+          "probability": 0.0
+        },
+        {
+          "word": "OU",
+          "start": 243.39,
+          "end": 243.43,
+          "probability": 0.0
+        }
+      ],
+      "full_text": "I IT WAS KIND OF HALL YO  YOU DIS THERS DAD YOU DI SER"
+    },
+    {
+      "audio": "raw_harmonic_347hz_6db_tight",
+      "asr": "mlx_whisper",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_6db_tight__mlx_whisper__no_prompt__tight_window",
+      "elapsed_seconds": 19.9,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start": 240.64,
+          "end": 241.16,
+          "probability": 0.5664
+        },
+        {
+          "word": " You",
+          "start": 242.38,
+          "end": 243.34,
+          "probability": 0.9565
+        },
+        {
+          "word": " dissed",
+          "start": 243.34,
+          "end": 243.82,
+          "probability": 0.9805
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed their dad. You dissed their..."
+    },
+    {
+      "audio": "raw_harmonic_347hz_6db_tight",
+      "asr": "mlx_whisper",
+      "prompt": "vocab_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_6db_tight__mlx_whisper__vocab_prompt__tight_window",
+      "elapsed_seconds": 3.3,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start": 240.64,
+          "end": 241.16,
+          "probability": 0.5664
+        },
+        {
+          "word": " Yudhishthira's",
+          "start": 242.94,
+          "end": 243.98,
+          "probability": 0.5327
+        }
+      ],
+      "full_text": " It was kind of... Huh? Yudhishthira's dad."
+    },
+    {
+      "audio": "raw_harmonic_347hz_6db_tight",
+      "asr": "hf_whisper",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_6db_tight__hf_whisper__no_prompt__tight_window",
+      "elapsed_seconds": 27.0,
+      "target_words": [],
+      "full_text": "ERROR: 'NoneType' object is not iterable"
+    },
+    {
+      "audio": "raw_harmonic_347hz_6db_tight",
+      "asr": "hf_whisper",
+      "prompt": "vocab_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_6db_tight__hf_whisper__vocab_prompt__tight_window",
+      "elapsed_seconds": 11.0,
+      "target_words": [],
+      "full_text": "ERROR: torch.cat(): all input tensors must be on the same device. Received cpu and mps:0"
+    },
+    {
+      "audio": "raw_harmonic_347hz_6db_tight",
+      "asr": "wav2vec2",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_6db_tight__wav2vec2__no_prompt__tight_window",
+      "elapsed_seconds": 1.8,
+      "target_words": [
+        {
+          "word": "H",
+          "start": 241.13,
+          "end": 241.15,
+          "probability": 0.0
+        },
+        {
+          "word": "AL",
+          "start": 241.25,
+          "end": 241.29,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.41,
+          "end": 243.37,
+          "probability": 0.0
+        },
+        {
+          "word": "OU",
+          "start": 243.39,
+          "end": 243.43,
+          "probability": 0.0
+        }
+      ],
+      "full_text": "IF IT WAS KIND OF HAL  YOU DIS THERS DAD YO DI TER"
+    },
+    {
+      "audio": "raw_harmonic_347hz_12db_tight",
+      "asr": "mlx_whisper",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_12db_tight__mlx_whisper__no_prompt__tight_window",
+      "elapsed_seconds": 20.2,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start": 240.66,
+          "end": 241.16,
+          "probability": 0.3962
+        },
+        {
+          "word": " You",
+          "start": 242.38,
+          "end": 243.34,
+          "probability": 0.916
+        },
+        {
+          "word": " dissed",
+          "start": 243.34,
+          "end": 243.82,
+          "probability": 0.9648
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed their dad. You dissed their..."
+    },
+    {
+      "audio": "raw_harmonic_347hz_12db_tight",
+      "asr": "mlx_whisper",
+      "prompt": "vocab_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_12db_tight__mlx_whisper__vocab_prompt__tight_window",
+      "elapsed_seconds": 3.2,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start": 240.66,
+          "end": 241.16,
+          "probability": 0.3962
+        },
+        {
+          "word": " Yudhishthira's",
+          "start": 242.94,
+          "end": 243.98,
+          "probability": 0.5952
+        }
+      ],
+      "full_text": " It was kind of... Huh? Yudhishthira's dad."
+    },
+    {
+      "audio": "raw_harmonic_347hz_12db_tight",
+      "asr": "hf_whisper",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_12db_tight__hf_whisper__no_prompt__tight_window",
+      "elapsed_seconds": 25.2,
+      "target_words": [],
+      "full_text": "ERROR: 'NoneType' object is not iterable"
+    },
+    {
+      "audio": "raw_harmonic_347hz_12db_tight",
+      "asr": "hf_whisper",
+      "prompt": "vocab_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_12db_tight__hf_whisper__vocab_prompt__tight_window",
+      "elapsed_seconds": 10.9,
+      "target_words": [],
+      "full_text": "ERROR: torch.cat(): all input tensors must be on the same device. Received cpu and mps:0"
+    },
+    {
+      "audio": "raw_harmonic_347hz_12db_tight",
+      "asr": "wav2vec2",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_12db_tight__wav2vec2__no_prompt__tight_window",
+      "elapsed_seconds": 1.9,
+      "target_words": [
+        {
+          "word": "H",
+          "start": 241.13,
+          "end": 241.15,
+          "probability": 0.0
+        },
+        {
+          "word": "A",
+          "start": 241.25,
+          "end": 241.27,
+          "probability": 0.0
+        },
+        {
+          "word": "L",
+          "start": 241.29,
+          "end": 241.31,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.39,
+          "end": 243.39,
+          "probability": 0.0
+        },
+        {
+          "word": "OU",
+          "start": 243.41,
+          "end": 243.45,
+          "probability": 0.0
+        }
+      ],
+      "full_text": "IT WAS KIND OF HAL YOU DIS THEIRS DAD YOU DISTERS"
+    },
+    {
+      "audio": "raw_harmonic_347hz_18db_tight",
+      "asr": "mlx_whisper",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_18db_tight__mlx_whisper__no_prompt__tight_window",
+      "elapsed_seconds": 19.2,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start": 240.68,
+          "end": 241.14,
+          "probability": 0.3416
+        },
+        {
+          "word": " You",
+          "start": 242.9,
+          "end": 243.36,
+          "probability": 0.9233
+        },
+        {
+          "word": " dissed",
+          "start": 243.36,
+          "end": 243.84,
+          "probability": 0.9258
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed your dad. You dissed your..."
+    },
+    {
+      "audio": "raw_harmonic_347hz_18db_tight",
+      "asr": "mlx_whisper",
+      "prompt": "vocab_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_18db_tight__mlx_whisper__vocab_prompt__tight_window",
+      "elapsed_seconds": 3.4,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start": 240.68,
+          "end": 241.14,
+          "probability": 0.3416
+        },
+        {
+          "word": " Yudhishthira's",
+          "start": 242.92,
+          "end": 244.0,
+          "probability": 0.5205
+        }
+      ],
+      "full_text": " It was kind of... Huh? Yudhishthira's dad."
+    },
+    {
+      "audio": "raw_harmonic_347hz_18db_tight",
+      "asr": "hf_whisper",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_18db_tight__hf_whisper__no_prompt__tight_window",
+      "elapsed_seconds": 29.4,
+      "target_words": [],
+      "full_text": "ERROR: 'NoneType' object is not iterable"
+    },
+    {
+      "audio": "raw_harmonic_347hz_18db_tight",
+      "asr": "hf_whisper",
+      "prompt": "vocab_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_18db_tight__hf_whisper__vocab_prompt__tight_window",
+      "elapsed_seconds": 13.3,
+      "target_words": [],
+      "full_text": "ERROR: torch.cat(): all input tensors must be on the same device. Received cpu and mps:0"
+    },
+    {
+      "audio": "raw_harmonic_347hz_18db_tight",
+      "asr": "wav2vec2",
+      "prompt": "no_prompt",
+      "window": "tight_window",
+      "run_name": "raw_harmonic_347hz_18db_tight__wav2vec2__no_prompt__tight_window",
+      "elapsed_seconds": 2.0,
+      "target_words": [
+        {
+          "word": "H",
+          "start": 240.65,
+          "end": 241.17,
+          "probability": 0.0
+        },
+        {
+          "word": "O",
+          "start": 241.25,
+          "end": 241.27,
+          "probability": 0.0
+        },
+        {
+          "word": "H",
+          "start": 241.33,
+          "end": 241.35,
+          "probability": 0.0
+        },
+        {
+          "word": "Y",
+          "start": 241.39,
+          "end": 243.39,
+          "probability": 0.0
+        },
+        {
+          "word": "OU",
+          "start": 243.43,
+          "end": 243.47,
+          "probability": 0.0
+        }
+      ],
+      "full_text": "IT WAS I HOH YOU THIS THIS DAD IF THIS I"
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "experiment": "source_separation_v2",
+  "timestamp": "2026-02-08T22:18:32.773953",
+  "source_audio": "sessions/00000000-000002/audio.m4a",
+  "window": {
+    "start": 220.0,
+    "end": 260.0
+  },
+  "target": {
+    "start": 241.0,
+    "end": 243.5
+  },
+  "tight_clip": {
+    "start": 238.0,
+    "end": 246.0
+  },
+  "expected_text": "Who's father had to go away?",
+  "whisper_model": "mlx-community/whisper-large-v3-mlx",
+  "vocab_prompt": "Mahabharata, Yudhishthira, Pandu, Pandavas, Kauravas, Duryodhana, Dhritarashtra, Bhima, Arjuna",
+  "separation_models_attempted": [
+    "speechbrain/sepformer-wsj02mix",
+    "speechbrain/sepformer-whamr",
+    "speechbrain/sepformer-whamr-enhancement",
+    "speechbrain/sepformer-dns4-16k-enhancement",
+    "speechbrain/sepformer_rescuespeech",
+    "speechbrain/metricgan-plus-voicebank"
+  ],
+  "tracks_produced": [],
+  "results": [
+    {
+      "source": "baseline",
+      "prompt": "no_prompt",
+      "clip_type": "full_window",
+      "run_name": "baseline__no_prompt",
+      "elapsed_seconds": 9.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.16,
+          "probability": 0.9761
+        },
+        {
+          "word": " Yudister's",
+          "start": 243.42,
+          "end": 244.02,
+          "probability": 0.999
+        }
+      ],
+      "full_text": " what we call empathy for him. Now Yudister, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudister's dad. Yudister's dad was Fondo. That's why Yudister and his brothers are called the Fondos. Their dad's name was Fondo and him and his brothers are called the Fondos. And they might say Fondovas too, but we just say Fondos."
+    },
+    {
+      "source": "baseline",
+      "prompt": "vocab_prompt",
+      "clip_type": "full_window",
+      "run_name": "baseline__vocab_prompt",
+      "elapsed_seconds": 7.1,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.16,
+          "probability": 0.9844
+        },
+        {
+          "word": " Yudhishthira's",
+          "start": 243.42,
+          "end": 244.02,
+          "probability": 0.9961
+        }
+      ],
+      "full_text": " What we call empathy for him. Now Yudhishthira, on the other hand, he thought he should be king because his father had been made king and then because his father had to go away, it was kind of, huh? Yudhishthira's dad. Yudhishthira's dad was Pando. That's why Yudhishthira and his brothers are called the Pando's. Their dad's name was Pando and him and his brothers are called the Pando's. And they might say Pandavas too, but we just say Pando."
+    },
+    {
+      "source": "baseline",
+      "prompt": "no_prompt",
+      "clip_type": "tight",
+      "run_name": "baseline_tight__no_prompt",
+      "elapsed_seconds": 3.0,
+      "target_words": [
+        {
+          "word": " Huh?",
+          "start": 240.64,
+          "end": 241.16,
+          "probability": 0.5757
+        },
+        {
+          "word": " You",
+          "start": 242.42,
+          "end": 243.36,
+          "probability": 0.9731
+        },
+        {
+          "word": " dissed",
+          "start": 243.36,
+          "end": 243.82,
+          "probability": 0.9829
+        }
+      ],
+      "full_text": " It was kind of... Huh? You dissed their dad. You dissed their..."
+    },
+    {
+      "source": "baseline",
+      "prompt": "vocab_prompt",
+      "clip_type": "tight",
+      "run_name": "baseline_tight__vocab_prompt",
+      "elapsed_seconds": 2.9,
+      "target_words": [
+        {
+          "word": " huh?",
+          "start": 240.62,
+          "end": 241.1,
+          "probability": 0.9863
+        },
+        {
+          "word": " Yudhishthira's",
+          "start": 242.94,
+          "end": 243.98,
+          "probability": 0.6206
+        }
+      ],
+      "full_text": " It was kind of, huh? Yudhishthira's dad."
+    }
+  ]
+}
