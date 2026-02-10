@@ -37,13 +37,11 @@ The hard problems live in the gaps between models. Whisper needs 3+ minutes of a
 
 Working pipeline. Both test sessions fully enriched at schema 1.2.0. What happens after transcription — what gets extracted, how stories become searchable, what the archive actually becomes — is still emerging.
 
-On the horizon: story element extraction, a mobile browser interface for session playback with synced captions, and ESP32 capture devices so recording disappears into the background.
+On the horizon: ESP32 capture device so recording disappears into the background.
 
 ## Background
 
-Five years writing children's animation (Emmy-nominated for Daniel Tiger's Neighborhood, plus PBS, Netflix, Nickelodeon, Sesame Workshop). One year as Creative Technologist at Kibeam Learning, building tools and ML pipelines for interactive children's products.
-
-This project sits at the intersection: audio ML applied to a problem I actually have, built with constraints I actually care about.
+I'm a Sesame Workshop Writers Room fellow. I wrote for Mo Willems. I earned an Emmy nomination for Daniel Tiger's Neighborhood. Most recently, I built tools for the content team at Kibeam Learning, a company that makes interactive products for kids.
 
 ## Running It
 
