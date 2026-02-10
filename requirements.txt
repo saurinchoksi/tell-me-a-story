@@ -1,3 +1,4 @@
 mlx-whisper
 pyannote.audio
 pytest
+mutagen
