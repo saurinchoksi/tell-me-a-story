@@ -1,42 +1,47 @@
 # Tell Me a Story
 
-My daughter Arti is four. Every night, we make up stories together. Characters recur. Worlds layer. Plot threads tangle across weeks of bedtime improv.
+A local system for capturing bedtime stories. Audio goes in, speaker-labeled transcripts come out.
 
-I wanted to capture it. Not the polished retellings, the live mess: her interruptions, my detours, the penguin who inexplicably showed up in every story for a month.
+My daughter Arti is four. Every night, we tell stories together — mostly from the Mahabharata, the epic I grew up with, now being passed to her. Characters recur, plot threads tangle across weeks of bedtime improv, and she asks questions I never saw coming.
 
-Most transcription tools are cloud-based. For family recordings, I wanted something local. So I built my own.
+I wanted to capture those conversations. Not polished retellings — the live sessions, with her interruptions and my detours. For family recordings, local-only processing was non-negotiable. So I built my own pipeline.
 
 ## What It Does
 
-Audio in, speaker-labeled transcript out. Entirely local.
+Four-stage enrichment pipeline, entirely local:
 
 1. **Transcription** — MLX Whisper (large model) produces word-level timestamps
-2. **Diarization** — Pyannote separates speakers (parent vs. child voice)
-3. **Alignment** — Custom layer merges transcript to speaker segments
-4. **Filtering** — Hallucination detection for quiet/unclear speech
+2. **LLM Normalization** — Ollama (qwen3:8b) corrects Sanskrit names that Whisper mishears ("Pandava" from "Pandava's", "Duryodhana" from "Durian")
+3. **Dictionary Normalization** — Deterministic pass catches spelling variants the LLM misses, using a 56-entry Mahabharata reference library
+4. **Diarization Enrichment** — Pyannote speaker labels merged at the word level, with coverage scores for each attribution
 
-The hard part is child speech. Whisper hallucinates when it can't decode soft voices. Pyannote struggles with speaker changes in overlapping conversation. The alignment layer compensates with filtering heuristics I've tuned through iteration.
+Three hallucination filters run during transcription: silence gap detection, near-zero probability detection, and duplicate segment identification. Whisper hallucinates when it can't decode soft voices — these filters catch the worst of it.
+
+Each stage adds information without destroying what came before. `_original` fields preserve raw Whisper output. `_corrections` chains track every change. Schema-versioned output (currently 1.2.0) with full audit trails.
 
 ## Why Local
 
-I could have used cloud APIs. But I wanted to understand the full pipeline, not just call an endpoint. And for recordings of my kid, local felt right.
+For recordings of my kid, cloud wasn't an option. The constraint forced me to understand the full pipeline — model behavior, hallucination patterns, speaker alignment — rather than calling an endpoint and hoping.
 
-The constraint forced me to solve problems that managed services abstract away: model selection, hallucination filtering, speaker alignment. That's where the learning lives.
+The hard problems live in the gaps between models. Whisper needs 3+ minutes of audio context for reliable transcription. Diarization coverage turns out to be a stronger hallucination signal than word probability. Full-transcript LLM processing beats segment-by-segment for name correction. None of this is obvious from documentation. You learn it by building.
 
 ## Tech Stack
 
-- **MLX Whisper** for transcription (Apple Silicon optimized)
-- **Pyannote** for speaker diarization
-- Python pipeline architecture
-- 43 tests, including slow integration tests against real audio
+- **MLX Whisper** — Transcription (Apple Silicon optimized)
+- **Pyannote** — Speaker diarization
+- **Ollama** (qwen3:8b) — LLM normalization
+- Python pipeline with 93+ automated tests (fast unit / slow integration split)
+- Flask-based validation player with waveform visualization and word-level highlighting
 
 ## Status
 
-Working pipeline. Transcribes, diarizes, aligns, saves JSON with word-level timestamps. Still building: story element extraction, searchable archive, the thing that makes captured stories useful months later.
+Working pipeline. Both test sessions fully enriched at schema 1.2.0. What happens after transcription — what gets extracted, how stories become searchable, what the archive actually becomes — is still emerging.
+
+On the horizon: story element extraction, a mobile browser interface for session playback with synced captions, and ESP32 capture devices so recording disappears into the background.
 
 ## Background
 
-I spent five years writing children's animation (Daniel Tiger's Neighborhood, Wonder Pets, work with Mo Willems). Then I spent a year as a Creative Technologist at Kibeam Learning, building tools and ML pipelines for interactive children's products.
+Five years writing children's animation (Emmy-nominated for Daniel Tiger's Neighborhood, plus PBS, Netflix, Nickelodeon, Sesame Workshop). One year as Creative Technologist at Kibeam Learning, building tools and ML pipelines for interactive children's products.
 
 This project sits at the intersection: audio ML applied to a problem I actually have, built with constraints I actually care about.
 
@@ -57,8 +62,8 @@ export HF_TOKEN=your_token_here
 python src/pipeline.py sessions/<session-id>/audio.m4a
 ```
 
-Requires Apple Silicon for MLX Whisper. Pyannote model downloads on first run (~1GB).
+Requires Apple Silicon for MLX Whisper. Pyannote and Ollama models download on first run.
 
-## Build Journal
+## Build Log
 
-I've been keeping a daily log in `journal/`. It tracks decisions, experiments, dead ends, and what I'm learning about audio ML along the way.
+Development decisions and discoveries are tracked in `changelog.md`. A narrative build log with visual components lives on [the project page](https://saurinchoksi.com/portfolio/tell-me-a-story-log.html).
