@@ -8,7 +8,7 @@ I wanted to capture those stories and conversations to eventually "see" it all. 
 
 ## What It Does
 
-Four-stage enrichment pipeline, entirely local:
+Four-stage enrichment pipeline:
 
 1. **Transcription** — MLX Whisper (large model) produces word-level timestamps
 2. **LLM Normalization** — Ollama (qwen3:8b) corrects Sanskrit names that Whisper mishears ("Pandava" from "Pandava's", "Duryodhana" from "Durian")
@@ -21,9 +21,7 @@ Each stage adds information without destroying what came before. `_original` fie
 
 ## Why Local
 
-For recordings of my kid, cloud wasn't an option. The constraint forced me to understand the full pipeline — model behavior, hallucination patterns, speaker alignment — rather than calling an endpoint.
-
-The hard problems live in the gaps between models. Whisper needs 3+ minutes of audio context for reliable transcription. Diarization coverage turns out to be a stronger hallucination signal than word probability. Full-transcript LLM processing beats segment-by-segment for name correction. None of this is obvious from documentation. You learn it by building.
+For recordings of my kid, cloud wasn't an option. The constraint forced me to understand the full pipeline — model behavior, hallucination patterns, speaker alignment.
 
 ## Tech Stack
 
@@ -35,7 +33,7 @@ The hard problems live in the gaps between models. Whisper needs 3+ minutes of a
 
 ## Status
 
-Working pipeline. Both test sessions fully enriched at schema 1.2.0. What happens after transcription — what gets extracted, how stories become searchable, what the archive actually becomes — is still emerging.
+Working pipeline, but still experimenting how where I can push to pick up audio, and where [unintelligible] is the best I can do. Right now the UI is a validator tool, not a final interface.
 
 On the horizon: ESP32 capture device so recording disappears into the background.
 
