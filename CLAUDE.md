@@ -41,33 +41,36 @@ pytest tests/test_align.py::test_function_name  # Single test
 Audio flows through stages:
 
 1. **transcribe.py** — MLX Whisper (large model) produces word-level timestamps
-   - `mark_hallucinated_segments()` — detects segments where model guessed (temperature=1.0 or compression_ratio>2.5), marks as `[unintelligible]`
+   - `clean_transcript()` — removes zero-duration words and empty segments
 
 2. **diarize.py** — Pyannote identifies speaker segments (converts to 16kHz WAV via ffmpeg)
 
-3. **align.py** — Merges transcription with diarization:
-   - `filter_zero_duration_words()` — removes fabricated words (end == start)
-   - `filter_low_probability_words()` — removes low-confidence fabrications
-   - `align_words_to_speakers()` — assigns words by midpoint timestamp
-   - `words_to_utterances()` — converts labeled words to mini-utterances
-   - `consolidate_utterances()` — merges consecutive same-speaker runs (skips UNKNOWN)
-   - `align()` — wrapper that runs the full alignment pipeline
+3. **enrich.py** — Orchestrates three enrichment passes on the transcript:
+   - **LLM normalization** (`normalize.py`) — Ollama/Qwen3 corrects phonetic mishearings of Sanskrit names
+   - **Dictionary normalization** (`dictionary.py`) — Reference library corrects known variant spellings
+   - **Diarization enrichment** (`enrichment.py`) — Adds `_speaker` labels to each word by temporal overlap
+   - Corrections are applied via `corrections.py`, which preserves `_original` and `_corrections` audit trails
 
-4. **pipeline.py** — Orchestrates all stages:
-   - `run_pipeline()` — runs transcription, diarization, alignment
-   - `save_session()` — writes JSON to `sessions/processed/`
+4. **query.py** — Read-time layer that joins transcript + diarization on demand
+   - `assign_speakers()` — O(log n) bisect lookup for speaker assignment
+   - `to_utterances()` — consolidates same-speaker word runs
+   - Accepts filter predicates from `filters.py` (silence gap, near-zero probability, duplicates)
+
+5. **pipeline.py** — Orchestrates all stages:
+   - `run_pipeline()` — runs transcription, diarization, enrichment
+   - `save_computed()` — writes JSON artifacts to `sessions/{session-id}/`
 
 ## Hallucination Handling
 
 Two-layer approach with different purposes:
 
-1. **Segment filter** (in transcribe.py): Marks real-but-unclear speech as `[unintelligible]`
-   - Triggers on: temperature == 1.0 OR compression_ratio > 2.5
-   - Purpose: Honest metadata — speech happened, we couldn't decode it
+1. **Garbage removal** (in `transcribe.py`/`clean_transcript()`): Removes zero-duration words and empty segments at transcription time. These are fabrications that never existed.
 
-2. **Word filters** (in align.py): Removes fabricated content entirely
-   - Triggers on: zero duration OR probability < 0.5
-   - Purpose: Delete lies — these words never existed
+2. **Filter predicates** (in `filters.py`): Query-time predicates for further refinement:
+   - `silence_gap()` — no speaker + zero coverage (hallucination in silence)
+   - `near_zero_probability()` — Whisper confidence essentially zero
+   - `find_duplicate_segments()` — repeated text at 30-second seek boundaries
+   - `min_probability()` — factory for configurable probability thresholds
 
 Key insight: `no_speech_prob` is NOT useful for our case. It stays low during hallucination because real speech IS happening (quiet child voice) — the model just can't decode it.
 
@@ -102,16 +105,18 @@ From `docs/principles.md`: Simple over clever, patterns over tools, understand d
 
 ## Current State
 
-- Full pipeline complete: audio → transcribe → diarize → align → save JSON
-- 43 fast tests passing
-- JSON output with word-level timestamps for caption sync
+- Full pipeline complete: audio → transcribe → diarize → enrich → save JSON
+- 93+ automated tests (fast unit + slow integration)
+- Schema version 1.2.0 with inline corrections and speaker labels at word level
+- Mahabharata reference library (56 entries, variants vs. aliases distinction)
+- Session initialization from inbox with duplicate detection
 
 ## Future Work
 
-- Audio duration capture (file vs speech)
-- Processing stats (filter counts, unknowns merged)
 - Story element extraction (characters, worlds, plot beats)
 - Searchable story bible
+- Mobile browser interface for session selection with synced captions
+- Hardware: ESP32 capture devices, Jetson Orin Nano deployment
 
 ## Journal
 
