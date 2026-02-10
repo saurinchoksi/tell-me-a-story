@@ -24,3 +24,4 @@ CLAUDE.md*.swp
 
 # Validation notes (personal)
 tools/transcript_validator/notes/
+checkpoints/
