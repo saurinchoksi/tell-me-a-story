@@ -28,19 +28,17 @@ def get_audio_info(filepath: str) -> dict | None:
     }
 
 
-def print_audio_info(filepath: str) -> None:
-    """Print basic properties of an audio file."""
-
-    if info is None:
-        print(f"Could not read audio file: {filepath}")
-        return
-
-    print(f"File: {path.name}")
-    print(f"Format: {type(audio).__name__}")
-    print(f"Duration: {audio.info.length:.1f} seconds")
-    print(f"Sample rate: {audio.info.sample_rate} Hz")
-    print(f"Channels: {audio.info.channels}")
-
-
 if __name__ == "__main__":
-    inspect_audio("data/New Recording 63.m4a")
+    import sys
+
+    if len(sys.argv) < 2:
+        print("Usage: python src/inspect_audio.py <audio_file>")
+        sys.exit(1)
+
+    info = get_audio_info(sys.argv[1])
+    if info is None:
+        print(f"Could not read audio file: {sys.argv[1]}")
+        sys.exit(1)
+
+    for key, value in info.items():
+        print(f"{key}: {value}")
