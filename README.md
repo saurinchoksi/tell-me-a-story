@@ -2,9 +2,9 @@
 
 A local system for capturing bedtime stories. Audio goes in, speaker-labeled transcripts come out.
 
-My daughter Arti is four. Every night, we tell stories together — mostly from the Mahabharata, the epic I grew up with, now being passed to her. Characters recur, plot threads tangle across weeks of bedtime improv, and she asks questions I never saw coming.
+Every night, my daughter Arti and I tell stories together. Characters recur, plot threads tangle across weeks of bedtime improv, and she asks questions I never saw coming.
 
-I wanted to capture those conversations. Not polished retellings — the live sessions, with her interruptions and my detours. For family recordings, local-only processing was non-negotiable. So I built my own pipeline.
+I wanted to capture those stories and conversations to eventually "see" it all. So I built my own pipeline.
 
 ## What It Does
 
@@ -21,7 +21,7 @@ Each stage adds information without destroying what came before. `_original` fie
 
 ## Why Local
 
-For recordings of my kid, cloud wasn't an option. The constraint forced me to understand the full pipeline — model behavior, hallucination patterns, speaker alignment — rather than calling an endpoint and hoping.
+For recordings of my kid, cloud wasn't an option. The constraint forced me to understand the full pipeline — model behavior, hallucination patterns, speaker alignment — rather than calling an endpoint.
 
 The hard problems live in the gaps between models. Whisper needs 3+ minutes of audio context for reliable transcription. Diarization coverage turns out to be a stronger hallucination signal than word probability. Full-transcript LLM processing beats segment-by-segment for name correction. None of this is obvious from documentation. You learn it by building.
 
