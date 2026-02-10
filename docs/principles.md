@@ -97,7 +97,7 @@ From the project pillars:
 - Start small. One audio file → one transcript.
 - Understand tools well enough to list them as real skills.
 - Write tests as I go.
-- Document the journey in the build journal.
+- Document decisions and discoveries in the changelog.
 
 ---
 
@@ -115,7 +115,7 @@ See [session-flow.md](session-flow.md) for detailed guidance on:
 
 ## Documentation
 
-**Journal** — Narrative of what happened each session. Decisions, learnings, what's next. Lives in `journal/`.
+**Changelog** — Structured record of what changed, what was decided, and what was learned. Single file, newest entries at top. Lives in `changelog.md`. Source material for public build log entries. Replaces the per-session journal files (archived in `journal/`).
 
 **Docstrings** — Reference material embedded in code. Document functions as they're written:
 
