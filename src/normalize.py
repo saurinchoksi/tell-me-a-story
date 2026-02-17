@@ -79,31 +79,36 @@ def _parse_llm_corrections(response: str) -> list[dict]:
         ValueError: If response cannot be parsed as JSON by any tier
     """
     stripped = response.strip()
+    parsed = None
 
     # Tier 1: Regex for corrections JSON
-    match = re.search(r'\{"corrections":\s*\[.*?\]\}', stripped, re.DOTALL)
+    match = re.search(r'\{"corrections":\s*\[.*\]\s*\}', stripped, re.DOTALL)
     if match:
         parsed = json.loads(match.group())
-        return parsed.get("corrections", [])
 
     # Tier 2: Code block extraction
-    if "```json" in stripped:
-        json_str = stripped.split("```json")[1].split("```")[0]
-        parsed = json.loads(json_str.strip())
-        return parsed.get("corrections", [])
-    elif "```" in stripped:
-        json_str = stripped.split("```")[1].split("```")[0]
-        parsed = json.loads(json_str.strip())
-        return parsed.get("corrections", [])
+    if parsed is None:
+        if "```json" in stripped:
+            json_str = stripped.split("```json")[1].split("```")[0]
+            parsed = json.loads(json_str.strip())
+        elif "```" in stripped:
+            json_str = stripped.split("```")[1].split("```")[0]
+            parsed = json.loads(json_str.strip())
 
     # Tier 3: Direct parse
-    try:
-        parsed = json.loads(stripped)
-    except json.JSONDecodeError:
-        tail = stripped[-200:] if len(stripped) > 200 else stripped
-        raise ValueError(f"Could not parse LLM response: ...{tail}")
+    if parsed is None:
+        try:
+            parsed = json.loads(stripped)
+        except json.JSONDecodeError:
+            tail = stripped[-200:] if len(stripped) > 200 else stripped
+            raise ValueError(f"Could not parse LLM response: ...{tail}")
 
-    return parsed.get("corrections", [])
+    corrections = parsed.get("corrections", [])
+    if not isinstance(corrections, list):
+        return []
+    return [c for c in corrections if isinstance(c, dict)
+            and isinstance(c.get("transcribed"), str)
+            and isinstance(c.get("correct"), str)]
 
 
 def llm_normalize(

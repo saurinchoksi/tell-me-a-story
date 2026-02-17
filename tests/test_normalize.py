@@ -84,6 +84,29 @@ def test_parse_plain_code_block():
     assert result[0]["correct"] == "Dhritarashtra"
 
 
+def test_parse_drops_corrections_missing_keys():
+    """Corrections missing 'transcribed' or 'correct' are dropped."""
+    response = '{"corrections": [{"transcribed": "fondos"}, {"transcribed": "kuru", "correct": "Kuru"}]}'
+    result = _parse_llm_corrections(response)
+    assert len(result) == 1
+    assert result[0]["correct"] == "Kuru"
+
+
+def test_parse_drops_non_string_values():
+    """Corrections with non-string values are dropped."""
+    response = '{"corrections": [{"transcribed": "fondos", "correct": null}, {"transcribed": "kuru", "correct": "Kuru"}]}'
+    result = _parse_llm_corrections(response)
+    assert len(result) == 1
+    assert result[0]["correct"] == "Kuru"
+
+
+def test_parse_non_list_corrections_returns_empty():
+    """Non-list corrections value returns []."""
+    response = '{"corrections": "none"}'
+    result = _parse_llm_corrections(response)
+    assert result == []
+
+
 def test_parse_garbage_raises():
     """Unparseable response raises ValueError."""
     import pytest
