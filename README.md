@@ -10,7 +10,7 @@ I wanted to capture those conversations — to eventually "see" the stories we'r
 
 Our test recordings are of Arti asking questions about the Mahabharata — the ancient Indian epic I grew up with, now being passed to my daughter. "Why did Duryodhana want to be king?" "What happened to the Pandavas?" These are real questions from a four-year-old, and in some ways, the soul of the project.
 
-The Mahabharata is the first content domain, not the only one. The pipeline is built to handle any storytelling session — improvised adventures, fairy tale retellings, interdimensional portal hopping tales, whatever. Where the Mahabharata shapes things (like name correction), it's pluggable: swap the reference library, swap the prompt, and the same pipeline works for different stories..
+The Mahabharata is the first content domain, not the only one. The pipeline is built to handle any storytelling session — improvised adventures, fairy tale retellings, interdimensional portal hopping tales, whatever. Where the Mahabharata shapes things (like name correction), it's pluggable: swap the reference library, swap the prompt, and the same pipeline works for different stories.
 
 ## What It Does
 
@@ -36,7 +36,7 @@ Three detection filters flag suspect content: silence gaps where no speaker was 
 
 ## Why Local
 
-For recordings of my kid, I wanted everything to runs on local hardware with no network dependency. No API keys, no data leaving the house.
+For recordings of my kid, I wanted everything to run on local hardware with no network dependency. No API keys, no data leaving the house.
 
 The constraint forced me to understand the full pipeline — model behavior, hallucination patterns, speaker alignment — rather than outsourcing it to a service.
 
