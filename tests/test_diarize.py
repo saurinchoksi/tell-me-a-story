@@ -9,17 +9,17 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from diarize import convert_to_wav_16k, diarize
+from diarize import prepare_audio_for_diarization, diarize
 
 
 # --- Unit tests (fast, no model needed) ---
 
 
-def test_convert_to_wav_16k_creates_file():
-    """convert_to_wav_16k should create a WAV file."""
+def test_prepare_audio_for_diarization_creates_file():
+    """prepare_audio_for_diarization should create a WAV file."""
     source = "sessions/00000000-000000/audio.m4a"
     
-    wav_path = convert_to_wav_16k(source)
+    wav_path = prepare_audio_for_diarization(source)
     
     try:
         assert os.path.exists(wav_path)
@@ -28,11 +28,11 @@ def test_convert_to_wav_16k_creates_file():
         os.unlink(wav_path)
 
 
-def test_convert_to_wav_16k_correct_sample_rate():
+def test_prepare_audio_for_diarization_correct_sample_rate():
     """Converted WAV should be 16kHz mono."""
     source = "sessions/00000000-000000/audio.m4a"
     
-    wav_path = convert_to_wav_16k(source)
+    wav_path = prepare_audio_for_diarization(source)
     
     try:
         # Use wave module to check format

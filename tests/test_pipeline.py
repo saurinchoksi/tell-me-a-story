@@ -88,7 +88,7 @@ def test_create_manifest_computed_files():
             diarization_time="2026-01-01T00:01:00Z",
         )
 
-        assert manifest["source"]["audio_file"] == "audio.m4a"
+        assert manifest["source"]["audio_file"] == Path(temp_path).name
         assert manifest["computed"]["transcript"]["file"] == "transcript.json"
         assert manifest["computed"]["transcript"]["model"] == "whisper"
         assert manifest["computed"]["diarization"]["file"] == "diarization.json"
@@ -236,8 +236,8 @@ def test_pipeline_both_normalizations_succeed():
     assert processing[2]["corrections_applied"] == 3
 
     assert result["transcript"]["_schema_version"] == "1.2.0"
-    assert result["llm_count"] == 5
-    assert result["dict_count"] == 3
+    assert "llm_count" not in result
+    assert "dict_count" not in result
 
 
 def test_pipeline_llm_fails_dictionary_continues():
@@ -272,8 +272,8 @@ def test_pipeline_llm_fails_dictionary_continues():
     assert dict_entry["status"] == "success"
     assert dict_entry["corrections_applied"] == 2
 
-    assert result["llm_count"] == 0
-    assert result["dict_count"] == 2
+    assert "llm_count" not in result
+    assert "dict_count" not in result
 
 
 def test_pipeline_empty_corrections():

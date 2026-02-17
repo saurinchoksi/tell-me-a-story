@@ -15,7 +15,7 @@ import json
 import logging
 from pathlib import Path
 
-from normalize import normalize as llm_normalize
+from normalize import llm_normalize
 from dictionary import load_library, build_variant_map, normalize_variants
 from corrections import extract_text, apply_corrections
 from enrichment import enrich_with_diarization, _ENRICHED_SCHEMA_VERSION

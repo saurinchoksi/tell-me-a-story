@@ -54,7 +54,7 @@ def _call_ollama(prompt: str, model: str, timeout: int) -> str:
     return result.stdout
 
 
-def _parse_response(response: str) -> list[dict]:
+def _parse_llm_corrections(response: str) -> list[dict]:
     """Parse LLM response into corrections list with 3-tier fallback.
 
     Tier 1: Regex search for {"corrections": [...]} in response
@@ -99,7 +99,7 @@ def _parse_response(response: str) -> list[dict]:
     return parsed.get("corrections", [])
 
 
-def normalize(
+def llm_normalize(
     text: str,
     prompt: str = DEFAULT_PROMPT,
     model: str = "qwen3:8b",
@@ -127,4 +127,4 @@ def normalize(
     """
     formatted = prompt.format(text=text)
     response = _call_ollama(formatted, model, timeout)
-    return _parse_response(response)
+    return _parse_llm_corrections(response)

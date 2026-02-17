@@ -6,19 +6,18 @@ _SCHEMA_VERSION = "1.0.0"
 _GENERATOR_VERSION = "mlx-whisper-1.0"
 
 
-def transcribe(audio_path: str, word_timestamps: bool = False, model: str = None) -> dict:
+def transcribe(audio_path: str, model: str = None) -> dict:
     """Transcribe audio file and return result dict.
 
     Args:
         audio_path: Path to audio file
-        word_timestamps: If True, include word-level timestamps in segments
         model: Optional model path/repo
 
     Returns:
         Dict with 'text', 'language', 'segments' keys.
-        If word_timestamps=True, each segment also has 'words' list.
+        Each segment has a 'words' list with word-level timestamps.
     """
-    kwargs = {"word_timestamps": word_timestamps}
+    kwargs = {"word_timestamps": True}
 
     if model:
         kwargs["path_or_hf_repo"] = model

@@ -148,8 +148,8 @@ def test_transcribe_segments_have_timestamps():
 
 @pytest.mark.slow
 def test_transcribe_with_word_timestamps():
-    """word_timestamps=True should add words array to segments."""
-    result = transcribe("sessions/00000000-000000/audio.m4a", word_timestamps=True)
+    """Transcribe should include words array in segments."""
+    result = transcribe("sessions/00000000-000000/audio.m4a")
 
     # Find a segment with content (some may be empty)
     seg_with_words = None

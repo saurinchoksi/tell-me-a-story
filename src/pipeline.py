@@ -1,6 +1,5 @@
 """Run the full transcription pipeline and save computed artifacts."""
 
-import argparse
 import hashlib
 import json
 import os
@@ -12,13 +11,6 @@ from diarize import diarize
 from inspect_audio import get_audio_info
 from enrich import enrich_transcript
 from enrichment import _ENRICHED_SCHEMA_VERSION
-
-
-def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Run transcription pipeline")
-    parser.add_argument("audio_file", help="Path to audio file")
-    return parser.parse_args()
 
 
 def compute_file_hash(file_path: str) -> str:
@@ -56,7 +48,7 @@ def create_manifest(
         "session_id": session_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "source": {
-            "audio_file": "audio.m4a",
+            "audio_file": Path(audio_path).name,
             "audio_hash": compute_file_hash(audio_path),
         },
         "computed": {
@@ -136,7 +128,7 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
         print(f"Using: {model}")
 
     transcript_time = datetime.now(timezone.utc).isoformat()
-    raw_transcript = transcribe(audio_path, word_timestamps=True, model=model)
+    raw_transcript = transcribe(audio_path, model=model)
     transcript = clean_transcript(raw_transcript)
 
     # Diarization
@@ -148,11 +140,9 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     diarization_model = "pyannote/speaker-diarization-community-1"
 
     # Enrichment (normalization + diarization)
-    transcript, enrichment_processing, counts = enrich_transcript(
+    transcript, enrichment_processing, _ = enrich_transcript(
         transcript, diarization, library_path=library_path, verbose=verbose
     )
-    llm_count = counts["llm_count"]
-    dict_count = counts["dict_count"]
 
     processing = [
         {"stage": "transcription", "model": model, "status": "success"}
@@ -176,15 +166,16 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
         "transcript": transcript,
         "diarization": diarization,
         "manifest": manifest,
-        "llm_count": llm_count,
-        "dict_count": dict_count,
     }
 
 
 if __name__ == "__main__":
+    import argparse
     from query import to_utterances, format_transcript
 
-    args = parse_args()
+    parser = argparse.ArgumentParser(description="Run transcription pipeline")
+    parser.add_argument("audio_file", help="Path to audio file")
+    args = parser.parse_args()
 
     result = run_pipeline(args.audio_file)
 
@@ -219,5 +210,9 @@ if __name__ == "__main__":
     print(f"  transcript.json")
     print(f"  diarization.json")
 
-    print(f"\nLLM Normalization: {result['llm_count']} corrections")
-    print(f"Dictionary Normalization: {result['dict_count']} corrections")
+    processing = result["transcript"]["_processing"]
+    for entry in processing:
+        if entry["stage"] == "llm_normalization":
+            print(f"\nLLM Normalization: {entry.get('corrections_applied', 0)} corrections")
+        elif entry["stage"] == "dictionary_normalization":
+            print(f"Dictionary Normalization: {entry.get('corrections_applied', 0)} corrections")

@@ -17,8 +17,8 @@ _SCHEMA_VERSION = "1.0.0"
 _GENERATOR_VERSION = "pyannote-speaker-diarization-community-1"
 
 
-def load_pipeline() -> Pipeline:
-    """Load the speaker diarization pipeline.
+def load_diarization_model() -> Pipeline:
+    """Load the speaker diarization model.
     
     Requires HF_TOKEN environment variable to be set.
     First run will download the model (~1GB).
@@ -28,15 +28,15 @@ def load_pipeline() -> Pipeline:
         raise ValueError("HF_TOKEN environment variable not set")
     
     print("Loading diarization model (this may take a minute)...")
-    pipeline = Pipeline.from_pretrained(
+    model = Pipeline.from_pretrained(
         "pyannote/speaker-diarization-community-1",
         token=token
     )
-    return pipeline
+    return model
 
 
-def convert_to_wav_16k(audio_path: str) -> str:
-    """Convert audio file to 16kHz mono WAV using ffmpeg.
+def prepare_audio_for_diarization(audio_path: str) -> str:
+    """Convert audio file to 16kHz mono WAV for pyannote compatibility.
     
     Returns path to temporary WAV file. Caller is responsible for cleanup.
     """
@@ -54,28 +54,28 @@ def convert_to_wav_16k(audio_path: str) -> str:
     return temp_wav.name
 
 
-def diarize(audio_path: str, pipeline: Pipeline = None, num_speakers: int = None) -> dict:
+def diarize(audio_path: str, model: Pipeline = None, num_speakers: int = None) -> dict:
     """Run speaker diarization on an audio file.
 
     Args:
         audio_path: Path to audio file
-        pipeline: Optional pre-loaded pipeline (loads one if not provided)
+        model: Optional pre-loaded diarization model (loads one if not provided)
         num_speakers: Optional hint for exact number of speakers (improves accuracy)
 
     Returns:
         Dict with '_schema_version', '_generator_version', and 'segments' keys.
         Segments is a list of dicts with 'start', 'end', 'speaker' keys.
     """
-    if pipeline is None:
-        pipeline = load_pipeline()
+    if model is None:
+        model = load_diarization_model()
     
     # Convert to 16kHz mono WAV for compatibility with pyannote
-    wav_path = convert_to_wav_16k(audio_path)
+    wav_path = prepare_audio_for_diarization(audio_path)
     
     try:
         # Run diarization with progress feedback
         with ProgressHook() as hook:
-            output = pipeline(wav_path, hook=hook, num_speakers=num_speakers)
+            output = model(wav_path, hook=hook, num_speakers=num_speakers)
         
         # Extract segments using exclusive mode (one speaker at a time)
         # This simplifies alignment with transcription timestamps
