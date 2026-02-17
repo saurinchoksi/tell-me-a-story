@@ -8,6 +8,7 @@ import copy
 import os
 import subprocess
 import tempfile
+from datetime import datetime, timezone
 import torch
 from pyannote.audio import Pipeline
 from pyannote.audio.pipelines.utils.hook import ProgressHook
@@ -20,6 +21,7 @@ torch.serialization.add_safe_globals([Specifications, Problem, Resolution, Scope
 
 _SCHEMA_VERSION = "1.0.0"
 _GENERATOR_VERSION = "pyannote-speaker-diarization-community-1"
+MODEL = "pyannote/speaker-diarization-community-1"
 
 
 def load_diarization_model() -> Pipeline:
@@ -34,7 +36,7 @@ def load_diarization_model() -> Pipeline:
     
     print("Loading diarization model (this may take a minute)...")
     model = Pipeline.from_pretrained(
-        "pyannote/speaker-diarization-community-1",
+        MODEL,
         token=token
     )
     return model
@@ -159,7 +161,9 @@ def enrich_with_diarization(transcript, diarization):
             {start, end, speaker} dicts.
 
     Returns:
-        Deep-copied transcript with _speaker metadata on each word.
+        Tuple of (enriched_transcript, processing_entry).
+        enriched_transcript: Deep-copied transcript with _speaker metadata.
+        processing_entry: Dict with stage metadata.
     """
     result = copy.deepcopy(transcript)
     diar_segments = diarization.get("segments", [])
@@ -171,4 +175,10 @@ def enrich_with_diarization(transcript, diarization):
             )
             word["_speaker"] = speaker_info
 
-    return result
+    entry = {
+        "stage": "diarization_enrichment",
+        "model": MODEL,
+        "status": "success",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    return result, entry

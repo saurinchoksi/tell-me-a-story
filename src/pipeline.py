@@ -8,16 +8,14 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from transcribe import transcribe, clean_transcript
-from diarize import diarize, enrich_with_diarization, _ENRICHED_SCHEMA_VERSION
+from transcribe import transcribe, clean_transcript, MODEL as TRANSCRIPTION_MODEL, make_processing_entry as make_transcription_entry
+from diarize import diarize, enrich_with_diarization, _ENRICHED_SCHEMA_VERSION, MODEL as DIARIZATION_MODEL
 from mutagen import File as MutagenFile
-from normalize import llm_normalize
+from normalize import llm_normalize, MODEL as LLM_MODEL
 from dictionary import load_library, build_variant_map, normalize_variants
 from corrections import extract_text, apply_corrections
 
 _DEFAULT_LIBRARY_PATH = str(Path(__file__).parent.parent / "data" / "mahabharata.json")
-_LLM_MODEL = "qwen3:8b"
-_DIARIZATION_MODEL = "pyannote/speaker-diarization-community-1"
 
 logger = logging.getLogger(__name__)
 
@@ -55,22 +53,17 @@ def enrich_transcript(
     # Pass 1: LLM normalization
     try:
         text = extract_text(transcript)
-        llm_corrections = llm_normalize(text, model=_LLM_MODEL)
+        llm_corrections, llm_entry = llm_normalize(text, model=LLM_MODEL)
         transcript, llm_count = apply_corrections(transcript, llm_corrections, "llm")
-        processing.append({
-            "stage": "llm_normalization",
-            "model": _LLM_MODEL,
-            "status": "success",
-            "corrections_applied": llm_count,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        llm_entry["corrections_applied"] = llm_count
+        processing.append(llm_entry)
         if verbose:
             logger.info(f"LLM normalization: {llm_count} corrections applied")
     except Exception as e:
         logger.warning(f"LLM normalization failed: {e}")
         processing.append({
             "stage": "llm_normalization",
-            "model": _LLM_MODEL,
+            "model": LLM_MODEL,
             "status": "error",
             "error": str(e),
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -105,18 +98,13 @@ def enrich_transcript(
 
     # Pass 3: Diarization enrichment
     try:
-        transcript = enrich_with_diarization(transcript, diarization)
-        processing.append({
-            "stage": "diarization_enrichment",
-            "model": _DIARIZATION_MODEL,
-            "status": "success",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        transcript, diar_entry = enrich_with_diarization(transcript, diarization)
+        processing.append(diar_entry)
     except Exception as e:
         logger.warning(f"Diarization enrichment failed: {e}")
         processing.append({
             "stage": "diarization_enrichment",
-            "model": _DIARIZATION_MODEL,
+            "model": DIARIZATION_MODEL,
             "status": "error",
             "error": str(e),
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -205,13 +193,12 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     audio_info = get_audio_info(audio_path)
 
     # Transcription
-    model = "mlx-community/whisper-large-v3-mlx"
     if verbose:
         print(f"Transcribing: {audio_path}")
-        print(f"Using: {model}")
+        print(f"Using: {TRANSCRIPTION_MODEL}")
 
     transcript_time = datetime.now(timezone.utc).isoformat()
-    raw_transcript = transcribe(audio_path, model=model)
+    raw_transcript = transcribe(audio_path, model=TRANSCRIPTION_MODEL)
     transcript = clean_transcript(raw_transcript)
     transcript_raw = copy.deepcopy(transcript)
 
@@ -230,10 +217,7 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     transcript["audio"] = audio_info
 
     audio_hash = compute_file_hash(audio_path)
-    processing = [
-        {"stage": "transcription", "model": model, "status": "success",
-         "audio_hash": audio_hash, "timestamp": transcript_time}
-    ] + enrichment_processing
+    processing = [make_transcription_entry(audio_hash, transcript_time)] + enrichment_processing
     transcript["_processing"] = processing
     transcript["_schema_version"] = _ENRICHED_SCHEMA_VERSION
 

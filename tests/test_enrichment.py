@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from diarize import _compute_speaker_coverage, enrich_with_diarization
+from diarize import _compute_speaker_coverage, enrich_with_diarization, MODEL
 
 
 # ---------------------------------------------------------------------------
@@ -110,7 +110,7 @@ def test_two_words_different_speakers():
         (0.0, 3.0, "SPEAKER_00"),
         (4.0, 7.0, "SPEAKER_01"),
     ])
-    result = enrich_with_diarization(transcript, diarization)
+    result, entry = enrich_with_diarization(transcript, diarization)
     words = result["segments"][0]["words"]
 
     assert words[0]["_speaker"]["label"] == "SPEAKER_00"
@@ -126,7 +126,7 @@ def test_empty_diarization():
         (" world", 3.0, 4.0),
     ])
     diarization = _make_diarization([])
-    result = enrich_with_diarization(transcript, diarization)
+    result, entry = enrich_with_diarization(transcript, diarization)
     for word in result["segments"][0]["words"]:
         assert word["_speaker"]["label"] is None
         assert word["_speaker"]["coverage"] == 0.0
@@ -138,7 +138,7 @@ def test_empty_transcript():
     diarization = _make_diarization([
         (0.0, 5.0, "SPEAKER_00"),
     ])
-    result = enrich_with_diarization(transcript, diarization)
+    result, entry = enrich_with_diarization(transcript, diarization)
     assert result["segments"] == []
 
 
@@ -154,7 +154,7 @@ def test_deep_copy_no_mutation():
     # Snapshot original state
     original_word = transcript["segments"][0]["words"][0].copy()
 
-    enrich_with_diarization(transcript, diarization)
+    _, _ = enrich_with_diarization(transcript, diarization)
 
     # Original must be untouched — no _speaker key added
     assert "_speaker" not in transcript["segments"][0]["words"][0]
@@ -178,7 +178,7 @@ def test_existing_word_metadata_preserved():
     diarization = _make_diarization([
         (0.0, 3.0, "SPEAKER_00"),
     ])
-    result = enrich_with_diarization(transcript, diarization)
+    result, entry = enrich_with_diarization(transcript, diarization)
     word = result["segments"][0]["words"][0]
 
     # Existing metadata preserved
@@ -188,3 +188,14 @@ def test_existing_word_metadata_preserved():
     # New metadata added
     assert word["_speaker"]["label"] == "SPEAKER_00"
     assert word["_speaker"]["coverage"] == 1.0
+
+
+def test_enrich_with_diarization_returns_processing_entry():
+    """Processing entry has expected stage, model, status, and timestamp."""
+    transcript = _make_transcript([(" hello", 1.0, 2.0)])
+    diarization = _make_diarization([(0.0, 3.0, "SPEAKER_00")])
+    _, entry = enrich_with_diarization(transcript, diarization)
+    assert entry["stage"] == "diarization_enrichment"
+    assert entry["model"] == MODEL
+    assert entry["status"] == "success"
+    assert "timestamp" in entry

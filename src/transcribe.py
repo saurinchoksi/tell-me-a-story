@@ -4,6 +4,18 @@ import mlx_whisper
 
 _SCHEMA_VERSION = "1.0.0"
 _GENERATOR_VERSION = "mlx-whisper-1.0"
+MODEL = "mlx-community/whisper-large-v3-mlx"
+
+
+def make_processing_entry(audio_hash: str, timestamp: str) -> dict:
+    """Build a processing entry for the transcription stage."""
+    return {
+        "stage": "transcription",
+        "model": MODEL,
+        "status": "success",
+        "audio_hash": audio_hash,
+        "timestamp": timestamp,
+    }
 
 
 def transcribe(audio_path: str, model: str = None) -> dict:

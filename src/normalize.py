@@ -2,8 +2,12 @@
 
 import json
 import re
-import subprocess
+import urllib.error
+import urllib.request
+from datetime import datetime, timezone
 
+
+MODEL = "qwen3:8b"
 
 DEFAULT_PROMPT = """This text is from a conversation about the Mahabharata epic. A child is pronouncing Sanskrit names phonetically, often with significant distortion.
 
@@ -20,38 +24,41 @@ Text:
 
 
 def _call_ollama(prompt: str, model: str, timeout: int) -> str:
-    """Call Ollama CLI and return stdout.
+    """Call Ollama REST API and return the response text.
 
     Args:
         prompt: Formatted prompt string
         model: Ollama model name
-        timeout: Subprocess timeout in seconds
+        timeout: Request timeout in seconds
 
     Returns:
-        Raw stdout string from ollama
+        Response text from Ollama
 
     Raises:
-        subprocess.TimeoutExpired: If ollama exceeds timeout
-        RuntimeError: If subprocess fails
+        TimeoutError: If the request exceeds timeout
+        RuntimeError: If the API call fails
     """
+    payload = json.dumps({
+        "model": model,
+        "prompt": prompt,
+        "stream": False,
+    }).encode()
+
+    req = urllib.request.Request(
+        "http://localhost:11434/api/generate",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+
     try:
-        result = subprocess.run(
-            ["ollama", "run", model, prompt],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-    except subprocess.TimeoutExpired:
-        raise
-    except Exception as e:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            body = json.loads(resp.read())
+    except urllib.error.URLError as e:
+        if isinstance(e.reason, TimeoutError):
+            raise TimeoutError(f"Ollama request timed out after {timeout}s") from e
         raise RuntimeError(f"Ollama call failed: {e}") from e
 
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"Ollama returned exit code {result.returncode}: {result.stderr[:500]}"
-        )
-
-    return result.stdout
+    return body["response"]
 
 
 def _parse_llm_corrections(response: str) -> list[dict]:
@@ -102,9 +109,9 @@ def _parse_llm_corrections(response: str) -> list[dict]:
 def llm_normalize(
     text: str,
     prompt: str = DEFAULT_PROMPT,
-    model: str = "qwen3:8b",
+    model: str = MODEL,
     timeout: int = 300,
-) -> list[dict]:
+) -> tuple[list[dict], dict]:
     """Identify phonetic mishearings in text using a local LLM.
 
     Sends the full text to a local Ollama model which returns corrections
@@ -114,17 +121,26 @@ def llm_normalize(
         text: Transcript text to analyze
         prompt: Prompt template with {text} placeholder
         model: Ollama model name
-        timeout: Subprocess timeout in seconds
+        timeout: Request timeout in seconds
 
     Returns:
-        List of correction dicts, each with 'transcribed' and 'correct' keys.
-        Returns [] if no mishearings found.
+        Tuple of (corrections, processing_entry).
+        corrections: List of dicts with 'transcribed' and 'correct' keys.
+        processing_entry: Dict with stage metadata (no corrections_applied —
+            pipeline adds that after apply_corrections).
 
     Raises:
-        subprocess.TimeoutExpired: If ollama exceeds timeout
-        RuntimeError: If ollama subprocess fails
+        TimeoutError: If ollama exceeds timeout
+        RuntimeError: If ollama call fails
         ValueError: If LLM response cannot be parsed
     """
     formatted = prompt.format(text=text)
     response = _call_ollama(formatted, model, timeout)
-    return _parse_llm_corrections(response)
+    corrections = _parse_llm_corrections(response)
+    entry = {
+        "stage": "llm_normalization",
+        "model": model,
+        "status": "success",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    return corrections, entry

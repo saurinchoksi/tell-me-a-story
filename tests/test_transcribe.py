@@ -5,10 +5,22 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from transcribe import transcribe, clean_transcript
+from transcribe import transcribe, clean_transcript, make_processing_entry, MODEL
 
 
 # --- Unit tests (fast, no model needed) ---
+
+
+# --- make_processing_entry tests ---
+
+def test_make_processing_entry():
+    """make_processing_entry returns dict with all expected keys."""
+    entry = make_processing_entry("sha256:abc123", "2026-01-01T00:00:00+00:00")
+    assert entry["stage"] == "transcription"
+    assert entry["model"] == MODEL
+    assert entry["status"] == "success"
+    assert entry["audio_hash"] == "sha256:abc123"
+    assert entry["timestamp"] == "2026-01-01T00:00:00+00:00"
 
 
 # --- clean_transcript tests ---

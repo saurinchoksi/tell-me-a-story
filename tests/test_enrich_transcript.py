@@ -37,7 +37,13 @@ def test_enrich_all_stages_succeed():
     transcript = copy.deepcopy(_CLEAN_TRANSCRIPT)
     diarization = copy.deepcopy(_FAKE_DIARIZATION)
 
-    with patch("pipeline.llm_normalize", return_value=[]) as mock_llm, \
+    llm_entry = {"stage": "llm_normalization", "model": "qwen3:8b",
+                 "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+    diar_entry = {"stage": "diarization_enrichment",
+                  "model": "pyannote/speaker-diarization-community-1",
+                  "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+
+    with patch("pipeline.llm_normalize", return_value=([], llm_entry)) as mock_llm, \
          patch("pipeline.extract_text", return_value="hello world"), \
          patch("pipeline.apply_corrections", side_effect=[
              (copy.deepcopy(transcript), 2),
@@ -46,7 +52,7 @@ def test_enrich_all_stages_succeed():
          patch("pipeline.load_library", return_value={"entries": []}), \
          patch("pipeline.build_variant_map", return_value={}), \
          patch("pipeline.normalize_variants", return_value=[]), \
-         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: t):
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)):
 
         result, processing, counts = enrich_transcript(
             transcript, diarization, verbose=False
@@ -56,6 +62,7 @@ def test_enrich_all_stages_succeed():
     assert processing[0]["stage"] == "llm_normalization"
     assert processing[0]["status"] == "success"
     assert "timestamp" in processing[0]
+    assert processing[0]["corrections_applied"] == 2
     assert processing[1]["stage"] == "dictionary_normalization"
     assert processing[1]["status"] == "success"
     assert "timestamp" in processing[1]
@@ -71,6 +78,10 @@ def test_enrich_llm_fails_others_continue():
     transcript = copy.deepcopy(_CLEAN_TRANSCRIPT)
     diarization = copy.deepcopy(_FAKE_DIARIZATION)
 
+    diar_entry = {"stage": "diarization_enrichment",
+                  "model": "pyannote/speaker-diarization-community-1",
+                  "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+
     with patch("pipeline.llm_normalize", side_effect=RuntimeError("Ollama down")), \
          patch("pipeline.extract_text", return_value="hello world"), \
          patch("pipeline.apply_corrections", return_value=(
@@ -79,7 +90,7 @@ def test_enrich_llm_fails_others_continue():
          patch("pipeline.load_library", return_value={"entries": []}), \
          patch("pipeline.build_variant_map", return_value={}), \
          patch("pipeline.normalize_variants", return_value=[]), \
-         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: t):
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)):
 
         result, processing, counts = enrich_transcript(
             transcript, diarization, verbose=False
@@ -105,7 +116,13 @@ def test_enrich_does_not_set_processing_on_transcript():
     transcript = copy.deepcopy(_CLEAN_TRANSCRIPT)
     diarization = copy.deepcopy(_FAKE_DIARIZATION)
 
-    with patch("pipeline.llm_normalize", return_value=[]), \
+    llm_entry = {"stage": "llm_normalization", "model": "qwen3:8b",
+                 "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+    diar_entry = {"stage": "diarization_enrichment",
+                  "model": "pyannote/speaker-diarization-community-1",
+                  "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+
+    with patch("pipeline.llm_normalize", return_value=([], llm_entry)), \
          patch("pipeline.extract_text", return_value="hello world"), \
          patch("pipeline.apply_corrections", side_effect=[
              (copy.deepcopy(transcript), 0),
@@ -114,7 +131,7 @@ def test_enrich_does_not_set_processing_on_transcript():
          patch("pipeline.load_library", return_value={"entries": []}), \
          patch("pipeline.build_variant_map", return_value={}), \
          patch("pipeline.normalize_variants", return_value=[]), \
-         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: t):
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)):
 
         result, processing, counts = enrich_transcript(
             transcript, diarization, verbose=False
