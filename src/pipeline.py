@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -187,6 +188,11 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
         raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
     session_id = Path(audio_path).parent.name
+    if not re.fullmatch(r"\d{8}-\d{6}", session_id):
+        raise ValueError(
+            f"Invalid session ID '{session_id}' — expected YYYYMMDD-HHMMSS format "
+            f"(from parent directory of {audio_path})"
+        )
 
     # Get audio info
     audio_info = get_audio_info(audio_path)

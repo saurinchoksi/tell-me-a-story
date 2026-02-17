@@ -159,7 +159,7 @@ def test_pipeline_both_normalizations_succeed():
                 return_value=(fake_transcript, enrichment_processing, {"llm_count": 5, "dict_count": 3})
             ),
         )
-        result = run_pipeline("/fake/session/audio.m4a", verbose=False)
+        result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
     assert len(processing) == 4
@@ -198,7 +198,7 @@ def test_pipeline_llm_fails_dictionary_continues():
                 return_value=(fake_transcript, enrichment_processing, {"llm_count": 0, "dict_count": 2})
             ),
         )
-        result = run_pipeline("/fake/session/audio.m4a", verbose=False)
+        result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
     assert len(processing) == 4
@@ -234,7 +234,7 @@ def test_pipeline_empty_corrections():
                 return_value=(copy.deepcopy(fake_transcript), enrichment_processing, {"llm_count": 0, "dict_count": 0})
             ),
         )
-        result = run_pipeline("/fake/session/audio.m4a", verbose=False)
+        result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
     assert len(processing) == 4
@@ -270,7 +270,7 @@ def test_pipeline_diarization_enrichment_succeeds():
                 return_value=(fake_transcript, enrichment_processing, {"llm_count": 0, "dict_count": 0})
             ),
         )
-        result = run_pipeline("/fake/session/audio.m4a", verbose=False)
+        result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
     assert len(processing) == 4
@@ -298,7 +298,7 @@ def test_pipeline_diarization_enrichment_fails_gracefully():
                 return_value=(fake_transcript, enrichment_processing, {"llm_count": 0, "dict_count": 0})
             ),
         )
-        result = run_pipeline("/fake/session/audio.m4a", verbose=False)
+        result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
     assert len(processing) == 4
@@ -311,3 +311,62 @@ def test_pipeline_diarization_enrichment_fails_gracefully():
     # Pipeline still returns valid result
     assert "transcript" in result
     assert "diarization" in result
+
+
+# --- session_id validation tests ---
+
+import pytest
+
+
+def test_pipeline_rejects_invalid_session_id():
+    """Non-YYYYMMDD-HHMMSS parent directory raises ValueError."""
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(stack)
+        with pytest.raises(ValueError, match="Invalid session ID 'random-folder'"):
+            run_pipeline("/fake/random-folder/audio.m4a", verbose=False)
+
+
+def test_pipeline_rejects_uuid_session_id():
+    """UUID-style directory name is not a valid session ID."""
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(stack)
+        with pytest.raises(ValueError, match="Invalid session ID"):
+            run_pipeline("/fake/a1b2c3d4-e5f6-7890-abcd-ef1234567890/audio.m4a", verbose=False)
+
+
+def test_pipeline_accepts_valid_session_id():
+    """Standard YYYYMMDD-HHMMSS session ID passes validation."""
+    fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)
+    enrichment_processing = [
+        {"stage": "llm_normalization", "model": "qwen3:8b", "status": "success", "corrections_applied": 0},
+        {"stage": "dictionary_normalization", "library": "data/mahabharata.json", "status": "success", "corrections_applied": 0},
+        {"stage": "diarization_enrichment", "model": "pyannote/speaker-diarization-community-1", "status": "success"},
+    ]
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            enrich_transcript=MagicMock(
+                return_value=(fake_transcript, enrichment_processing, {"llm_count": 0, "dict_count": 0})
+            ),
+        )
+        result = run_pipeline("/sessions/20260217-143000/audio.m4a", verbose=False)
+    assert result["session_id"] == "20260217-143000"
+
+
+def test_pipeline_accepts_zeroed_session_id():
+    """Test session 00000000-000000 passes validation."""
+    fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)
+    enrichment_processing = [
+        {"stage": "llm_normalization", "model": "qwen3:8b", "status": "success", "corrections_applied": 0},
+        {"stage": "dictionary_normalization", "library": "data/mahabharata.json", "status": "success", "corrections_applied": 0},
+        {"stage": "diarization_enrichment", "model": "pyannote/speaker-diarization-community-1", "status": "success"},
+    ]
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            enrich_transcript=MagicMock(
+                return_value=(fake_transcript, enrichment_processing, {"llm_count": 0, "dict_count": 0})
+            ),
+        )
+        result = run_pipeline("/sessions/00000000-000000/audio.m4a", verbose=False)
+    assert result["session_id"] == "00000000-000000"
