@@ -1,13 +1,11 @@
 """Tests for transcribe module."""
 
 import sys
-import os
-import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from transcribe import transcribe, save_transcript, clean_transcript
+from transcribe import transcribe, clean_transcript
 
 
 # --- Unit tests (fast, no model needed) ---
@@ -115,56 +113,6 @@ def test_clean_removes_garbage_segments():
     assert len(result["segments"]) == 1
     assert result["segments"][0]["text"] == " Hello"
 
-
-def test_save_transcript_creates_file():
-    """save_transcript should create a file with expected content."""
-    #Mock result dict matching what mlx_whisper returns
-    mock_result = {
-            "text": "Once upon a time there were five brothers.",
-            "segments": [
-                {"start": 0.0, "end": 2.5, "text": " Once upon a time"},
-                {"start": 2.5, "end": 5.0, "text": " there were five brothers."},
-            ]
-    }
-
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-        temp_path = f.name
-
-    try:
-        save_transcript(mock_result, temp_path)
-
-        with open(temp_path, 'r') as f:
-            content = f.read()
-
-        assert "--- TRANSCRIPT ---" in content
-        assert "Once upon a time there were five brothers." in content
-        assert "--- SEGMENTS ---" in content
-        assert "[   0.0 -    2.5]" in content
-        assert "[   2.5 -    5.0]" in content
-    finally:
-        os.unlink(temp_path)
-
-
-def test_save_transcript_handles_empty_segments():
-    """save_transcript should handle result with no segments."""
-    mock_result = {
-            "text": "",
-            "segments": []
-    }
-
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-        temp_path = f.name
-
-    try:
-        save_transcript(mock_result, temp_path)
-
-        with open(temp_path, 'r') as f:
-            content = f.read()
-
-        assert "--- TRANSCRIPT ---" in content
-        assert "--- SEGMENTS ---" in content
-    finally:
-        os.unlink(temp_path)
 
 
 # --- Inegration test (slow, runs actual model) ---

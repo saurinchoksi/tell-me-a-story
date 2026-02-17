@@ -95,35 +95,3 @@ def diarize(audio_path: str, pipeline: Pipeline = None, num_speakers: int = None
     finally:
         # Clean up temp file
         os.unlink(wav_path)
-
-
-def print_diarization(result: dict | list[dict]) -> None:
-    """Print diarization results in a readable format."""
-    # Handle both dict (new format) and list (legacy)
-    segments = result.get("segments", result) if isinstance(result, dict) else result
-    for seg in segments:
-        start = seg["start"]
-        end = seg["end"]
-        speaker = seg["speaker"]
-        print(f"[{start:6.1f} - {end:6.1f}] {speaker}")
-
-
-if __name__ == "__main__":
-    import sys
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Run speaker diarization on an audio file")
-    parser.add_argument("audio_file", help="Path to audio file")
-    parser.add_argument("--num-speakers", type=int, default=None,
-                       help="Hint for exact number of speakers (improves accuracy)")
-    args = parser.parse_args()
-    
-    print(f"Diarizing: {args.audio_file}")
-    if args.num_speakers:
-        print(f"Using num_speakers={args.num_speakers}")
-    print("First run will download the model (~1GB)...")
-    print()
-    
-    result = diarize(args.audio_file, num_speakers=args.num_speakers)
-    print_diarization(result)
-    print(f"\nFound {len(result['segments'])} segments")

@@ -8,8 +8,6 @@ skipped -- apply_corrections matches per-word only. Single-word matches like
 import copy
 import re
 
-_NORMALIZED_SCHEMA_VERSION = "1.1.0"
-
 # Punctuation that Whisper attaches to words (trailing only)
 _TRAILING_PUNCT = re.compile(r'^(.*?)([.,;:!?"\)\]\}\']+\.{0,3})$')
 _POSSESSIVE_S = re.compile(r"^(.+)(['\u2019]s)$")

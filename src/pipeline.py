@@ -3,19 +3,15 @@
 import argparse
 import hashlib
 import json
-import logging
 import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from transcribe import transcribe, clean_transcript, _SCHEMA_VERSION as TRANSCRIPT_SCHEMA
+from transcribe import transcribe, clean_transcript
 from diarize import diarize
-from query import assign_speakers, to_utterances, format_transcript
 from inspect_audio import get_audio_info
 from enrich import enrich_transcript
 from enrichment import _ENRICHED_SCHEMA_VERSION
-
-logger = logging.getLogger(__name__)
 
 
 def parse_args():
@@ -186,6 +182,8 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
 
 
 if __name__ == "__main__":
+    from query import to_utterances, format_transcript
+
     args = parse_args()
 
     result = run_pipeline(args.audio_file)
@@ -202,9 +200,14 @@ if __name__ == "__main__":
         manifest=result["manifest"],
     )
 
-    # Use query layer to display transcript
-    diarization_segments = result["diarization"]["segments"]
-    labeled_words = assign_speakers(result["transcript"], diarization_segments)
+    # Flatten enriched words and read speaker from _speaker.label
+    labeled_words = []
+    for seg in result["transcript"]["segments"]:
+        for word in seg.get("words", []):
+            labeled_words.append({
+                **word,
+                "speaker": word.get("_speaker", {}).get("label"),
+            })
     utterances = to_utterances(labeled_words)
 
     print("\n--- Speaker-labeled transcript ---\n")

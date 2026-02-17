@@ -1,107 +1,14 @@
 """Query layer for combining transcription and diarization data.
 
 This module reads computed artifacts and joins them on-demand.
-Uses bisect for O(log n) speaker lookup instead of linear scan.
 """
-
-import bisect
-from typing import Callable
-
-from filters import Predicate
-
-
-def build_speaker_index(segments: list[dict]) -> list[tuple[float, float, str]]:
-    """Build sorted index of (start, end, speaker) for bisect lookup.
-
-    Args:
-        segments: Diarization segments with 'start', 'end', 'speaker' keys
-
-    Returns:
-        List of (start, end, speaker) tuples sorted by start time
-    """
-    index = [(s["start"], s["end"], s["speaker"]) for s in segments]
-    index.sort(key=lambda x: x[0])
-    return index
-
-
-def find_speaker(midpoint: float, index: list[tuple[float, float, str]]) -> str | None:
-    """Find speaker for a timestamp using O(log n) bisect lookup.
-
-    Args:
-        midpoint: Timestamp to look up (typically word midpoint)
-        index: Sorted speaker index from build_speaker_index()
-
-    Returns:
-        Speaker label or None if timestamp falls in a gap
-    """
-    if not index:
-        return None
-
-    # Find rightmost segment that starts at or before midpoint
-    starts = [s[0] for s in index]
-    pos = bisect.bisect_right(starts, midpoint) - 1
-
-    if pos < 0:
-        return None  # Before first segment
-
-    start, end, speaker = index[pos]
-    if midpoint <= end:
-        return speaker
-    return None  # In a gap after this segment
-
-
-def assign_speakers(
-    transcript: dict,
-    diarization: list[dict],
-    word_filter: Predicate = None
-) -> list[dict]:
-    """Assign speakers to transcript words.
-
-    Args:
-        transcript: Transcript dict with 'segments' containing 'words'
-        diarization: List of diarization segments
-        word_filter: Optional predicate to filter words (default: None, no filtering)
-
-    Returns:
-        List of word dicts with 'speaker' field added
-    """
-    # No default filter - clean_transcript() removes garbage upstream
-
-    # Extract all words from transcript segments
-    all_words = []
-    for segment in transcript.get("segments", []):
-        all_words.extend(segment.get("words", []))
-
-    # Filter words if a filter is provided
-    if word_filter is not None:
-        words = [w for w in all_words if word_filter(w)]
-    else:
-        words = all_words
-
-    # Build speaker index for O(log n) lookup
-    index = build_speaker_index(diarization)
-
-    # Assign speakers by word midpoint
-    labeled = []
-    for word in words:
-        start = word.get("start", 0)
-        end = word.get("end", 0)
-        midpoint = (start + end) / 2
-        speaker = find_speaker(midpoint, index)
-
-        labeled.append({
-            **word,
-            "speaker": speaker
-        })
-
-    return labeled
 
 
 def to_utterances(labeled_words: list[dict]) -> list[dict]:
     """Convert labeled words to utterances, consolidating same-speaker runs.
 
     Args:
-        labeled_words: Words with 'speaker' field from assign_speakers()
+        labeled_words: Words with 'speaker' field
 
     Returns:
         List of utterance dicts with consolidated text and word arrays
