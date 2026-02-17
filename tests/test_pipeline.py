@@ -177,7 +177,6 @@ def test_pipeline_both_normalizations_succeed():
     assert processing[2]["status"] == "success"
     assert processing[2]["corrections_applied"] == 3
 
-    assert result["transcript"]["_schema_version"] == "1.2.0"
     assert "llm_count" not in result
     assert "dict_count" not in result
 

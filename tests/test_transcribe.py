@@ -75,8 +75,8 @@ def test_clean_keeps_normal_words():
     assert len(transcript["segments"][0]["words"]) == 4
 
 
-def test_clean_adds_schema_version():
-    """clean_transcript adds _schema_version to result."""
+def test_clean_adds_generator_version():
+    """clean_transcript adds _generator_version to result."""
     transcript = {
         "text": "Hello",
         "segments": [
@@ -86,13 +86,11 @@ def test_clean_adds_schema_version():
 
     result = clean_transcript(transcript)
 
-    assert "_schema_version" in result
-    assert result["_schema_version"] == "1.0.0"
     assert "_generator_version" in result
 
 
 def test_clean_empty_segments():
-    """Empty segments list returns empty result with schema version."""
+    """Empty segments list returns empty result."""
     transcript = {
         "text": "",
         "segments": []
@@ -101,7 +99,6 @@ def test_clean_empty_segments():
     result = clean_transcript(transcript)
 
     assert result["segments"] == []
-    assert "_schema_version" in result
 
 
 def test_clean_removes_garbage_segments():

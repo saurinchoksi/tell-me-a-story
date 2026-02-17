@@ -19,7 +19,6 @@ from pyannote.audio.pipelines.utils.hook import ProgressHook
 from pyannote.audio.core.task import Specifications, Problem, Resolution, Scope
 torch.serialization.add_safe_globals([Specifications, Problem, Resolution, Scope])
 
-_SCHEMA_VERSION = "1.0.0"
 _GENERATOR_VERSION = "pyannote-speaker-diarization-community-1"
 MODEL = "pyannote/speaker-diarization-community-1"
 
@@ -70,7 +69,7 @@ def diarize(audio_path: str, model: Pipeline = None, num_speakers: int = None) -
         num_speakers: Optional hint for exact number of speakers (improves accuracy)
 
     Returns:
-        Dict with '_schema_version', '_generator_version', and 'segments' keys.
+        Dict with '_generator_version' and 'segments' keys.
         Segments is a list of dicts with 'start', 'end', 'speaker' keys.
     """
     if model is None:
@@ -95,7 +94,6 @@ def diarize(audio_path: str, model: Pipeline = None, num_speakers: int = None) -
             })
         
         return {
-            "_schema_version": _SCHEMA_VERSION,
             "_generator_version": _GENERATOR_VERSION,
             "segments": segments
         }
@@ -107,9 +105,6 @@ def diarize(audio_path: str, model: Pipeline = None, num_speakers: int = None) -
 # ---------------------------------------------------------------------------
 # Diarization enrichment — apply speaker labels to transcript words
 # ---------------------------------------------------------------------------
-
-_ENRICHED_SCHEMA_VERSION = "1.2.0"
-
 
 def _compute_speaker_coverage(word_start, word_end, diar_segments):
     """Compute which speaker best covers a word's time range.
@@ -153,7 +148,7 @@ def enrich_with_diarization(transcript, diarization):
 
     Deep-copies the transcript, then assigns a _speaker dict to every word
     based on temporal overlap with diarization segments. Does not touch
-    _processing or _schema_version -- the pipeline handles those.
+    _processing — the pipeline handles that.
 
     Args:
         transcript: Whisper transcript dict with segments containing words.

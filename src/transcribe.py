@@ -2,7 +2,6 @@
 
 import mlx_whisper
 
-_SCHEMA_VERSION = "1.0.0"
 _GENERATOR_VERSION = "mlx-whisper-1.0"
 MODEL = "mlx-community/whisper-large-v3-mlx"
 
@@ -72,6 +71,5 @@ def clean_transcript(transcript: dict) -> dict:
 
     result = transcript.copy()
     result["segments"] = cleaned_segments
-    result["_schema_version"] = _SCHEMA_VERSION
     result["_generator_version"] = _GENERATOR_VERSION
     return result

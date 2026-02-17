@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from transcribe import transcribe, clean_transcript, MODEL as TRANSCRIPTION_MODEL, make_processing_entry as make_transcription_entry
-from diarize import diarize, enrich_with_diarization, _ENRICHED_SCHEMA_VERSION, MODEL as DIARIZATION_MODEL
+from diarize import diarize, enrich_with_diarization, MODEL as DIARIZATION_MODEL
 from mutagen import File as MutagenFile
 from normalize import llm_normalize, MODEL as LLM_MODEL
 from dictionary import load_library, build_variant_map, normalize_variants
@@ -32,8 +32,7 @@ def enrich_transcript(
     enrichment in sequence. Each stage is wrapped in try/except so
     failures are recorded but don't block subsequent stages.
 
-    Does NOT set _processing or _schema_version on the transcript —
-    the caller assembles those.
+    Does NOT set _processing on the transcript — the caller assembles that.
 
     Args:
         transcript: Whisper transcript dict with segments containing words.
@@ -219,7 +218,6 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     audio_hash = compute_file_hash(audio_path)
     processing = [make_transcription_entry(audio_hash, transcript_time)] + enrichment_processing
     transcript["_processing"] = processing
-    transcript["_schema_version"] = _ENRICHED_SCHEMA_VERSION
 
     return {
         "session_id": session_id,
@@ -343,7 +341,6 @@ if __name__ == "__main__":
 
         processing = [transcription_entry] + enrichment_processing
         transcript["_processing"] = processing
-        transcript["_schema_version"] = _ENRICHED_SCHEMA_VERSION
 
         # Save only the enriched transcript
         with open(os.path.join(session_dir, "transcript-rich.json"), "w") as f:

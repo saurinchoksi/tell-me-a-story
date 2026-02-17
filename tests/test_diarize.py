@@ -53,7 +53,6 @@ def test_diarize_returns_expected_structure():
     result = diarize("sessions/00000000-000000/audio.m4a")
 
     assert isinstance(result, dict)
-    assert "_schema_version" in result
     assert "_generator_version" in result
     assert "segments" in result
 
