@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from query import (
+from pipeline import (
     to_utterances,
     format_transcript,
 )

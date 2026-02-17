@@ -25,7 +25,7 @@ def get_session_paths(stem: str) -> dict:
     return {
         "session_dir": session_dir,
         "audio": session_dir / "audio.m4a",
-        "transcript": session_dir / "transcript.json",
+        "transcript": session_dir / "transcript-rich.json",
         "notes": session_dir / "validation-notes.json",
     }
 

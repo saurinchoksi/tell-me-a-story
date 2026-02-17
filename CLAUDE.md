@@ -24,10 +24,12 @@ source venv/bin/activate
 # Run full pipeline (transcribes, diarizes, saves JSON)
 python src/pipeline.py sessions/<session-id>/audio.m4a
 
+# Re-enrich existing session (skips transcription/diarization)
+python src/pipeline.py --re-enrich sessions/<session-id>
+
 # Run individual modules
 python src/transcribe.py <audio_file>
 python src/diarize.py <audio_file>
-python src/enrich.py sessions/<session-id>  # Re-enrich existing session
 
 # Tests
 pytest                    # All tests
@@ -45,20 +47,18 @@ Audio flows through stages:
 
 2. **diarize.py** — Pyannote identifies speaker segments (converts to 16kHz WAV via ffmpeg)
 
-3. **enrich.py** — Orchestrates three enrichment passes on the transcript:
-   - **LLM normalization** (`normalize.py`) — Ollama/Qwen3 corrects phonetic mishearings of Sanskrit names
-   - **Dictionary normalization** (`dictionary.py`) — Reference library corrects known variant spellings
-   - **Diarization enrichment** (`enrichment.py`) — Adds `_speaker` labels to each word by temporal overlap
-   - Corrections are applied via `corrections.py`, which preserves `_original` and `_corrections` audit trails
-
-4. **query.py** — Read-time layer that joins transcript + diarization on demand
-   - `assign_speakers()` — O(log n) bisect lookup for speaker assignment
-   - `to_utterances()` — consolidates same-speaker word runs
-   - Accepts filter predicates from `filters.py` (silence gap, near-zero probability, duplicates)
-
-5. **pipeline.py** — Orchestrates all stages:
+3. **pipeline.py** — Orchestrates all stages:
    - `run_pipeline()` — runs transcription, diarization, enrichment
-   - `save_computed()` — writes JSON artifacts to `sessions/{session-id}/`
+   - `enrich_transcript()` — runs three enrichment passes:
+     - **LLM normalization** (`normalize.py`) — Ollama/Qwen3 corrects phonetic mishearings of Sanskrit names
+     - **Dictionary normalization** (`dictionary.py`) — Reference library corrects known variant spellings
+     - **Diarization enrichment** (`diarize.py`) — Adds `_speaker` labels to each word by temporal overlap
+     - Corrections are applied via `corrections.py`, which preserves `_original` and `_corrections` audit trails
+   - `save_computed()` — writes `transcript-raw.json`, `transcript-rich.json`, `diarization.json`
+   - `to_utterances()` — consolidates same-speaker word runs into utterances
+   - `format_transcript()` — renders utterances as `SPEAKER: text` lines
+   - `--re-enrich` — re-enriches from `transcript-raw.json` without re-transcribing
+   - Accepts filter predicates from `filters.py` (silence gap, near-zero probability, duplicates)
 
 ## Hallucination Handling
 
@@ -81,11 +81,10 @@ Each session is stored at `sessions/{session-id}/`:
 ```
 sessions/00000000-000000/
   audio.m4a
-  audio-info.json
-  transcript.json
+  transcript-raw.json
+  transcript-rich.json
   diarization.json
   validation-notes.json
-  manifest.json
 ```
 
 Simple type names. The folder provides session context, so IDs in filenames are redundant.

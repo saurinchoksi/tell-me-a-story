@@ -6,7 +6,7 @@ from pathlib import Path
 # Add src to path so we can import our module
 sys.path.insert(0, str(Path(__file__).parent.parent / "src" ))
 
-from inspect_audio import get_audio_info
+from pipeline import get_audio_info
 
 
 def test_get_audio_info_returns_dict_for_valid_file():

@@ -1,16 +1,149 @@
 """Run the full transcription pipeline and save computed artifacts."""
 
+import copy
 import hashlib
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from pathlib import Path
 
 from transcribe import transcribe, clean_transcript
-from diarize import diarize
-from inspect_audio import get_audio_info
-from enrich import enrich_transcript
-from enrichment import _ENRICHED_SCHEMA_VERSION
+from diarize import diarize, enrich_with_diarization, _ENRICHED_SCHEMA_VERSION
+from mutagen import File as MutagenFile
+from normalize import llm_normalize
+from dictionary import load_library, build_variant_map, normalize_variants
+from corrections import extract_text, apply_corrections
+
+_DEFAULT_LIBRARY_PATH = str(Path(__file__).parent.parent / "data" / "mahabharata.json")
+_LLM_MODEL = "qwen3:8b"
+_DIARIZATION_MODEL = "pyannote/speaker-diarization-community-1"
+
+logger = logging.getLogger(__name__)
+
+
+def enrich_transcript(
+    transcript: dict,
+    diarization: dict,
+    library_path: str = None,
+    verbose: bool = True,
+) -> tuple[dict, list[dict], dict]:
+    """Run all enrichment stages on a transcript.
+
+    Runs LLM normalization, dictionary normalization, and diarization
+    enrichment in sequence. Each stage is wrapped in try/except so
+    failures are recorded but don't block subsequent stages.
+
+    Does NOT set _processing or _schema_version on the transcript —
+    the caller assembles those.
+
+    Args:
+        transcript: Whisper transcript dict with segments containing words.
+        diarization: Diarization result dict with a 'segments' list.
+        library_path: Path to dictionary library JSON (defaults to data/mahabharata.json).
+        verbose: Log progress messages.
+
+    Returns:
+        Tuple of (enriched_transcript, processing_entries, counts_dict).
+        processing_entries: list of stage dicts for _processing.
+        counts_dict: {"llm_count": N, "dict_count": M}.
+    """
+    processing = []
+    llm_count = 0
+    dict_count = 0
+
+    # Pass 1: LLM normalization
+    try:
+        text = extract_text(transcript)
+        llm_corrections = llm_normalize(text, model=_LLM_MODEL)
+        transcript, llm_count = apply_corrections(transcript, llm_corrections, "llm")
+        processing.append({
+            "stage": "llm_normalization",
+            "model": _LLM_MODEL,
+            "status": "success",
+            "corrections_applied": llm_count,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        if verbose:
+            logger.info(f"LLM normalization: {llm_count} corrections applied")
+    except Exception as e:
+        logger.warning(f"LLM normalization failed: {e}")
+        processing.append({
+            "stage": "llm_normalization",
+            "model": _LLM_MODEL,
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+
+    # Pass 2: Dictionary normalization
+    lib_path = library_path or _DEFAULT_LIBRARY_PATH
+    try:
+        library = load_library(lib_path)
+        variant_map = build_variant_map(library)
+        text = extract_text(transcript)
+        dict_corrections = normalize_variants(text, variant_map)
+        transcript, dict_count = apply_corrections(transcript, dict_corrections, "dictionary")
+        processing.append({
+            "stage": "dictionary_normalization",
+            "library": lib_path,
+            "status": "success",
+            "corrections_applied": dict_count,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        if verbose:
+            logger.info(f"Dictionary normalization: {dict_count} corrections applied")
+    except Exception as e:
+        logger.warning(f"Dictionary normalization failed: {e}")
+        processing.append({
+            "stage": "dictionary_normalization",
+            "library": lib_path,
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+
+    # Pass 3: Diarization enrichment
+    try:
+        transcript = enrich_with_diarization(transcript, diarization)
+        processing.append({
+            "stage": "diarization_enrichment",
+            "model": _DIARIZATION_MODEL,
+            "status": "success",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+    except Exception as e:
+        logger.warning(f"Diarization enrichment failed: {e}")
+        processing.append({
+            "stage": "diarization_enrichment",
+            "model": _DIARIZATION_MODEL,
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+
+    return transcript, processing, {"llm_count": llm_count, "dict_count": dict_count}
+
+
+def get_audio_info(filepath: str) -> dict | None:
+    """Return basic properties of an audio file, or None if unreadable."""
+    path = Path(filepath)
+
+    if not path.exists():
+        return None
+
+    audio = MutagenFile(path)
+
+    if audio is None:
+        return None
+
+    return {
+        "filename": path.name,
+        "format": type(audio).__name__,
+        "duration_seconds": audio.info.length,
+        "sample_rate": audio.info.sample_rate,
+        "channels": audio.info.channels,
+    }
 
 
 def compute_file_hash(file_path: str) -> str:
@@ -22,84 +155,34 @@ def compute_file_hash(file_path: str) -> str:
     return f"sha256:{sha256.hexdigest()}"
 
 
-def create_manifest(
-    session_id: str,
-    audio_path: str,
-    transcript_model: str,
-    transcript_time: str,
-    diarization_model: str,
-    diarization_time: str,
-) -> dict:
-    """Create a session manifest with model versions and timestamps.
-
-    Args:
-        session_id: Unique session identifier
-        audio_path: Path to audio file
-        transcript_model: Model used for transcription
-        transcript_time: ISO timestamp of transcription
-        diarization_model: Model used for diarization
-        diarization_time: ISO timestamp of diarization
-
-    Returns:
-        Manifest dict for JSON serialization.
-    """
-    return {
-        "_schema_version": "1.0.0",
-        "session_id": session_id,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "source": {
-            "audio_file": Path(audio_path).name,
-            "audio_hash": compute_file_hash(audio_path),
-        },
-        "computed": {
-            "transcript": {
-                "file": "transcript.json",
-                "model": transcript_model,
-                "created_at": transcript_time,
-            },
-            "diarization": {
-                "file": "diarization.json",
-                "model": diarization_model,
-                "created_at": diarization_time,
-            },
-        },
-    }
-
-
-def save_computed(session_dir: str, audio_info: dict, transcript: dict, diarization: dict, manifest: dict) -> None:
+def save_computed(session_dir: str, transcript_raw: dict, transcript: dict, diarization: dict) -> None:
     """Save computed artifacts to session directory.
 
     Creates:
         {session_dir}/
-            audio-info.json
-            transcript.json
+            transcript-raw.json
+            transcript-rich.json
             diarization.json
-            manifest.json
 
     Args:
         session_dir: Path to session directory
-        audio_info: Audio metadata from get_audio_info()
-        transcript: Cleaned transcript from clean_transcript()
+        transcript_raw: Clean Whisper output before enrichment (immutable)
+        transcript: Enriched transcript with corrections, speakers, and audio info
         diarization: Diarization result from diarize()
-        manifest: Session manifest from create_manifest()
     """
     os.makedirs(session_dir, exist_ok=True)
 
-    # Save audio info
-    with open(os.path.join(session_dir, "audio-info.json"), "w") as f:
-        json.dump(audio_info, f, indent=2)
+    # Save raw transcript (pre-enrichment snapshot)
+    with open(os.path.join(session_dir, "transcript-raw.json"), "w") as f:
+        json.dump(transcript_raw, f, indent=2)
 
-    # Save transcript
-    with open(os.path.join(session_dir, "transcript.json"), "w") as f:
+    # Save enriched transcript
+    with open(os.path.join(session_dir, "transcript-rich.json"), "w") as f:
         json.dump(transcript, f, indent=2)
 
     # Save diarization
     with open(os.path.join(session_dir, "diarization.json"), "w") as f:
         json.dump(diarization, f, indent=2)
-
-    # Save manifest at session root
-    with open(os.path.join(session_dir, "manifest.json"), "w") as f:
-        json.dump(manifest, f, indent=2)
 
 
 def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None) -> dict:
@@ -111,7 +194,7 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
         library_path: Path to dictionary library JSON (defaults to data/mahabharata.json)
 
     Returns:
-        Dict with 'audio_info', 'transcript', 'diarization', 'manifest' keys.
+        Dict with 'transcript_raw', 'transcript', 'diarization' keys.
     """
     if not os.path.exists(audio_path):
         raise FileNotFoundError(f"Audio file not found: {audio_path}")
@@ -130,89 +213,196 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     transcript_time = datetime.now(timezone.utc).isoformat()
     raw_transcript = transcribe(audio_path, model=model)
     transcript = clean_transcript(raw_transcript)
+    transcript_raw = copy.deepcopy(transcript)
 
     # Diarization
     if verbose:
         print("\nDiarizing (this takes a few minutes)...")
 
-    diarization_time = datetime.now(timezone.utc).isoformat()
     diarization = diarize(audio_path)
-    diarization_model = "pyannote/speaker-diarization-community-1"
 
     # Enrichment (normalization + diarization)
     transcript, enrichment_processing, _ = enrich_transcript(
         transcript, diarization, library_path=library_path, verbose=verbose
     )
 
+    # Fold audio info into enriched transcript
+    transcript["audio"] = audio_info
+
+    audio_hash = compute_file_hash(audio_path)
     processing = [
-        {"stage": "transcription", "model": model, "status": "success"}
+        {"stage": "transcription", "model": model, "status": "success",
+         "audio_hash": audio_hash, "timestamp": transcript_time}
     ] + enrichment_processing
     transcript["_processing"] = processing
     transcript["_schema_version"] = _ENRICHED_SCHEMA_VERSION
 
-    # Create manifest
-    manifest = create_manifest(
-        session_id=session_id,
-        audio_path=audio_path,
-        transcript_model=model,
-        transcript_time=transcript_time,
-        diarization_model=diarization_model,
-        diarization_time=diarization_time,
-    )
-
     return {
         "session_id": session_id,
-        "audio_info": audio_info,
+        "transcript_raw": transcript_raw,
         "transcript": transcript,
         "diarization": diarization,
-        "manifest": manifest,
     }
+
+
+def to_utterances(labeled_words: list[dict]) -> list[dict]:
+    """Convert labeled words to utterances, consolidating same-speaker runs.
+
+    Args:
+        labeled_words: Words with 'speaker' field
+
+    Returns:
+        List of utterance dicts with consolidated text and word arrays
+    """
+    if not labeled_words:
+        return []
+
+    utterances = []
+    current = None
+
+    for word in labeled_words:
+        speaker = word.get("speaker")
+        text = word.get("word", "").strip()
+
+        # Start new utterance if speaker changes (or first word)
+        # Also start new if current speaker is None (don't consolidate unknowns)
+        if current is None or speaker != current["speaker"] or current["speaker"] is None:
+            if current is not None:
+                utterances.append(current)
+            current = {
+                "speaker": speaker,
+                "start": word.get("start", 0),
+                "end": word.get("end", 0),
+                "text": text,
+                "words": [word]
+            }
+        else:
+            # Same speaker - extend current utterance
+            current["end"] = word.get("end", current["end"])
+            current["text"] = f"{current['text']} {text}"
+            current["words"].append(word)
+
+    # Don't forget the last utterance
+    if current is not None:
+        utterances.append(current)
+
+    return utterances
+
+
+def format_transcript(utterances: list[dict]) -> str:
+    """Format utterances as human-readable transcript.
+
+    Args:
+        utterances: List of utterance dicts from to_utterances()
+
+    Returns:
+        Formatted string with "SPEAKER: text" lines
+    """
+    lines = []
+    for utt in utterances:
+        speaker = utt.get("speaker") or "UNKNOWN"
+        text = utt.get("text", "")
+        lines.append(f"{speaker}: {text}")
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":
     import argparse
-    from query import to_utterances, format_transcript
+
+    logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="Run transcription pipeline")
-    parser.add_argument("audio_file", help="Path to audio file")
+    parser.add_argument("path", help="Path to audio file, or session directory with --re-enrich")
+    parser.add_argument("--re-enrich", action="store_true",
+                        help="Re-enrich an existing session from transcript-raw.json")
+    parser.add_argument("--library", default=None,
+                        help="Path to dictionary library JSON")
     args = parser.parse_args()
 
-    result = run_pipeline(args.audio_file)
+    if args.re_enrich:
+        # Re-enrich mode: load raw transcript + diarization, skip transcription
+        session_dir = args.path
+        raw_path = os.path.join(session_dir, "transcript-raw.json")
+        diarization_path = os.path.join(session_dir, "diarization.json")
 
-    session_id = result["session_id"]
-    session_dir = f"sessions/{session_id}"
+        if not os.path.exists(raw_path):
+            raise FileNotFoundError(f"No transcript-raw.json in {session_dir}")
+        if not os.path.exists(diarization_path):
+            raise FileNotFoundError(f"No diarization.json in {session_dir}")
 
-    # Save computed artifacts
-    save_computed(
-        session_dir=session_dir,
-        audio_info=result["audio_info"],
-        transcript=result["transcript"],
-        diarization=result["diarization"],
-        manifest=result["manifest"],
-    )
+        with open(raw_path) as f:
+            transcript_raw = json.load(f)
+        with open(diarization_path) as f:
+            diarization = json.load(f)
 
-    # Flatten enriched words and read speaker from _speaker.label
-    labeled_words = []
-    for seg in result["transcript"]["segments"]:
-        for word in seg.get("words", []):
-            labeled_words.append({
-                **word,
-                "speaker": word.get("_speaker", {}).get("label"),
-            })
-    utterances = to_utterances(labeled_words)
+        # Deep-copy raw so enrichment doesn't mutate it
+        transcript = copy.deepcopy(transcript_raw)
 
-    print("\n--- Speaker-labeled transcript ---\n")
-    print(format_transcript(utterances))
+        print("Running enrichment stages...")
+        transcript, enrichment_processing, counts = enrich_transcript(
+            transcript, diarization, library_path=args.library
+        )
 
-    print(f"\nSaved session to: {session_dir}/")
-    print(f"  manifest.json")
-    print(f"  audio-info.json")
-    print(f"  transcript.json")
-    print(f"  diarization.json")
+        # Build transcription stub from raw's generator version
+        transcription_entry = {
+            "stage": "transcription",
+            "model": transcript_raw.get("_generator_version", "unknown"),
+            "status": "prior_run",
+        }
 
-    processing = result["transcript"]["_processing"]
-    for entry in processing:
-        if entry["stage"] == "llm_normalization":
-            print(f"\nLLM Normalization: {entry.get('corrections_applied', 0)} corrections")
-        elif entry["stage"] == "dictionary_normalization":
-            print(f"Dictionary Normalization: {entry.get('corrections_applied', 0)} corrections")
+        # Fold audio info if audio file exists
+        audio_path = os.path.join(session_dir, "audio.m4a")
+        if os.path.exists(audio_path):
+            audio_info = get_audio_info(audio_path)
+            transcript["audio"] = audio_info
+            transcription_entry["audio_hash"] = compute_file_hash(audio_path)
+
+        processing = [transcription_entry] + enrichment_processing
+        transcript["_processing"] = processing
+        transcript["_schema_version"] = _ENRICHED_SCHEMA_VERSION
+
+        # Save only the enriched transcript
+        with open(os.path.join(session_dir, "transcript-rich.json"), "w") as f:
+            json.dump(transcript, f, indent=2)
+
+        print(f"\nSaved to: {session_dir}/transcript-rich.json")
+        print(f"  LLM corrections: {counts['llm_count']}")
+        print(f"  Dictionary corrections: {counts['dict_count']}")
+    else:
+        # Full pipeline mode
+        result = run_pipeline(args.path, library_path=args.library)
+
+        session_id = result["session_id"]
+        session_dir = f"sessions/{session_id}"
+
+        save_computed(
+            session_dir=session_dir,
+            transcript_raw=result["transcript_raw"],
+            transcript=result["transcript"],
+            diarization=result["diarization"],
+        )
+
+        # Flatten enriched words and read speaker from _speaker.label
+        labeled_words = []
+        for seg in result["transcript"]["segments"]:
+            for word in seg.get("words", []):
+                labeled_words.append({
+                    **word,
+                    "speaker": word.get("_speaker", {}).get("label"),
+                })
+        utterances = to_utterances(labeled_words)
+
+        print("\n--- Speaker-labeled transcript ---\n")
+        print(format_transcript(utterances))
+
+        print(f"\nSaved session to: {session_dir}/")
+        print(f"  transcript-raw.json")
+        print(f"  transcript-rich.json")
+        print(f"  diarization.json")
+
+        processing = result["transcript"]["_processing"]
+        for entry in processing:
+            if entry["stage"] == "llm_normalization":
+                print(f"\nLLM Normalization: {entry.get('corrections_applied', 0)} corrections")
+            elif entry["stage"] == "dictionary_normalization":
+                print(f"Dictionary Normalization: {entry.get('corrections_applied', 0)} corrections")

@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-02-17 — Three artifacts, not five: session folder redesign
+
+**What:** Completed Waves 2-3 of codebase cleanup (renames + small refactors), then worked through all four design questions from the architecture walkthrough. Three decided, one deferred.
+**Result:** Session folder simplified from 5 files to 3 artifacts + audio. Tests: 116 → 85 across all waves. `transcript-raw.json` (immutable Whisper output), `diarization.json` (unchanged), `transcript-rich.json` (enriched with corrections, speakers, audio info). `manifest.json`, `audio-info.json` eliminated. `strip_enrichments()`, `create_manifest()`, enrich.py CLI all deleted. `--re-enrich` flag added to pipeline.py. SYNC fully processed.
+**Decided:** (1) Save raw transcript separately — never destroy the honest Whisper record. (2) Kill manifest — fold audio hash into `_processing`, one provenance location. (3) Kill enrich.py CLI — one entry point via pipeline.py. (4) Content separation deferred — Mahabharata defaults are overridable params, extract when second domain appears.
+**Learned:** "Rich transcript" is actual speech processing terminology (NIST Rich Transcription evaluations) — exactly describes combining ASR + diarization + metadata into one artifact.
+
 ## 2026-02-10 — Sub-agent removal and codebase hygiene
 
 **What:** Full codebase review flagged sub-agent architecture (code-reviewer, coder-agent, go.md orchestrator) as solving a problem the project doesn't have. Deleted agent files and orchestration commands. Removed "Use subagents liberally" from SYNC.md. Also removed dead code from `inspect_audio.py`, updated CLAUDE.md to reflect current architecture, rebuilt contaminated venv.
