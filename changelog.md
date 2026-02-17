@@ -4,6 +4,15 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-02-10 — Sub-agent removal and codebase hygiene
+
+**What:** Full codebase review flagged sub-agent architecture (code-reviewer, coder-agent, go.md orchestrator) as solving a problem the project doesn't have. Deleted agent files and orchestration commands. Removed "Use subagents liberally" from SYNC.md. Also removed dead code from `inspect_audio.py`, updated CLAUDE.md to reflect current architecture, rebuilt contaminated venv.
+**Result:** 116 tests passing on clean venv. CLAUDE.md now accurately documents enrichment pipeline, query layer, filters. `requirements-lock.txt` created.
+**Decided:** Sub-agents don't fit a 14-file project — code review in the same session that wrote the code has full context. Experiments get their own venv to prevent dependency contamination. Before adopting any new practice, ask "does my project actually have this problem?"
+**Learned:** Experiment dependencies (clearvoice, opencv) silently upgraded torchaudio to 2.9.1, breaking speechbrain's `list_audio_backends()`. Unpinned `requirements.txt` allowed it. Perfectionism tendency: if a practice sounds smart and aligns with mental model, default is to implement at full fidelity regardless of fit.
+
+---
+
 ## 2026-02-09 — Workflow Revision for Opus 4.6
 
 **What:** Audited entire workflow against new Opus 4.6 capabilities (adaptive thinking, compaction, project memory, past chats search). Migrated 29 journal files to single changelog. Rewrote project instructions — identity sections aligned with website, operational sections stripped to essentials.

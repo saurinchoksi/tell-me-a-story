@@ -25,3 +25,7 @@ CLAUDE.md*.swp
 # Validation notes (personal)
 tools/transcript_validator/notes/
 checkpoints/
+
+# Experiments (scripts run locally, results are generated output)
+experiments/
+
