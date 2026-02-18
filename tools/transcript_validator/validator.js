@@ -185,6 +185,26 @@ function segmentHasNotes(segmentId) {
   return state.notes.some(n => n.segmentId === segmentId);
 }
 
+// Compute dominant speaker for a segment by word count (most common label wins).
+// Returns 'SPEAKER_00', 'SPEAKER_01', or 'unknown' on tie/all-null.
+function getDominantSpeaker(segment) {
+  const counts = {};
+  for (const word of (segment.words || [])) {
+    const label = word._speaker?.label;
+    if (label) counts[label] = (counts[label] || 0) + 1;
+  }
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (entries.length === 0) return 'unknown';
+  if (entries.length > 1 && entries[0][1] === entries[1][1]) return 'unknown';
+  return entries[0][0];
+}
+
+function getSpeakerClass(label) {
+  if (label === 'SPEAKER_00') return 'speaker-00';
+  if (label === 'SPEAKER_01') return 'speaker-01';
+  return 'speaker-unknown';
+}
+
 // Render segments
 function renderSegments() {
   if (!state.segments || state.segments.length === 0) {
@@ -205,10 +225,14 @@ function renderSegments() {
     const hasHighComp = segment.compression_ratio > 2.5;
     const hasNotes = segmentHasNotes(segment.id);
 
+    const dominantSpeaker = getDominantSpeaker(segment);
+    const speakerClass = getSpeakerClass(dominantSpeaker);
+
     const badges = [];
     if (hasHighTemp) badges.push('<span class="badge badge-temp">temp=1.0</span>');
     if (hasHighComp) badges.push('<span class="badge badge-comp">high comp</span>');
     if (hasNotes) badges.push('<span class="badge badge-note">note</span>');
+    badges.push(`<span class="badge badge-speaker-${speakerClass}">${dominantSpeaker}</span>`);
 
     const filterReasons = getFilterReasons(segment, state._cachedDuplicateIds);
     const isFiltered = filterReasons.length > 0;
@@ -216,13 +240,19 @@ function renderSegments() {
 
     const words = (segment.words || []).map((word, wordIndex) => {
       const probClass = getWordProbabilityClass(word.probability || 0);
+      const wordLabel = word._speaker?.label ?? null;
+      // Mismatch: label differs from dominant, but skip when both are unknown (null label in unknown-dominant segment)
+      const isMismatch = wordLabel !== dominantSpeaker && !(wordLabel === null && dominantSpeaker === 'unknown');
+      const mismatchClass = isMismatch ? ' speaker-mismatch' : '';
       const duration = ((word.end || 0) - (word.start || 0)).toFixed(3);
-      const tooltip = `prob: ${(word.probability || 0).toFixed(2)} | ${word.start?.toFixed(2)}s → ${word.end?.toFixed(2)}s | dur: ${duration}s`;
-      return `<span class="word ${probClass}" data-segment="${index}" data-word="${wordIndex}" data-start="${word.start}" data-tooltip="${tooltip}">${escapeHtml(word.word)}</span>`;
+      const speakerLabel = wordLabel ?? 'no speaker';
+      const speakerCoverage = (word._speaker?.coverage ?? 0).toFixed(2);
+      const tooltip = `prob: ${(word.probability || 0).toFixed(2)} | ${word.start?.toFixed(2)}s → ${word.end?.toFixed(2)}s | dur: ${duration}s | ${speakerLabel} (${speakerCoverage})`;
+      return `<span class="word ${probClass}${mismatchClass}" data-segment="${index}" data-word="${wordIndex}" data-start="${word.start}" data-tooltip="${tooltip}">${escapeHtml(word.word)}</span>`;
     }).join(' ');
 
     return `
-      <div class="segment-card${isFiltered ? ' filtered' : ''}" data-segment="${index}" id="segment-${index}" style="animation-delay: ${index * 0.03}s">
+      <div class="segment-card${isFiltered ? ' filtered' : ''} ${speakerClass}" data-segment="${index}" id="segment-${index}" style="animation-delay: ${index * 0.03}s">
         <div class="segment-header" data-start="${segment.start}">
           <span class="segment-id">Segment ${segment.id ?? index}</span>
           <span class="segment-time">${segment.start.toFixed(2)}s - ${segment.end.toFixed(2)}s</span>

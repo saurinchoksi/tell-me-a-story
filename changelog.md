@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-02-18 — Pipeline becomes fully self-contained: Ollama out, MLX-LM in
+
+**What:** Replaced Ollama (external inference server) with mlx-lm (Python library) for LLM normalization. Evaluated 4 model variants × 2 sessions in `experiments/mlx_lm_eval/`, then swapped production code.
+**Result:** `mlx-community/Qwen3-8B-8bit` with `/no_think` — same 5 corrections per session as Ollama, 15-24s inference, 8300MB load → 0MB unload. All 95 tests pass. Every pipeline stage is now a Python library: import, call, done.
+**Decided:** (1) 8-bit over 4-bit — comparable quality but slightly better on ambiguous Sanskrit phonetics, memory fits fine running sequentially on M1 16GB. (2) No-think over thinking mode — thinking caused a 186s infinite loop on session 000003 ("Wait, the user says 'Dhrashtra'... Wait..."), zero output. Chain-of-thought adds nothing to mechanical name correction. (3) Eval before swap — experiments folder, no production code touched until data confirmed the decision.
+**Learned:** Ollama's client-server architecture was solving a problem the pipeline doesn't have (multi-user inference). The mismatch showed up as a silent failure mode — the kind of thing calm technology can't tolerate. MLX-LM treats the model the same way the pipeline treats Whisper and pyannote: load, use, unload. Also: Qwen3 emits empty `<think></think>` tags even when told not to think. And raw prompt injection made the model continue the bedtime story instead of analyzing it — chat template is mandatory.
+
 ## 2026-02-17 — 12 files become 8, and modules own their identity
 
 **What:** Wave 4 completed: file consolidation (12 → 8 src files) + targeted fixes. README rewritten.
