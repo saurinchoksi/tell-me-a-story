@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-02-18 — Diarization becomes visible: speaker indicators in validator
+
+**What:** Added speaker visualization to transcript validator (Code delivered core, Desktop fixed bugs + added always-visible filter badges and badge layout). Also decoupled filter badge display from filter toggle state.
+**Result:** Segment cards show speaker-colored left borders (blue/berry), speaker badges, wavy underlines on word-level mismatches, and extended tooltips with speaker + coverage. Filter badges (silence gap, near-zero, duplicate) now always visible — toggles only control dimming.
+**Decided:** (1) Full-opacity speaker colors on default border state — 15% opacity invisible on 3px. (2) Always-visible filter badges — you should see what a segment *is* before deciding to filter it. (3) Two-row badge layout — speaker always rightmost top, filter badges right-aligned underneath.
+**Learned:** CSS cascade from parent card class drives wavy underline color with zero per-word JS — elegant and extensible. Code's `getSpeakerClass()` returning `speaker-00` meant badge class `badge-speaker-${speakerClass}` doubled the prefix. Visual verification caught 3 bugs that unit tests wouldn't — border opacity, class naming, badge visibility are all rendering concerns.
+
 ## 2026-02-18 — Pipeline becomes fully self-contained: Ollama out, MLX-LM in
 
 **What:** Replaced Ollama (external inference server) with mlx-lm (Python library) for LLM normalization. Evaluated 4 model variants × 2 sessions in `experiments/mlx_lm_eval/`, then swapped production code.

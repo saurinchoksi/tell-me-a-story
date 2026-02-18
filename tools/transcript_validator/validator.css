@@ -343,8 +343,8 @@ body.notes-panel-open #segments {
 
 /* Speaker-colored left borders — placed after .filtered rules so they take precedence
    (equal specificity, last-wins), letting speaker identity show through on filtered cards */
-.segment-card.speaker-00 { border-left-color: var(--speaker-00-bg); }
-.segment-card.speaker-01 { border-left-color: var(--speaker-01-bg); }
+.segment-card.speaker-00 { border-left-color: var(--speaker-00); }
+.segment-card.speaker-01 { border-left-color: var(--speaker-01); }
 .segment-card.speaker-unknown { border-left-color: var(--text-tertiary); }
 
 .segment-card.speaker-00:hover,
@@ -383,8 +383,16 @@ body.notes-panel-open #segments {
 
 .segment-badges {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
   margin-left: auto;
+}
+
+.badges-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
 
 .badge {

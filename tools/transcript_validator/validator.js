@@ -60,6 +60,15 @@ function getFilterReasons(segment, duplicateIds) {
   return reasons;
 }
 
+// Always returns matching filters regardless of toggle state (for badge display)
+function getAllFilterReasons(segment, duplicateIds) {
+  const reasons = [];
+  if (isSilenceGap(segment)) reasons.push('silence-gap');
+  if (isNearZeroProbability(segment)) reasons.push('near-zero');
+  if (duplicateIds.has(segment.id)) reasons.push('duplicate');
+  return reasons;
+}
+
 // DOM elements
 const sessionSelect = document.getElementById('session-select');
 const segmentsContainer = document.getElementById('segments');
@@ -228,15 +237,24 @@ function renderSegments() {
     const dominantSpeaker = getDominantSpeaker(segment);
     const speakerClass = getSpeakerClass(dominantSpeaker);
 
-    const badges = [];
-    if (hasHighTemp) badges.push('<span class="badge badge-temp">temp=1.0</span>');
-    if (hasHighComp) badges.push('<span class="badge badge-comp">high comp</span>');
-    if (hasNotes) badges.push('<span class="badge badge-note">note</span>');
-    badges.push(`<span class="badge badge-speaker-${speakerClass}">${dominantSpeaker}</span>`);
+    // Top row: temp, comp, note (rightmost: speaker)
+    const topBadges = [];
+    if (hasHighTemp) topBadges.push('<span class="badge badge-temp">temp=1.0</span>');
+    if (hasHighComp) topBadges.push('<span class="badge badge-comp">high comp</span>');
+    if (hasNotes) topBadges.push('<span class="badge badge-note">note</span>');
+    topBadges.push(`<span class="badge badge-${speakerClass}">${dominantSpeaker}</span>`);
 
+    // Bottom row: filter badges (always visible, regardless of toggle)
+    const filterBadges = [];
+    const allReasons = getAllFilterReasons(segment, state._cachedDuplicateIds);
+    allReasons.forEach(r => filterBadges.push(filterBadgeMap[r]));
+
+    // Dimming only applies when the corresponding toggle is active
     const filterReasons = getFilterReasons(segment, state._cachedDuplicateIds);
     const isFiltered = filterReasons.length > 0;
-    filterReasons.forEach(r => badges.push(filterBadgeMap[r]));
+
+    const badgesHtml = `<div class="badges-row">${topBadges.join('')}</div>`
+      + (filterBadges.length ? `<div class="badges-row badges-row-filters">${filterBadges.join('')}</div>` : '');
 
     const words = (segment.words || []).map((word, wordIndex) => {
       const probClass = getWordProbabilityClass(word.probability || 0);
@@ -256,7 +274,7 @@ function renderSegments() {
         <div class="segment-header" data-start="${segment.start}">
           <span class="segment-id">Segment ${segment.id ?? index}</span>
           <span class="segment-time">${segment.start.toFixed(2)}s - ${segment.end.toFixed(2)}s</span>
-          <div class="segment-badges">${badges.join('')}</div>
+          <div class="segment-badges">${badgesHtml}</div>
         </div>
         <div class="segment-meta">
           temp: ${segment.temperature ?? 'N/A'} | comp: ${(segment.compression_ratio ?? 0).toFixed(2)} | no_speech: ${(segment.no_speech_prob ?? 0).toFixed(3)}
