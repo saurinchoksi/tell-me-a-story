@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-02-17 — 12 files become 8, and modules own their identity
+
+**What:** Wave 4 completed: file consolidation (12 → 8 src files) + targeted fixes. README rewritten.
+**Result:** `enrichment.py` folded into `diarize.py`, `enrich.py` into `pipeline.py`, `inspect_audio.py` and `query.py` inlined. Each module now owns its model constant and returns its own processing entry. Ollama switched from subprocess to REST API. `_schema_version` killed. LLM response parsing hardened. Session ID validation added. 95 tests.
+**Decided:** (1) Module that calls the model owns the identifier — no model strings cross boundaries. (2) Kill `_schema_version` entirely — `_processing` already describes what's in the file, no backwards compatibility contract exists. Code initially kept it; pushed back. (3) README separates Mahabharata as content domain from pipeline mechanics.
+**Learned:** "Where should this constant live?" → follow it to its only real consumer. If the consumer has to rename your export to understand it, the name isn't working. If an orchestrator is importing model strings just to stamp metadata, the responsibility is in the wrong place.
+
 ## 2026-02-17 — Three artifacts, not five: session folder redesign
 
 **What:** Completed Waves 2-3 of codebase cleanup (renames + small refactors), then worked through all four design questions from the architecture walkthrough. Three decided, one deferred.
