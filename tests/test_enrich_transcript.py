@@ -33,7 +33,7 @@ _FAKE_DIARIZATION = {
 # --- enrich_transcript tests ---
 
 def test_enrich_all_stages_succeed():
-    """All 3 enrichment stages succeed, producing 3 processing entries."""
+    """All 4 enrichment stages succeed, producing 4 processing entries."""
     transcript = copy.deepcopy(_CLEAN_TRANSCRIPT)
     diarization = copy.deepcopy(_FAKE_DIARIZATION)
 
@@ -42,6 +42,8 @@ def test_enrich_all_stages_succeed():
     diar_entry = {"stage": "diarization_enrichment",
                   "model": "pyannote/speaker-diarization-community-1",
                   "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+    gap_entry = {"stage": "gap_detection", "gaps_found": 0,
+                 "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
 
     with patch("pipeline.llm_normalize", return_value=([], llm_entry)) as mock_llm, \
          patch("pipeline.extract_text", return_value="hello world"), \
@@ -52,13 +54,14 @@ def test_enrich_all_stages_succeed():
          patch("pipeline.load_library", return_value={"entries": []}), \
          patch("pipeline.build_variant_map", return_value={}), \
          patch("pipeline.normalize_variants", return_value=[]), \
-         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)):
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)), \
+         patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
 
         result, processing, counts = enrich_transcript(
             transcript, diarization, verbose=False
         )
 
-    assert len(processing) == 3
+    assert len(processing) == 4
     assert processing[0]["stage"] == "llm_normalization"
     assert processing[0]["status"] == "success"
     assert "timestamp" in processing[0]
@@ -69,18 +72,22 @@ def test_enrich_all_stages_succeed():
     assert processing[2]["stage"] == "diarization_enrichment"
     assert processing[2]["status"] == "success"
     assert "timestamp" in processing[2]
+    assert processing[3]["stage"] == "gap_detection"
+    assert processing[3]["status"] == "success"
     assert counts["llm_count"] == 2
     assert counts["dict_count"] == 1
 
 
 def test_enrich_llm_fails_others_continue():
-    """LLM failure is recorded but dict + diarization still run."""
+    """LLM failure is recorded but dict + diarization + gap detection still run."""
     transcript = copy.deepcopy(_CLEAN_TRANSCRIPT)
     diarization = copy.deepcopy(_FAKE_DIARIZATION)
 
     diar_entry = {"stage": "diarization_enrichment",
                   "model": "pyannote/speaker-diarization-community-1",
                   "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+    gap_entry = {"stage": "gap_detection", "gaps_found": 0,
+                 "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
 
     with patch("pipeline.llm_normalize", side_effect=RuntimeError("Ollama down")), \
          patch("pipeline.extract_text", return_value="hello world"), \
@@ -90,13 +97,14 @@ def test_enrich_llm_fails_others_continue():
          patch("pipeline.load_library", return_value={"entries": []}), \
          patch("pipeline.build_variant_map", return_value={}), \
          patch("pipeline.normalize_variants", return_value=[]), \
-         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)):
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)), \
+         patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
 
         result, processing, counts = enrich_transcript(
             transcript, diarization, verbose=False
         )
 
-    assert len(processing) == 3
+    assert len(processing) == 4
     assert processing[0]["stage"] == "llm_normalization"
     assert processing[0]["status"] == "error"
     assert "Ollama down" in processing[0]["error"]
@@ -107,6 +115,8 @@ def test_enrich_llm_fails_others_continue():
     assert processing[2]["stage"] == "diarization_enrichment"
     assert processing[2]["status"] == "success"
     assert "timestamp" in processing[2]
+    assert processing[3]["stage"] == "gap_detection"
+    assert processing[3]["status"] == "success"
     assert counts["llm_count"] == 0
     assert counts["dict_count"] == 3
 

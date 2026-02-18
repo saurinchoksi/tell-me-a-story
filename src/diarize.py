@@ -1,7 +1,9 @@
 """Speaker diarization using pyannote.audio.
 
-Also contains enrichment functions that apply diarization results to transcripts,
-adding _speaker metadata to each word based on temporal overlap with speaker segments.
+Also contains enrichment functions that apply diarization results to transcripts:
+- enrich_with_diarization: adds _speaker metadata to each word.
+- detect_unintelligible_gaps: injects synthetic [unintelligible] segments where a
+  speaker was detected by diarization but Whisper produced no transcript.
 """
 
 import bisect
@@ -199,6 +201,146 @@ def enrich_with_diarization(transcript, diarization):
     entry = {
         "stage": "diarization_enrichment",
         "model": MODEL,
+        "status": "success",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    return result, entry
+
+
+# ---------------------------------------------------------------------------
+# Gap detection — inject [unintelligible] segments for untrascribed speech
+# ---------------------------------------------------------------------------
+
+def _dominant_speaker(segment):
+    """Return the speaker label with the most words in a transcript segment.
+
+    Only considers words that have a non-None _speaker.label. Returns None if
+    the segment has no words or no words with known speaker labels.
+    """
+    counts = {}
+    for word in segment.get("words", []):
+        label = word.get("_speaker", {}).get("label")
+        if label is not None:
+            counts[label] = counts.get(label, 0) + 1
+    if not counts:
+        return None
+    return max(counts, key=counts.get)
+
+
+def _word_coverage(diar_start, diar_end, all_words):
+    """Compute the fraction of a diarization segment covered by transcript words.
+
+    Args:
+        diar_start: Diarization segment start time in seconds.
+        diar_end: Diarization segment end time in seconds.
+        all_words: Flat list of word dicts with 'start' and 'end' keys.
+
+    Returns:
+        Float 0.0-1.0. Returns 0.0 for zero-duration segments.
+    """
+    diar_duration = diar_end - diar_start
+    if diar_duration <= 0:
+        return 0.0
+
+    total_overlap = 0.0
+    for word in all_words:
+        overlap = min(diar_end, word["end"]) - max(diar_start, word["start"])
+        if overlap > 0:
+            total_overlap += overlap
+
+    return min(total_overlap / diar_duration, 1.0)
+
+
+def detect_unintelligible_gaps(transcript, diarization):
+    """Inject [unintelligible] segments where a speaker has no transcript coverage.
+
+    After diarization enrichment, some diarization segments may have very low
+    transcript word coverage — the speaker was detected but Whisper produced no
+    transcript. This function identifies those gaps and injects synthetic
+    [unintelligible] segments when the gap's speaker differs from both neighboring
+    transcript segments' dominant speakers (indicating a dialogue turn, not a
+    monologue pause).
+
+    Deep-copies the transcript. Does not touch _processing.
+
+    Args:
+        transcript: Enriched transcript dict with segments containing words
+            that have _speaker labels (i.e., run after enrich_with_diarization).
+        diarization: Diarization result dict with a 'segments' list of
+            {start, end, speaker} dicts.
+
+    Returns:
+        Tuple of (enriched_transcript, processing_entry).
+        enriched_transcript: Deep-copied transcript with synthetic segments injected
+            and all segments re-sorted by start time.
+        processing_entry: Dict with stage metadata including gaps_found count.
+    """
+    result = copy.deepcopy(transcript)
+    diar_segments = diarization.get("segments", [])
+    transcript_segments = result.get("segments", [])
+
+    # Flatten all words once for coverage computation across all segments.
+    all_words = []
+    for seg in transcript_segments:
+        all_words.extend(seg.get("words", []))
+
+    injected = []
+
+    for diar_seg in diar_segments:
+        diar_start = diar_seg["start"]
+        diar_end = diar_seg["end"]
+        speaker = diar_seg["speaker"]
+
+        if diar_end - diar_start <= 0:
+            continue
+
+        # Skip if transcript words already cover >= 30% of this diarization segment.
+        coverage = _word_coverage(diar_start, diar_end, all_words)
+        if coverage >= 0.3:
+            continue
+
+        # Find nearest preceding transcript segment (highest start < diar_start)
+        # and nearest following segment (lowest start >= diar_end).
+        preceding = None
+        following = None
+        for seg in transcript_segments:
+            if seg["start"] < diar_start:
+                if preceding is None or seg["start"] > preceding["start"]:
+                    preceding = seg
+            elif seg["start"] >= diar_end:
+                if following is None or seg["start"] < following["start"]:
+                    following = seg
+
+        # Both neighbors required — skip gaps at the edges of the recording.
+        if preceding is None or following is None:
+            continue
+
+        # Both neighbors must have a determinable dominant speaker.
+        preceding_speaker = _dominant_speaker(preceding)
+        following_speaker = _dominant_speaker(following)
+        if preceding_speaker is None or following_speaker is None:
+            continue
+
+        # Gap is meaningful only when its speaker differs from BOTH neighbors.
+        # If it matches either neighbor, this is likely a monologue pause, not a turn.
+        if speaker == preceding_speaker or speaker == following_speaker:
+            continue
+
+        injected.append({
+            "start": diar_start,
+            "end": diar_end,
+            "text": "[unintelligible]",
+            "words": [],
+            "_speaker": {"label": speaker, "coverage": 1.0},
+            "_source": "diarization_gap",
+        })
+
+    result.setdefault("segments", []).extend(injected)
+    result["segments"].sort(key=lambda s: s["start"])
+
+    entry = {
+        "stage": "gap_detection",
+        "gaps_found": len(injected),
         "status": "success",
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }

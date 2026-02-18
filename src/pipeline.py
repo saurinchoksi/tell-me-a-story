@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from transcribe import transcribe, clean_transcript, MODEL as TRANSCRIPTION_MODEL, make_processing_entry as make_transcription_entry
-from diarize import diarize, enrich_with_diarization, MODEL as DIARIZATION_MODEL
+from diarize import diarize, enrich_with_diarization, detect_unintelligible_gaps, MODEL as DIARIZATION_MODEL
 from mutagen import File as MutagenFile
 from normalize import llm_normalize, MODEL as LLM_MODEL
 from dictionary import load_library, build_variant_map, normalize_variants
@@ -105,6 +105,21 @@ def enrich_transcript(
         processing.append({
             "stage": "diarization_enrichment",
             "model": DIARIZATION_MODEL,
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+
+    # Pass 4: Unintelligible gap detection
+    try:
+        transcript, gap_entry = detect_unintelligible_gaps(transcript, diarization)
+        processing.append(gap_entry)
+        if verbose:
+            logger.info(f"Gap detection: {gap_entry['gaps_found']} unintelligible gaps injected")
+    except Exception as e:
+        logger.warning(f"Gap detection failed: {e}")
+        processing.append({
+            "stage": "gap_detection",
             "status": "error",
             "error": str(e),
             "timestamp": datetime.now(timezone.utc).isoformat(),
