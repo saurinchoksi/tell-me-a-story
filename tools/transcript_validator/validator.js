@@ -227,10 +227,15 @@ function renderSegments() {
     // Gap segments (injected by detect_unintelligible_gaps) get a distinct minimal card.
     if (segment._source === 'diarization_gap') {
       const duration = (segment.end - segment.start).toFixed(2);
+      const prevId = state.segments[index - 1]?.id;
+      const nextId = state.segments[index + 1]?.id;
+      const gapLabel = prevId != null && nextId != null
+        ? `Segment Gap ${prevId}–${nextId}`
+        : prevId != null ? `Segment Gap ${prevId}–` : `Segment Gap –${nextId}`;
       return `
         <div class="segment-card gap-segment ${speakerClass}" data-segment="${index}" id="segment-${index}" style="animation-delay: ${index * 0.03}s">
           <div class="segment-header" data-start="${segment.start}">
-            <span class="segment-id">Segment ${segment.id}</span>
+            <span class="segment-id">${gapLabel}</span>
             <span class="segment-time">${segment.start.toFixed(2)}s – ${segment.end.toFixed(2)}s</span>
             <div class="segment-badges">
               <div class="badges-row">
