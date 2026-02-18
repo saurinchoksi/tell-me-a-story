@@ -68,7 +68,8 @@ def diarize(audio_path: str, model: Pipeline = None, num_speakers: int = None) -
 
     Args:
         audio_path: Path to audio file
-        model: Optional pre-loaded diarization model (loads one if not provided)
+        model: Optional pre-loaded diarization model (loads one if not provided).
+            If not provided, a model is loaded and freed before returning.
         num_speakers: Optional hint for exact number of speakers (improves accuracy)
 
     Returns:
@@ -77,15 +78,15 @@ def diarize(audio_path: str, model: Pipeline = None, num_speakers: int = None) -
     """
     if model is None:
         model = load_diarization_model()
-    
+
     # Convert to 16kHz mono WAV for compatibility with pyannote
     wav_path = prepare_audio_for_diarization(audio_path)
-    
+
     try:
         # Run diarization with progress feedback
         with ProgressHook() as hook:
             output = model(wav_path, hook=hook, num_speakers=num_speakers)
-        
+
         # Extract segments using exclusive mode (one speaker at a time)
         # This simplifies alignment with transcription timestamps
         segments = []
@@ -95,7 +96,7 @@ def diarize(audio_path: str, model: Pipeline = None, num_speakers: int = None) -
                 "end": turn.end,
                 "speaker": speaker
             })
-        
+
         return {
             "_generator_version": _GENERATOR_VERSION,
             "segments": segments

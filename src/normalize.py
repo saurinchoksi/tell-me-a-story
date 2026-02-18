@@ -1,6 +1,5 @@
 """LLM-based normalization of phonetic name mishearings."""
 
-import gc
 import json
 import re
 from datetime import datetime, timezone
@@ -25,43 +24,50 @@ Text:
 {text}"""
 
 
-def _call_mlx(prompt_text: str, model: str, timeout: int) -> str:
-    """Call MLX-LM and return the response text with thinking blocks stripped.
+def _mlx_worker(prompt_text: str, model: str, max_tokens: int) -> str:
+    """Run MLX-LM inference in an isolated subprocess. Module-level for spawn pickling."""
+    import gc
 
-    Args:
-        prompt_text: Formatted prompt string (without chat template wrapping)
-        model: MLX-community model identifier (e.g. "mlx-community/Qwen3-8B-8bit")
-        timeout: Unused; kept for API compatibility with call sites
-
-    Returns:
-        Response text with <think>...</think> blocks stripped
-
-    Raises:
-        RuntimeError: If model load or generation fails
-    """
     import mlx.core as mx
     import mlx_lm
 
     model_obj, tokenizer = mlx_lm.load(model)
-
     messages = [{"role": "user", "content": "/no_think\n" + prompt_text}]
     formatted = tokenizer.apply_chat_template(
         messages,
         tokenize=False,
         add_generation_prompt=True,
     )
-
     response = mlx_lm.generate(
         model_obj,
         tokenizer,
         prompt=formatted,
-        max_tokens=MAX_TOKENS,
+        max_tokens=max_tokens,
         verbose=False,
     )
-
     del model_obj, tokenizer
     gc.collect()
     mx.clear_cache()
+    return response
+
+
+def _call_mlx(prompt_text: str, model: str, timeout: int) -> str:
+    """Call MLX-LM in a spawned subprocess to avoid GPU memory conflicts.
+
+    Pyannote diarization leaves MPS allocations in the parent process that
+    prevent Qwen3-8B-8bit from loading. A spawned process has a clean GPU
+    slate — same isolation that made the previous Ollama daemon work.
+    """
+    import multiprocessing
+    from concurrent.futures import ProcessPoolExecutor
+
+    ctx = multiprocessing.get_context("spawn")
+    with ProcessPoolExecutor(max_workers=1, mp_context=ctx) as executor:
+        future = executor.submit(_mlx_worker, prompt_text, model, MAX_TOKENS)
+        try:
+            response = future.result(timeout=timeout)
+        except TimeoutError:
+            raise TimeoutError(f"MLX inference timed out after {timeout}s")
 
     return _THINK_RE.sub("", response).strip()
 
