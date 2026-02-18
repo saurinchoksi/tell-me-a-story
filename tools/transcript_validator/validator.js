@@ -194,18 +194,9 @@ function segmentHasNotes(segmentId) {
   return state.notes.some(n => n.segmentId === segmentId);
 }
 
-// Compute dominant speaker for a segment by word count (most common label wins).
-// Returns 'SPEAKER_00', 'SPEAKER_01', or 'unknown' on tie/all-null.
+// Read dominant speaker from segment-level _speaker stamped by enrich_with_diarization.
 function getDominantSpeaker(segment) {
-  const counts = {};
-  for (const word of (segment.words || [])) {
-    const label = word._speaker?.label;
-    if (label) counts[label] = (counts[label] || 0) + 1;
-  }
-  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  if (entries.length === 0) return 'unknown';
-  if (entries.length > 1 && entries[0][1] === entries[1][1]) return 'unknown';
-  return entries[0][0];
+  return segment._speaker?.label ?? 'unknown';
 }
 
 function getSpeakerClass(label) {
@@ -230,12 +221,34 @@ function renderSegments() {
   };
 
   segmentsContainer.innerHTML = state.segments.map((segment, index) => {
+    const dominantSpeaker = getDominantSpeaker(segment);
+    const speakerClass = getSpeakerClass(dominantSpeaker);
+
+    // Gap segments (injected by detect_unintelligible_gaps) get a distinct minimal card.
+    if (segment._source === 'diarization_gap') {
+      const duration = (segment.end - segment.start).toFixed(2);
+      return `
+        <div class="segment-card gap-segment ${speakerClass}" data-segment="${index}" id="segment-${index}" style="animation-delay: ${index * 0.03}s">
+          <div class="segment-header" data-start="${segment.start}">
+            <span class="segment-id">Segment ${segment.id}</span>
+            <span class="segment-time">${segment.start.toFixed(2)}s – ${segment.end.toFixed(2)}s</span>
+            <div class="segment-badges">
+              <div class="badges-row">
+                <span class="badge badge-${speakerClass}">${dominantSpeaker}</span>
+              </div>
+            </div>
+          </div>
+          <div class="gap-content">
+            <span class="gap-label">[unintelligible]</span>
+            <span class="gap-duration">${duration}s</span>
+          </div>
+        </div>
+      `;
+    }
+
     const hasHighTemp = segment.temperature === 1.0;
     const hasHighComp = segment.compression_ratio > 2.5;
     const hasNotes = segmentHasNotes(segment.id);
-
-    const dominantSpeaker = getDominantSpeaker(segment);
-    const speakerClass = getSpeakerClass(dominantSpeaker);
 
     // Top row: temp, comp, note (rightmost: speaker)
     const topBadges = [];

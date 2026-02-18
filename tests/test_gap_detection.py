@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from diarize import detect_unintelligible_gaps, _dominant_speaker, _word_coverage
+from diarize import detect_unintelligible_gaps, enrich_with_diarization, _dominant_speaker, _word_coverage
 
 
 # ---------------------------------------------------------------------------
@@ -24,15 +24,23 @@ def _word(text, start, end, speaker=None):
 
 
 def _segment(words, start=None, end=None):
-    """Build a transcript segment from a list of word dicts."""
+    """Build a transcript segment from a list of word dicts.
+
+    Stamps segment-level _speaker to simulate what enrich_with_diarization
+    produces before detect_unintelligible_gaps runs.
+    """
     s = words[0]["start"] if words else 0.0
     e = words[-1]["end"] if words else 0.0
-    return {
+    seg = {
         "start": start if start is not None else s,
         "end": end if end is not None else e,
         "text": " ".join(w["word"].strip() for w in words),
         "words": words,
     }
+    dominant = _dominant_speaker(seg)
+    if dominant is not None:
+        seg["_speaker"] = {"label": dominant, "source": "dominant"}
+    return seg
 
 
 def _transcript(*segments):
@@ -372,3 +380,97 @@ def test_input_transcript_not_mutated():
     # Original transcript must be unchanged
     assert len(transcript["segments"]) == original_segment_count
     assert not any(s.get("_source") == "diarization_gap" for s in transcript["segments"])
+
+
+def test_injected_gap_has_stable_id():
+    """Each injected gap must have an id derived from its start time."""
+    seg_a = _segment([_word("hello", 0.0, 1.0, "SPEAKER_00")])
+    seg_b = _segment([_word("yes", 8.0, 9.0, "SPEAKER_00")])
+    transcript = _transcript(seg_a, seg_b)
+    diarization = _diarization(
+        (0.0, 1.0, "SPEAKER_00"),
+        (3.14, 5.92, "SPEAKER_01"),
+        (8.0, 9.0, "SPEAKER_00"),
+    )
+
+    result, _ = detect_unintelligible_gaps(transcript, diarization)
+
+    gaps = [s for s in result["segments"] if s.get("_source") == "diarization_gap"]
+    assert len(gaps) == 1
+    assert gaps[0]["id"] == "gap_3.140"
+
+
+# ---------------------------------------------------------------------------
+# enrich_with_diarization — segment-level _speaker stamping
+# ---------------------------------------------------------------------------
+
+def test_enrich_stamps_segment_level_speaker():
+    """enrich_with_diarization should stamp _speaker on the segment itself."""
+    seg = {
+        "start": 0.0, "end": 2.0, "text": "hello there",
+        "words": [
+            {"word": "hello", "start": 0.0, "end": 1.0},
+            {"word": "there", "start": 1.0, "end": 2.0},
+        ]
+    }
+    transcript = {"segments": [seg]}
+    diarization = _diarization((0.0, 2.0, "SPEAKER_00"))
+
+    result, _ = enrich_with_diarization(transcript, diarization)
+
+    segment = result["segments"][0]
+    assert "_speaker" in segment
+    assert segment["_speaker"]["label"] == "SPEAKER_00"
+    assert segment["_speaker"]["source"] == "dominant"
+
+
+def test_enrich_segment_speaker_majority_vote():
+    """Segment _speaker should reflect the majority speaker across words."""
+    seg = {
+        "start": 0.0, "end": 3.0, "text": "a b c",
+        "words": [
+            {"word": "a", "start": 0.0, "end": 1.0},
+            {"word": "b", "start": 1.0, "end": 2.0},
+            {"word": "c", "start": 2.0, "end": 3.0},
+        ]
+    }
+    transcript = {"segments": [seg]}
+    # SPEAKER_00 covers words a and c; SPEAKER_01 covers only b
+    diarization = _diarization(
+        (0.0, 1.0, "SPEAKER_00"),
+        (1.0, 2.0, "SPEAKER_01"),
+        (2.0, 3.0, "SPEAKER_00"),
+    )
+
+    result, _ = enrich_with_diarization(transcript, diarization)
+
+    assert result["segments"][0]["_speaker"]["label"] == "SPEAKER_00"
+
+
+def test_enrich_segment_no_speaker_when_no_coverage():
+    """Segments with no diarization coverage should not get _speaker."""
+    seg = {
+        "start": 10.0, "end": 12.0, "text": "something",
+        "words": [{"word": "something", "start": 10.0, "end": 12.0}]
+    }
+    transcript = {"segments": [seg]}
+    diarization = _diarization((0.0, 2.0, "SPEAKER_00"))
+
+    result, _ = enrich_with_diarization(transcript, diarization)
+
+    assert "_speaker" not in result["segments"][0]
+
+
+def test_enrich_does_not_mutate_input():
+    """enrich_with_diarization should not mutate the input transcript."""
+    seg = {
+        "start": 0.0, "end": 1.0, "text": "hi",
+        "words": [{"word": "hi", "start": 0.0, "end": 1.0}]
+    }
+    transcript = {"segments": [seg]}
+    diarization = _diarization((0.0, 1.0, "SPEAKER_00"))
+
+    enrich_with_diarization(transcript, diarization)
+
+    assert "_speaker" not in transcript["segments"][0]
+    assert "_speaker" not in transcript["segments"][0]["words"][0]

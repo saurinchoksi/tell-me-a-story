@@ -197,6 +197,9 @@ def enrich_with_diarization(transcript, diarization):
                 word["start"], word["end"], diar_segments, _seg_ends=seg_ends
             )
             word["_speaker"] = speaker_info
+        dominant = _dominant_speaker(segment)
+        if dominant is not None:
+            segment["_speaker"] = {"label": dominant, "source": "dominant"}
 
     entry = {
         "stage": "diarization_enrichment",
@@ -316,8 +319,8 @@ def detect_unintelligible_gaps(transcript, diarization):
             continue
 
         # Both neighbors must have a determinable dominant speaker.
-        preceding_speaker = _dominant_speaker(preceding)
-        following_speaker = _dominant_speaker(following)
+        preceding_speaker = preceding.get("_speaker", {}).get("label")
+        following_speaker = following.get("_speaker", {}).get("label")
         if preceding_speaker is None or following_speaker is None:
             continue
 
@@ -327,6 +330,7 @@ def detect_unintelligible_gaps(transcript, diarization):
             continue
 
         injected.append({
+            "id": f"gap_{diar_start:.3f}",
             "start": diar_start,
             "end": diar_end,
             "text": "[unintelligible]",

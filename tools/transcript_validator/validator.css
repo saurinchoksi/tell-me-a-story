@@ -1306,3 +1306,30 @@ body.notes-panel-open #segments {
 .notes-list::-webkit-scrollbar-thumb:hover {
   background: var(--border-medium);
 }
+
+/* --- Gap (unintelligible) segments --- */
+
+.gap-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px dashed var(--filter-border);
+  border-radius: 6px;
+  background: var(--filter-badge-bg);
+}
+
+.gap-label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+.gap-duration {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  opacity: 0.7;
+}
