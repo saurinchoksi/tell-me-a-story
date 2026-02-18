@@ -1,13 +1,15 @@
 """LLM-based normalization of phonetic name mishearings."""
 
+import gc
 import json
 import re
-import urllib.error
-import urllib.request
 from datetime import datetime, timezone
 
 
-MODEL = "qwen3:8b"
+MODEL = "mlx-community/Qwen3-8B-8bit"
+MAX_TOKENS = 512
+
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 DEFAULT_PROMPT = """This text is from a conversation about the Mahabharata epic. A child is pronouncing Sanskrit names phonetically, often with significant distortion.
 
@@ -23,42 +25,45 @@ Text:
 {text}"""
 
 
-def _call_ollama(prompt: str, model: str, timeout: int) -> str:
-    """Call Ollama REST API and return the response text.
+def _call_mlx(prompt_text: str, model: str, timeout: int) -> str:
+    """Call MLX-LM and return the response text with thinking blocks stripped.
 
     Args:
-        prompt: Formatted prompt string
-        model: Ollama model name
-        timeout: Request timeout in seconds
+        prompt_text: Formatted prompt string (without chat template wrapping)
+        model: MLX-community model identifier (e.g. "mlx-community/Qwen3-8B-8bit")
+        timeout: Unused; kept for API compatibility with call sites
 
     Returns:
-        Response text from Ollama
+        Response text with <think>...</think> blocks stripped
 
     Raises:
-        TimeoutError: If the request exceeds timeout
-        RuntimeError: If the API call fails
+        RuntimeError: If model load or generation fails
     """
-    payload = json.dumps({
-        "model": model,
-        "prompt": prompt,
-        "stream": False,
-    }).encode()
+    import mlx.core as mx
+    import mlx_lm
 
-    req = urllib.request.Request(
-        "http://localhost:11434/api/generate",
-        data=payload,
-        headers={"Content-Type": "application/json"},
+    model_obj, tokenizer = mlx_lm.load(model)
+
+    messages = [{"role": "user", "content": "/no_think\n" + prompt_text}]
+    formatted = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
     )
 
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            body = json.loads(resp.read())
-    except urllib.error.URLError as e:
-        if isinstance(e.reason, TimeoutError):
-            raise TimeoutError(f"Ollama request timed out after {timeout}s") from e
-        raise RuntimeError(f"Ollama call failed: {e}") from e
+    response = mlx_lm.generate(
+        model_obj,
+        tokenizer,
+        prompt=formatted,
+        max_tokens=MAX_TOKENS,
+        verbose=False,
+    )
 
-    return body["response"]
+    del model_obj, tokenizer
+    gc.collect()
+    mx.clear_cache()
+
+    return _THINK_RE.sub("", response).strip()
 
 
 def _parse_llm_corrections(response: str) -> list[dict]:
@@ -119,14 +124,14 @@ def llm_normalize(
 ) -> tuple[list[dict], dict]:
     """Identify phonetic mishearings in text using a local LLM.
 
-    Sends the full text to a local Ollama model which returns corrections
+    Sends the full text to a local MLX-LM model which returns corrections
     for words that appear to be phonetic mishearings of known names.
 
     Args:
         text: Transcript text to analyze
         prompt: Prompt template with {text} placeholder
-        model: Ollama model name
-        timeout: Request timeout in seconds
+        model: MLX-community model identifier
+        timeout: Request timeout in seconds (passed through to backend)
 
     Returns:
         Tuple of (corrections, processing_entry).
@@ -135,12 +140,12 @@ def llm_normalize(
             pipeline adds that after apply_corrections).
 
     Raises:
-        TimeoutError: If ollama exceeds timeout
-        RuntimeError: If ollama call fails
+        TimeoutError: If inference exceeds timeout
+        RuntimeError: If model call fails
         ValueError: If LLM response cannot be parsed
     """
     formatted = prompt.format(text=text)
-    response = _call_ollama(formatted, model, timeout)
+    response = _call_mlx(formatted, model, timeout)
     corrections = _parse_llm_corrections(response)
     entry = {
         "stage": "llm_normalization",
