@@ -6,9 +6,10 @@ __pycache__/
 
 # Sessions (private audio files and transcripts)
 sessions/*
-!sessions/inbox/
-sessions/inbox/*
-!sessions/inbox/.gitkeep
+
+# Inbox (input staging area — audio files + rejected duplicates)
+inbox/*
+!inbox/.gitkeep
 
 # Debug output
 sessions/debug/

@@ -8,8 +8,8 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).parent.resolve()  # src/
 PROJECT_DIR = SCRIPT_DIR.parent               # tell-me-a-story/
 SESSIONS_DIR = PROJECT_DIR / "sessions"
-INBOX_DIR = SESSIONS_DIR / "inbox"
-DUPLICATES_DIR = SESSIONS_DIR / "duplicates"
+INBOX_DIR = PROJECT_DIR / "inbox"
+DUPLICATES_DIR = INBOX_DIR / "duplicates"
 SUPPORTED_FORMATS = {".m4a", ".mp3", ".wav"}
 
 
