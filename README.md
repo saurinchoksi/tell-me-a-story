@@ -28,6 +28,20 @@ Five-stage pipeline that turns a raw audio recording into a speaker-labeled, cor
 
 Each stage adds information without destroying what came before. Original transcriptions are preserved alongside corrections, and every change is tracked with an audit trail. The raw transcript is saved separately and never modified — it's the honest record of what the transcriber heard.
 
+### Before and After
+
+Raw Whisper output (what the transcriber hears):
+
+> Dad, why do the **fondos** and the **goros** want to be king?
+> Well, so the oldest brother of the **goros**, his name was, do you remember?
+> **Durioden**.
+
+After enrichment (LLM + dictionary corrections, speaker labels):
+
+> **ARTI:** Dad, why do the **Pandavas** and the **Kauravas** want to be king?
+> **DAD:** Well, so the oldest brother of the **Kauravas**, his name was, do you remember?
+> **ARTI:** **Duryodhana**.
+
 ## Hallucination Handling
 
 Speech transcription models hallucinate — they generate confident-sounding text during silence, breathing, or background noise. With a toddler's soft voice and long pauses, this happens a lot.
@@ -52,15 +66,15 @@ Audio records to an SD card initially, with WiFi sync to the processing machine 
 
 - **MLX Whisper** — Transcription, optimized for Apple Silicon
 - **Pyannote** — Speaker diarization
-- **Ollama** — Local LLM for name correction
+- **MLX-LM** — Local LLM inference (Qwen3 8B) for name correction
 - **Python** — Pipeline, automated tests (fast/slow split), CLI
 - **Flask** — Validation player with waveform visualization and word-level highlighting
 
 ## Requirements
 
-- Apple Silicon Mac (for MLX Whisper)
+- Apple Silicon Mac (for MLX Whisper and MLX-LM)
+- Python 3.14
 - Hugging Face token (for Pyannote model download)
-- Ollama installed locally (for LLM normalization)
 - FFmpeg (for audio format conversion)
 
 ## Running It
@@ -76,19 +90,49 @@ pip install -r requirements.txt
 # Set Hugging Face token (required for Pyannote)
 export HF_TOKEN=your_token_here
 
-# Run full pipeline
+# Drop audio in the inbox and process
+mkdir -p inbox
+cp ~/your-recording.m4a inbox/
+python src/process_inbox.py
+
+# Or run directly on an existing session
 python src/pipeline.py sessions/<session-id>/audio.m4a
 
-# Re-enrich an existing session (skip transcription and diarization)
+# Re-enrich (skip transcription and diarization)
 python src/pipeline.py sessions/<session-id>/ --re-enrich
 ```
 
-Models download on first run.
+Models download on first run. Supported formats: `.m4a`, `.mp3`, `.wav`.
+
+## Transcript Validator
+
+A browser-based tool for reviewing transcripts against the source audio — waveform playback, word-level highlighting, speaker coloring, and hallucination filter badges.
+
+```bash
+python tools/transcript_validator/server.py
+# Open http://localhost:5001 in your browser
+```
+
+## Tests
+
+```bash
+# Fast tests only (no model loading)
+pytest -m "not slow"
+
+# All tests including model integration
+pytest
+```
 
 ## Build Log
 
-Development decisions and discoveries are tracked in `changelog.md`. A narrative build log lives on [the project page](https://saurinchoksi.com/portfolio/tell-me-a-story-log.html).
+Development decisions and discoveries are tracked in `changelog.md`, also viewable at [saurinchoksi.com](https://saurinchoksi.com/portfolio/tell-me-a-story-changelog.html).
 
 ## Background
 
 I'm a Sesame Workshop Writers Room fellow. I wrote for Mo Willems. I earned an Emmy nomination for Daniel Tiger's Neighborhood. Most recently, I built tools for the content team at Kibeam Learning, a company that makes interactive products for kids.
+
+More about this project and my other work at [saurinchoksi.com](https://saurinchoksi.com).
+
+## License
+
+MIT
