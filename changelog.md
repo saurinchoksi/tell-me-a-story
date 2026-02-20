@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-02-20 — README, test coverage, and removing friction
+
+**What:** README got sample output (before/after showing raw Whisper → enriched transcript), Python version, MIT license, portfolio link. Entry points (`init_session.py`, `process_inbox.py`) got 28 tests. Validator note saves went from sluggish to instant via event delegation. `inbox/` moved to project root (separate from `sessions/` output). Changelog page converted to dynamic shell fetching from GitHub. SYNC workflow simplified to intent/context/result format.
+**Result:** 150 fast tests passing. Validator re-renders no longer reattach handlers. Changelog page: 626→270 lines, single source of truth. README now shows the pipeline's value in six lines of before/after.
+**Decided:** No framework for the validator — event delegation solves the perf problem without adding a build toolchain. Python version states what we know (3.14) rather than claiming untested compatibility. SYNC tasks communicate what and why; Code decides how.
+**Learned:** The most compelling README content isn't architecture descriptions — it's showing "fondos" becoming "Pandavas" with speaker labels. Infrastructure for problems you don't have yet (React, file watchers) costs more than the friction it would remove.
+
 ## 2026-02-19 — Second real session and what it revealed
 
 **What:** Processed session 20260218-185123 — an original moon story (not Mahabharata), ~10 min, multiple people in the room. First real-world session through the full pipeline.
