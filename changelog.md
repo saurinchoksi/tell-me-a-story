@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-02-20 — Deep code review: 14 findings, 8 fixes shipped
+
+**What:** Code reviewed every source file, test file, validator, config, and reference data end-to-end. Found 14 items (4 fix, 4 consider, 6 note). All 8 actionable fixes shipped in one commit.
+**Result:** Explicit GPU memory cleanup in diarize.py, hard-coded `.m4a` replaced with `glob("audio.*")`, `to_utterances` accepts enriched format directly, dictionary.py owns its processing entry, 5 tests properly marked slow, init_session error handling. 147 fast tests pass.
+**Decided:** Ship fixes 1-4 and consider-items 6-8 together as clean well-defined work. Defer #5 (diarize.py triple responsibility extraction) — it's architectural and connects to Mahabharata separation. Needs design conversation before code.
+**Learned:** `glob("audio.*")` after ingestion is smarter than importing `SUPPORTED_FORMATS` — format list guards at the gate, discovery is permissive after. The enrichment extraction (#5) is the same seam as Mahabharata separation — two items, one cut.
+
 ## 2026-02-20 — README, test coverage, and removing friction
 
 **What:**
