@@ -4,6 +4,20 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-02-19 — Second real session and what it revealed
+
+**What:** Processed session 20260218-185123 — an original moon story (not Mahabharata), ~10 min, multiple people in the room. First real-world session through the full pipeline.
+**Result:** 190 segments, 4 speakers detected (should be 2), 37 NONE segments, 0 LLM/dictionary corrections (no Sanskrit content). Hallucinated text found over clean audio — a new category the current filters don't catch.
+**Decided:** Benchmark against cloud services (AssemblyAI, Deepgram, OpenAI Whisper API) — two files, three services, one experiment. Kill the build log; replace with a visual portfolio page that shows the system working, not describes the journey. Changelog stays as the "go deeper" link.
+**Learned:** Controlled test sessions don't predict real-world behavior. Household audio with overlapping voices, interruptions, and multiple speakers is a fundamentally harder problem. The pipeline captured a family moment faithfully — messy parts are solvable engineering, the captured moment isn't reproducible.
+
+## 2026-02-18 — Gaps, inbox, and the pipeline running end to end
+
+**What:** Unintelligible speech gap detection finds moments where diarization sees a speaker but Whisper produces nothing. Validator renders them as `[unintelligible]` cards. `process_inbox.py` is the single entry point — drop audio, run one command. Hit GPU OOM (pyannote + MLX-LM competing for Metal memory), fixed by spawning MLX-LM in a subprocess.
+**Result:** 3 gaps detected in session 000 at correct timestamps. Session 20260207-172315 processed via inbox — identical output to manual run (zero text differences, same corrections, same gaps). 122 tests passing, 9 src files.
+**Decided:** (1) Hallucination marking goes in `transcript-rich.json` as enrichment, not in validation-notes.json. (2) Pipeline needs Mahabharata layer separated from core — dictionary normalization and LLM prompt are content-specific, pipeline should be content-agnostic. (3) Process more diverse sessions before building editing mechanisms.
+**Learned:** Speaker-transition filter for gaps was 6/6 accurate — gaps matching neighbors are pauses, gaps differing from neighbors are interjections. VAD is redundant (diarization runs it internally). Pyannote's MPS allocations survive `gc.collect()` + `torch.mps.empty_cache()` in the same process — subprocess isolation is the real fix. Pipeline is fully deterministic given same hardware: greedy decoding at every stage means identical input → identical output.
+
 ## 2026-02-18 — Diarization becomes visible: speaker indicators in validator
 
 **What:** Added speaker visualization to transcript validator (Code delivered core, Desktop fixed bugs + added always-visible filter badges and badge layout). Also decoupled filter badge display from filter toggle state.
@@ -141,13 +155,6 @@ Format: **What** (what changed), **Result** (concrete outcome with numbers when 
 **What:** Binary searched exact audio length threshold where Whisper's transcription changes. Found 189.21s (3:09.21), validated with 12 trials at 100% determinism.
 **Result:** ⚠️ Partially invalidated (Feb 1 — wrong model). Core insight survived: Whisper needs ~3+ minutes of context not to avoid dropping speech, but to get words right for quiet speakers. Short clips produce worse quality than full recordings.
 **Learned:** The investigation methodology was sound (binary search, automated script, validation trials). The model configuration was not.
-
-## 2026-01-30 — LLM Speaker Correction: DeepSeek Wins
-
-**What:** Compared three local LLMs (Qwen3 8B, DeepSeek R1 8B, Gemma 3 12B) for speaker diarization post-processing. Four prompt iterations.
-**Result:** DeepSeek R1 8B: 32s, correct format, respected existing assignments, correct reasoning. Qwen3 8B: 131s, format-compliant only after removing reasoning requirement, wrong reasoning. Gemma 3 12B: 23s, didn't respect existing assignments.
-**Decided:** DeepSeek R1 8B for LLM tasks. Simpler prompts work better for format compliance. Chain-of-thought not always necessary.
-**Learned:** Example 4 in the prompt ("single word reassignment") was actively harmful — taught models to change things they shouldn't. Test format compliance before reasoning quality. Prompt evolution: v1 (4 examples) → v4 (no reasoning, output only) was the path to compliance.
 
 ## 2026-01-29 — Heuristics Dead End, Pivot to LLM
 
