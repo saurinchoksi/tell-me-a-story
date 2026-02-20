@@ -69,14 +69,15 @@ def diarize(audio_path: str, model: Pipeline = None, num_speakers: int = None) -
     Args:
         audio_path: Path to audio file
         model: Optional pre-loaded diarization model (loads one if not provided).
-            If not provided, a model is loaded and freed before returning.
+            If not provided, a model is loaded and explicitly freed before returning.
         num_speakers: Optional hint for exact number of speakers (improves accuracy)
 
     Returns:
         Dict with '_generator_version' and 'segments' keys.
         Segments is a list of dicts with 'start', 'end', 'speaker' keys.
     """
-    if model is None:
+    model_loaded_here = model is None
+    if model_loaded_here:
         model = load_diarization_model()
 
     # Convert to 16kHz mono WAV for compatibility with pyannote
@@ -104,6 +105,11 @@ def diarize(audio_path: str, model: Pipeline = None, num_speakers: int = None) -
     finally:
         # Clean up temp file
         os.unlink(wav_path)
+        # Free model memory if we loaded it (MPS doesn't release GPU memory on GC alone)
+        if model_loaded_here:
+            del model
+            if torch.backends.mps.is_available():
+                torch.mps.empty_cache()
 
 
 # ---------------------------------------------------------------------------
@@ -212,7 +218,7 @@ def enrich_with_diarization(transcript, diarization):
 
 
 # ---------------------------------------------------------------------------
-# Gap detection — inject [unintelligible] segments for untrascribed speech
+# Gap detection — inject [unintelligible] segments for untranscribed speech
 # ---------------------------------------------------------------------------
 
 def _dominant_speaker(segment):

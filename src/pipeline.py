@@ -1,6 +1,7 @@
 """Run the full transcription pipeline and save computed artifacts."""
 
 import copy
+import glob
 import hashlib
 import json
 import logging
@@ -13,7 +14,7 @@ from transcribe import transcribe, clean_transcript, MODEL as TRANSCRIPTION_MODE
 from diarize import diarize, enrich_with_diarization, detect_unintelligible_gaps, MODEL as DIARIZATION_MODEL
 from mutagen import File as MutagenFile
 from normalize import llm_normalize, MODEL as LLM_MODEL
-from dictionary import load_library, build_variant_map, normalize_variants
+from dictionary import load_library, build_variant_map, normalize_variants, make_processing_entry as make_dictionary_entry
 from corrections import extract_text, apply_corrections
 
 _DEFAULT_LIBRARY_PATH = str(Path(__file__).parent.parent / "data" / "mahabharata.json")
@@ -77,13 +78,7 @@ def enrich_transcript(
         text = extract_text(transcript)
         dict_corrections = normalize_variants(text, variant_map)
         transcript, dict_count = apply_corrections(transcript, dict_corrections, "dictionary")
-        processing.append({
-            "stage": "dictionary_normalization",
-            "library": lib_path,
-            "status": "success",
-            "corrections_applied": dict_count,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        processing.append(make_dictionary_entry(lib_path, dict_count))
         if verbose:
             logger.info(f"Dictionary normalization: {dict_count} corrections applied")
     except Exception as e:
@@ -251,8 +246,11 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
 def to_utterances(labeled_words: list[dict]) -> list[dict]:
     """Convert labeled words to utterances, consolidating same-speaker runs.
 
+    Accepts both enriched format (speaker at word["_speaker"]["label"]) and
+    flat format (speaker at word["speaker"]). Enriched format takes priority.
+
     Args:
-        labeled_words: Words with 'speaker' field
+        labeled_words: Words with '_speaker.label' or 'speaker' field
 
     Returns:
         List of utterance dicts with consolidated text and word arrays
@@ -264,7 +262,10 @@ def to_utterances(labeled_words: list[dict]) -> list[dict]:
     current = None
 
     for word in labeled_words:
-        speaker = word.get("speaker")
+        if "_speaker" in word:
+            speaker = word["_speaker"].get("label")
+        else:
+            speaker = word.get("speaker")
         text = word.get("word", "").strip()
 
         # Start new utterance if speaker changes (or first word)
@@ -354,8 +355,9 @@ if __name__ == "__main__":
         }
 
         # Fold audio info if audio file exists
-        audio_path = os.path.join(session_dir, "audio.m4a")
-        if os.path.exists(audio_path):
+        audio_matches = glob.glob(os.path.join(session_dir, "audio.*"))
+        audio_path = audio_matches[0] if audio_matches else None
+        if audio_path:
             audio_info = get_audio_info(audio_path)
             transcript["audio"] = audio_info
             transcription_entry["audio_hash"] = compute_file_hash(audio_path)
@@ -384,14 +386,10 @@ if __name__ == "__main__":
             diarization=result["diarization"],
         )
 
-        # Flatten enriched words and read speaker from _speaker.label
+        # Flatten enriched words for utterance grouping
         labeled_words = []
         for seg in result["transcript"]["segments"]:
-            for word in seg.get("words", []):
-                labeled_words.append({
-                    **word,
-                    "speaker": word.get("_speaker", {}).get("label"),
-                })
+            labeled_words.extend(seg.get("words", []))
         utterances = to_utterances(labeled_words)
 
         print("\n--- Speaker-labeled transcript ---\n")

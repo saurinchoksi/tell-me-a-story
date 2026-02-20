@@ -22,9 +22,10 @@ from filters import silence_gap, near_zero_probability, find_duplicate_segments
 def get_session_paths(stem: str) -> dict:
     """Get paths for a session."""
     session_dir = SESSIONS_DIR / stem
+    audio_path = next(session_dir.glob("audio.*"), None) if session_dir.exists() else None
     return {
         "session_dir": session_dir,
-        "audio": session_dir / "audio.m4a",
+        "audio": audio_path,
         "transcript": session_dir / "transcript-rich.json",
         "notes": session_dir / "validation-notes.json",
     }
@@ -69,7 +70,7 @@ def list_files():
             stem = session_dir.name
             paths = get_session_paths(stem)
 
-            if paths["transcript"].exists() and paths["audio"].exists():
+            if paths["transcript"].exists() and paths["audio"] is not None:
                 valid_stems.append(stem)
 
     return jsonify({"files": sorted(valid_stems)})
@@ -82,9 +83,9 @@ def get_audio(stem: str):
         validate_path(SESSIONS_DIR, Path(stem))
         paths = get_session_paths(stem)
 
-        if not paths["audio"].exists():
+        if paths["audio"] is None:
             return jsonify({"error": "Audio not found"}), 404
-        return send_file(paths["audio"], mimetype="audio/mp4")
+        return send_file(paths["audio"])
     except ValueError:
         return jsonify({"error": "Invalid path"}), 400
 

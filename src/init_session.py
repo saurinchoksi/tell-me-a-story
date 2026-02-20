@@ -2,6 +2,7 @@
 
 import hashlib
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -101,21 +102,33 @@ def main():
     print("Processing inbox...")
     initialized = []
     skipped = 0
+    errors = 0
 
     for audio_path in sorted(audio_files):
-        result = init_session(audio_path)
-        if result:
-            initialized.append(result)
-        else:
-            skipped += 1
+        try:
+            result = init_session(audio_path)
+            if result:
+                initialized.append(result)
+            else:
+                skipped += 1
+        except Exception as e:
+            print(f"  ERROR processing {audio_path.name}: {e}")
+            errors += 1
 
     print()
-    print(f"Initialized {len(initialized)} sessions. Skipped {skipped}.")
+    print(f"Initialized {len(initialized)} sessions. Skipped {skipped}.", end="")
+    if errors:
+        print(f" Errors: {errors}.")
+    else:
+        print()
 
     if initialized:
         print("Ready for pipeline:")
         for session_id, audio_filename in initialized:
             print(f"  python src/pipeline.py sessions/{session_id}/{audio_filename}")
+
+    if errors:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

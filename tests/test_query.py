@@ -75,6 +75,35 @@ def test_to_utterances_empty():
     assert to_utterances([]) == []
 
 
+def test_to_utterances_enriched_format():
+    """Words with _speaker.label (enriched format) work directly."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Hello",
+         "_speaker": {"label": "SPEAKER_00", "coverage": 0.9}},
+        {"start": 0.5, "end": 1.0, "word": " there",
+         "_speaker": {"label": "SPEAKER_00", "coverage": 0.8}},
+        {"start": 1.0, "end": 1.5, "word": " Hi",
+         "_speaker": {"label": "SPEAKER_01", "coverage": 0.95}},
+    ]
+    result = to_utterances(words)
+    assert len(result) == 2
+    assert result[0]["speaker"] == "SPEAKER_00"
+    assert result[0]["text"] == "Hello there"
+    assert result[1]["speaker"] == "SPEAKER_01"
+
+
+def test_to_utterances_enriched_none_speaker():
+    """Enriched words with label=None stay separate (same as flat None)."""
+    words = [
+        {"start": 0.0, "end": 0.5, "word": " Uh",
+         "_speaker": {"label": None, "coverage": 0.0}},
+        {"start": 0.5, "end": 1.0, "word": " huh",
+         "_speaker": {"label": None, "coverage": 0.0}},
+    ]
+    result = to_utterances(words)
+    assert len(result) == 2
+
+
 # --- format_transcript tests ---
 
 def test_format_transcript_basic():

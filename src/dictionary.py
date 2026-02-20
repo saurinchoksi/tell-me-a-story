@@ -2,6 +2,18 @@
 
 import json
 import re
+from datetime import datetime, timezone
+
+
+def make_processing_entry(library_path: str, corrections_count: int) -> dict:
+    """Build a processing entry for the dictionary normalization stage."""
+    return {
+        "stage": "dictionary_normalization",
+        "library": library_path,
+        "status": "success",
+        "corrections_applied": corrections_count,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 def load_library(path: str) -> dict:

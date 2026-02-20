@@ -131,6 +131,8 @@ def test_enrich_does_not_set_processing_on_transcript():
     diar_entry = {"stage": "diarization_enrichment",
                   "model": "pyannote/speaker-diarization-community-1",
                   "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+    gap_entry = {"stage": "gap_detection", "gaps_found": 0,
+                 "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
 
     with patch("pipeline.llm_normalize", return_value=([], llm_entry)), \
          patch("pipeline.extract_text", return_value="hello world"), \
@@ -141,7 +143,8 @@ def test_enrich_does_not_set_processing_on_transcript():
          patch("pipeline.load_library", return_value={"entries": []}), \
          patch("pipeline.build_variant_map", return_value={}), \
          patch("pipeline.normalize_variants", return_value=[]), \
-         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)):
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)), \
+         patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
 
         result, processing, counts = enrich_transcript(
             transcript, diarization, verbose=False

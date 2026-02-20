@@ -12,9 +12,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from diarize import prepare_audio_for_diarization, diarize
 
 
-# --- Unit tests (fast, no model needed) ---
+# --- Integration tests (need real audio + ffmpeg) ---
 
 
+@pytest.mark.slow
 def test_prepare_audio_for_diarization_creates_file():
     """prepare_audio_for_diarization should create a WAV file."""
     source = "sessions/00000000-000000/audio.m4a"
@@ -28,6 +29,7 @@ def test_prepare_audio_for_diarization_creates_file():
         os.unlink(wav_path)
 
 
+@pytest.mark.slow
 def test_prepare_audio_for_diarization_correct_sample_rate():
     """Converted WAV should be 16kHz mono."""
     source = "sessions/00000000-000000/audio.m4a"
