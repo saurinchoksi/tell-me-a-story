@@ -302,39 +302,6 @@ function renderSegments() {
     `;
   }).join('');
 
-  // Add click handlers
-  segmentsContainer.querySelectorAll('.segment-header').forEach(header => {
-    header.addEventListener('click', () => {
-      const start = parseFloat(header.dataset.start);
-      if (!isNaN(start)) seekAndPlay(start);
-    });
-  });
-
-  segmentsContainer.querySelectorAll('.word').forEach(word => {
-    word.addEventListener('click', () => {
-      const start = parseFloat(word.dataset.start);
-      if (!isNaN(start)) seekAndPlay(start);
-    });
-  });
-
-  // Context menu handlers
-  segmentsContainer.querySelectorAll('.segment-card').forEach(card => {
-    card.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      const segmentIndex = parseInt(card.dataset.segment);
-      showContextMenu(e.clientX, e.clientY, { type: 'segment', segmentIndex });
-    });
-  });
-
-  segmentsContainer.querySelectorAll('.word').forEach(word => {
-    word.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const segmentIndex = parseInt(word.dataset.segment);
-      const wordIndex = parseInt(word.dataset.word);
-      showContextMenu(e.clientX, e.clientY, { type: 'word', segmentIndex, wordIndex });
-    });
-  });
 }
 
 // Seek and play
@@ -1185,6 +1152,42 @@ contextAddNote.addEventListener('click', () => {
 // Hide context menu on click outside
 document.addEventListener('click', () => {
   hideContextMenu();
+});
+
+// Delegated click: seek on segment header or word click
+segmentsContainer.addEventListener('click', (e) => {
+  const word = e.target.closest('.word');
+  if (word) {
+    const start = parseFloat(word.dataset.start);
+    if (!isNaN(start)) seekAndPlay(start);
+    return;
+  }
+  const header = e.target.closest('.segment-header');
+  if (header) {
+    const start = parseFloat(header.dataset.start);
+    if (!isNaN(start)) seekAndPlay(start);
+    return;
+  }
+});
+
+// Delegated contextmenu: right-click on word or segment card
+segmentsContainer.addEventListener('contextmenu', (e) => {
+  const word = e.target.closest('.word');
+  if (word) {
+    e.preventDefault();
+    e.stopPropagation();
+    const segmentIndex = parseInt(word.dataset.segment);
+    const wordIndex = parseInt(word.dataset.word);
+    showContextMenu(e.clientX, e.clientY, { type: 'word', segmentIndex, wordIndex });
+    return;
+  }
+  const card = e.target.closest('.segment-card');
+  if (card) {
+    e.preventDefault();
+    const segmentIndex = parseInt(card.dataset.segment);
+    showContextMenu(e.clientX, e.clientY, { type: 'segment', segmentIndex });
+    return;
+  }
 });
 
 // Scroll detection (single listener, not per-render)
