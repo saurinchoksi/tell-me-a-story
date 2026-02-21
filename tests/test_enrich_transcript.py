@@ -62,18 +62,18 @@ def test_enrich_all_stages_succeed():
         )
 
     assert len(processing) == 4
-    assert processing[0]["stage"] == "llm_normalization"
+    assert processing[0]["stage"] == "diarization_enrichment"
     assert processing[0]["status"] == "success"
     assert "timestamp" in processing[0]
-    assert processing[0]["corrections_applied"] == 2
-    assert processing[1]["stage"] == "dictionary_normalization"
+    assert processing[1]["stage"] == "gap_detection"
     assert processing[1]["status"] == "success"
-    assert "timestamp" in processing[1]
-    assert processing[2]["stage"] == "diarization_enrichment"
+    assert processing[2]["stage"] == "llm_normalization"
     assert processing[2]["status"] == "success"
     assert "timestamp" in processing[2]
-    assert processing[3]["stage"] == "gap_detection"
+    assert processing[2]["corrections_applied"] == 2
+    assert processing[3]["stage"] == "dictionary_normalization"
     assert processing[3]["status"] == "success"
+    assert "timestamp" in processing[3]
     assert counts["llm_count"] == 2
     assert counts["dict_count"] == 1
 
@@ -105,18 +105,18 @@ def test_enrich_llm_fails_others_continue():
         )
 
     assert len(processing) == 4
-    assert processing[0]["stage"] == "llm_normalization"
-    assert processing[0]["status"] == "error"
-    assert "Ollama down" in processing[0]["error"]
+    assert processing[0]["stage"] == "diarization_enrichment"
+    assert processing[0]["status"] == "success"
     assert "timestamp" in processing[0]
-    assert processing[1]["stage"] == "dictionary_normalization"
+    assert processing[1]["stage"] == "gap_detection"
     assert processing[1]["status"] == "success"
-    assert "timestamp" in processing[1]
-    assert processing[2]["stage"] == "diarization_enrichment"
-    assert processing[2]["status"] == "success"
+    assert processing[2]["stage"] == "llm_normalization"
+    assert processing[2]["status"] == "error"
+    assert "Ollama down" in processing[2]["error"]
     assert "timestamp" in processing[2]
-    assert processing[3]["stage"] == "gap_detection"
+    assert processing[3]["stage"] == "dictionary_normalization"
     assert processing[3]["status"] == "success"
+    assert "timestamp" in processing[3]
     assert counts["llm_count"] == 0
     assert counts["dict_count"] == 3
 

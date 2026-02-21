@@ -45,14 +45,17 @@ Audio flows through stages:
 1. **transcribe.py** — MLX Whisper (large model) produces word-level timestamps
    - `clean_transcript()` — removes zero-duration words and empty segments
 
-2. **diarize.py** — Pyannote identifies speaker segments (converts to 16kHz WAV via ffmpeg)
+2. **diarize.py** — Pyannote identifies speaker segments (converts to 16kHz WAV via ffmpeg). ML-only; no enrichment logic.
 
-3. **pipeline.py** — Orchestrates all stages:
+3. **speaker.py** — Pure data transforms: speaker labeling + gap detection. No torch/pyannote imports.
+
+4. **pipeline.py** — Orchestrates all stages:
    - `run_pipeline()` — runs transcription, diarization, enrichment
-   - `enrich_transcript()` — runs three enrichment passes:
+   - `enrich_transcript()` — runs four enrichment passes:
+     - **Diarization enrichment** (`speaker.py`) — Adds `_speaker` labels to each word by temporal overlap
+     - **Gap detection** (`speaker.py`) — Injects `[unintelligible]` segments where speaker detected but no transcript
      - **LLM normalization** (`normalize.py`) — Ollama/Qwen3 corrects phonetic mishearings of Sanskrit names
      - **Dictionary normalization** (`dictionary.py`) — Reference library corrects known variant spellings
-     - **Diarization enrichment** (`diarize.py`) — Adds `_speaker` labels to each word by temporal overlap
      - Corrections are applied via `corrections.py`, which preserves `_original` and `_corrections` audit trails
    - `save_computed()` — writes `transcript-raw.json`, `transcript-rich.json`, `diarization.json`
    - `to_utterances()` — consolidates same-speaker word runs into utterances
@@ -70,7 +73,6 @@ Two-layer approach with different purposes:
    - `silence_gap()` — no speaker + zero coverage (hallucination in silence)
    - `near_zero_probability()` — Whisper confidence essentially zero
    - `find_duplicate_segments()` — repeated text at 30-second seek boundaries
-   - `min_probability()` — factory for configurable probability thresholds
 
 Key insight: `no_speech_prob` is NOT useful for our case. It stays low during hallucination because real speech IS happening (quiet child voice) — the model just can't decode it.
 

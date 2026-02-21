@@ -11,7 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from transcribe import transcribe, clean_transcript, MODEL as TRANSCRIPTION_MODEL, make_processing_entry as make_transcription_entry
-from diarize import diarize, enrich_with_diarization, detect_unintelligible_gaps, MODEL as DIARIZATION_MODEL
+from diarize import diarize
+from speaker import enrich_with_diarization, detect_unintelligible_gaps, DIARIZATION_MODEL
 from mutagen import File as MutagenFile
 from normalize import llm_normalize, MODEL as LLM_MODEL
 from dictionary import load_library, build_variant_map, normalize_variants, make_processing_entry as make_dictionary_entry
@@ -30,9 +31,9 @@ def enrich_transcript(
 ) -> tuple[dict, list[dict], dict]:
     """Run all enrichment stages on a transcript.
 
-    Runs LLM normalization, dictionary normalization, and diarization
-    enrichment in sequence. Each stage is wrapped in try/except so
-    failures are recorded but don't block subsequent stages.
+    Runs diarization enrichment, gap detection, LLM normalization, and
+    dictionary normalization in sequence. Each stage is wrapped in
+    try/except so failures are recorded but don't block subsequent stages.
 
     Does NOT set _processing on the transcript — the caller assembles that.
 
@@ -51,7 +52,36 @@ def enrich_transcript(
     llm_count = 0
     dict_count = 0
 
-    # Pass 1: LLM normalization
+    # Pass 1: Diarization enrichment
+    try:
+        transcript, diar_entry = enrich_with_diarization(transcript, diarization)
+        processing.append(diar_entry)
+    except Exception as e:
+        logger.warning(f"Diarization enrichment failed: {e}")
+        processing.append({
+            "stage": "diarization_enrichment",
+            "model": DIARIZATION_MODEL,
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+
+    # Pass 2: Unintelligible gap detection
+    try:
+        transcript, gap_entry = detect_unintelligible_gaps(transcript, diarization)
+        processing.append(gap_entry)
+        if verbose:
+            logger.info(f"Gap detection: {gap_entry['gaps_found']} unintelligible gaps injected")
+    except Exception as e:
+        logger.warning(f"Gap detection failed: {e}")
+        processing.append({
+            "stage": "gap_detection",
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+
+    # Pass 3: LLM normalization
     try:
         text = extract_text(transcript)
         llm_corrections, llm_entry = llm_normalize(text, model=LLM_MODEL)
@@ -70,7 +100,7 @@ def enrich_transcript(
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
-    # Pass 2: Dictionary normalization
+    # Pass 4: Dictionary normalization
     lib_path = library_path or _DEFAULT_LIBRARY_PATH
     try:
         library = load_library(lib_path)
@@ -86,35 +116,6 @@ def enrich_transcript(
         processing.append({
             "stage": "dictionary_normalization",
             "library": lib_path,
-            "status": "error",
-            "error": str(e),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
-
-    # Pass 3: Diarization enrichment
-    try:
-        transcript, diar_entry = enrich_with_diarization(transcript, diarization)
-        processing.append(diar_entry)
-    except Exception as e:
-        logger.warning(f"Diarization enrichment failed: {e}")
-        processing.append({
-            "stage": "diarization_enrichment",
-            "model": DIARIZATION_MODEL,
-            "status": "error",
-            "error": str(e),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
-
-    # Pass 4: Unintelligible gap detection
-    try:
-        transcript, gap_entry = detect_unintelligible_gaps(transcript, diarization)
-        processing.append(gap_entry)
-        if verbose:
-            logger.info(f"Gap detection: {gap_entry['gaps_found']} unintelligible gaps injected")
-    except Exception as e:
-        logger.warning(f"Gap detection failed: {e}")
-        processing.append({
-            "stage": "gap_detection",
             "status": "error",
             "error": str(e),
             "timestamp": datetime.now(timezone.utc).isoformat(),
