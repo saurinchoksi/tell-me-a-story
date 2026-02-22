@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-02-22 — Messy audio in, structured transcript out
+
+**What:** Designed interactive pipeline visualization (snake layout, 8 stages, 4 color-coded zones, artifact overlays, future roadmap). Reviewed at full size in browser. Wrote SYNC task for Code to integrate on `pipeline-visualization` branch.
+**Result:** Draft at `website/portfolio/pipeline-viz-draft.html`. Copy decisions locked. Integration task queued.
+**Decided:** New framing: "messy audio in, structured transcript out" — replaces generic "session audio" and underselling "speaker-labeled." Visualization goes at top of pipeline expandable as the map; detailed walkthrough below is the territory. Artifacts shown at origin cards, not at a redundant output stage. Card hover lift and "On the Horizon" content — decide after seeing in context.
+**Learned:** The live page shows the wrong stage order (old architecture). Reordering the narrative walkthrough is the bigger task — diarization before normalization tells a better story anyway (meet the speakers, then fix what they said). "Recording" sounds like surveillance; "structured" covers more than "speaker-labeled" without listing everything.
+
 ## 2026-02-20 — Deep code review: 14 findings, 8 fixes shipped
 
 **What:** Code reviewed every source file, test file, validator, config, and reference data end-to-end. Found 14 items (4 fix, 4 consider, 6 note). All 8 actionable fixes shipped in one commit.
