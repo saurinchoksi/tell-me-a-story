@@ -4,6 +4,12 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-02-26 — Session Reviewer enters the page
+
+**What:** Added Session Reviewer section to portfolio with screenshot. Updated System UI card (Planned → Building). Changed Pipeline card tagline. Refined principle cards with quotes, accent borders, decorative marks. Renamed "On the Horizon" → "Pipeline Roadmap."
+**Decided:** Session Reviewer lives after Pipeline Output — "the pipeline produces a transcript, but how do I know it's right?" Screenshot speaks for itself, deleted feature list paragraph. Arti's quote gets same styling as Victor/Papert/Weiser — deadpan consistency is the joke.
+**Learned:** The page showed pipeline but no tools and no human in the loop. The reviewer is where the human enters the story.
+
 ## 2026-02-22 — Messy audio in, structured transcript out
 
 **What:** Designed interactive pipeline visualization (snake layout, 8 stages, 4 color-coded zones, artifact overlays, future roadmap). Reviewed at full size in browser. Wrote SYNC task for Code to integrate on `pipeline-visualization` branch.
