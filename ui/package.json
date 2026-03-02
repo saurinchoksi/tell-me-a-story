@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently --names api,vite --prefix-colors blue,green \"python ../api/app.py\" \"vite\"",
+    "dev": "concurrently --names api,vite --prefix-colors blue,green \"../venv/bin/python ../api/app.py\" \"vite\"",
     "dev:vite": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

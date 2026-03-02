@@ -16,6 +16,7 @@ DEFAULT_PROFILES_PATH = str(PROJECT_ROOT / "data" / "speaker_profiles.json")
 # Add src/ to path so identify.py and profiles.py can be imported by bare name
 # Same pattern as tools/transcript_validator/server.py:18
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
+sys.path.insert(0, str(PROJECT_ROOT))  # api package importable from any cwd
 
 
 def create_app(sessions_dir=None, profiles_path=None) -> Flask:

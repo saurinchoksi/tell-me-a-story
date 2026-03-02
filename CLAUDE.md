@@ -43,6 +43,12 @@ cd ui && npm run dev
 # Or run separately:
 python api/app.py         # API only (port 5002)
 cd ui && npm run dev:vite  # Vite only (port 5174)
+
+# Lint frontend
+cd ui && npm run lint
+
+# Process inbox (init + pipeline + embeddings for all inbox audio)
+python src/process_inbox.py
 ```
 
 ## Architecture
@@ -83,20 +89,34 @@ Two-layer approach with different purposes:
 
 Key insight: `no_speech_prob` is NOT useful for our case. It stays low during hallucination because real speech IS happening (quiet child voice) — the model just can't decode it.
 
-## API + Frontend (Task 5)
+## Speaker Identification
+
+Separate from the main pipeline, run on demand:
+
+5. **embeddings.py** — Pyannote wespeaker model extracts 256-dim speaker vectors (L2-normalized, averaged per speaker)
+6. **identify.py** — Cosine similarity matching: embeddings → profiles. Confidence tiers: ≥0.75 "identified", ≥0.45 "suggested", <0.45 "unknown"
+7. **profiles.py** — Cross-session speaker identity store at `data/speaker_profiles.json`. Centroid computed from embeddings only (voice variants excluded)
+
+Session onboarding:
+
+8. **init_session.py** — Creates session folders from inbox audio (duplicate detection via content hash)
+9. **process_inbox.py** — Batch processor: init → pipeline → embeddings for all inbox files
+
+## API + Frontend
 
 - **`api/`** — Flask app serving session data, profiles, and audio on port 5002
   - `app.py` — `create_app()` factory with injectable paths for test isolation
   - `helpers.py` — `validate_session_id()`, `get_session_dir()`, `discover_sessions()`
   - `routes/sessions.py` — `GET /api/sessions`, `GET /api/sessions/:id`, `POST /api/sessions/:id/identify`
   - `routes/profiles.py` — `GET /api/profiles`, `POST /api/profiles`, `PUT /api/profiles/:id`
+  - `routes/speakers.py` — `POST /api/sessions/:id/confirm-speakers` (batch confirm/reassign/create)
   - `routes/audio.py` — `GET /api/sessions/:id/audio` (Flask handles range requests)
 - **`ui/`** — React + TypeScript + Vite on port 5174
-  - Vite proxies `/api` → localhost:5002 (no CORS in dev)
-  - Routes: `/sessions`, `/sessions/:id/speakers` (Task 6), `/profiles` (Task 7)
+  - Vite proxies `/api` → localhost:5002 (configured in `ui/vite.config.ts`)
+  - Routes: `/sessions`, `/sessions/:id/speakers`, `/profiles`, `/profiles/:id`
   - `AudioPlayer` component: play/pause, scrub, external `seekTo` prop for caption sync
   - `api/client.ts` — typed fetch wrapper matching all API endpoints
-  - CSS custom properties in `App.css` establish design tokens for Tasks 6/7
+  - CSS custom properties in `App.css` establish design tokens
 
 ## Session Directory Structure
 
@@ -117,12 +137,18 @@ Simple type names. The folder provides session context, so IDs in filenames are 
 
 Word-level timestamps in transcript enable future caption sync (audio plays, words highlight).
 
+## Import Convention
+
+`src/` modules use **bare imports** (e.g. `from profiles import load_profiles`, not `from src.profiles import ...`). Both `api/app.py` and `tools/transcript_validator/server.py` add `src/` to `sys.path` at startup. Tests also rely on this — pytest discovers `src/` via the working directory.
+
 ## Key Details
 
 - Requires `HF_TOKEN` env var for pyannote model access
 - Pyannote struggles with soft/child speech—alignment heuristics compensate
 - Test audio: `sessions/00000000-000000/audio.m4a`
 - Private data in `sessions/` is gitignored
+- `tools/transcript_validator/` — standalone Flask app for manual transcript review with filter visualization
+- Reference library: `data/mahabharata.json` (56 entries, variants vs. aliases distinction)
 
 ## Development Principles
 
@@ -130,12 +156,11 @@ From `docs/principles.md`: Simple over clever, patterns over tools, understand d
 
 ## Current State
 
-- Full pipeline complete: audio → transcribe → diarize → enrich → save JSON
-- Speaker identification: profiles.py, embeddings.py, identify.py
-- Flask API + React/TypeScript frontend scaffold (Task 5)
+- Full pipeline: audio → transcribe → diarize → enrich → save JSON
+- Speaker identification: embeddings → profiles → cosine matching
+- Flask API + React/TypeScript frontend with speaker review UI and profile gallery
 - 250+ automated tests (fast unit + slow integration)
 - Schema version 1.2.0 with inline corrections and speaker labels at word level
-- Mahabharata reference library (56 entries, variants vs. aliases distinction)
 - Session initialization from inbox with duplicate detection
 
 ## Future Work
