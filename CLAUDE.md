@@ -67,7 +67,7 @@ Audio flows through stages:
    - `enrich_transcript()` — runs four enrichment passes:
      - **Diarization enrichment** (`speaker.py`) — Adds `_speaker` labels to each word by temporal overlap
      - **Gap detection** (`speaker.py`) — Injects `[unintelligible]` segments where speaker detected but no transcript
-     - **LLM normalization** (`normalize.py`) — Ollama/Qwen3 corrects phonetic mishearings of Sanskrit names
+     - **LLM normalization** (`normalize.py`) — MLX-LM/Qwen3-8B corrects phonetic mishearings of Sanskrit names (spawned subprocess for GPU isolation)
      - **Dictionary normalization** (`dictionary.py`) — Reference library corrects known variant spellings
      - Corrections are applied via `corrections.py`, which preserves `_original` and `_corrections` audit trails
    - `save_computed()` — writes `transcript-raw.json`, `transcript-rich.json`, `diarization.json`
@@ -108,7 +108,7 @@ Session onboarding:
   - `app.py` — `create_app()` factory with injectable paths for test isolation
   - `helpers.py` — `validate_session_id()`, `get_session_dir()`, `discover_sessions()`
   - `routes/sessions.py` — `GET /api/sessions`, `GET /api/sessions/:id`, `POST /api/sessions/:id/identify`
-  - `routes/profiles.py` — `GET /api/profiles`, `POST /api/profiles`, `PUT /api/profiles/:id`
+  - `routes/profiles.py` — `GET /api/profiles`, `GET /api/profiles/:id`, `POST /api/profiles`, `PUT /api/profiles/:id`, `DELETE /api/profiles/:id`, `POST /api/profiles/:id/refresh-centroid`, `DELETE /api/profiles/:id/embeddings/:session_id`
   - `routes/speakers.py` — `POST /api/sessions/:id/confirm-speakers` (batch confirm/reassign/create)
   - `routes/audio.py` — `GET /api/sessions/:id/audio` (Flask handles range requests)
 - **`ui/`** — React + TypeScript + Vite on port 5174
@@ -139,7 +139,36 @@ Word-level timestamps in transcript enable future caption sync (audio plays, wor
 
 ## Import Convention
 
-`src/` modules use **bare imports** (e.g. `from profiles import load_profiles`, not `from src.profiles import ...`). Both `api/app.py` and `tools/transcript_validator/server.py` add `src/` to `sys.path` at startup. Tests also rely on this — pytest discovers `src/` via the working directory.
+`src/` modules use **bare imports** (e.g. `from profiles import load_profiles`, not `from src.profiles import ...`). Both `api/app.py` and `tools/transcript_validator/server.py` add `src/` to `sys.path` at startup. `api/app.py` also adds PROJECT_ROOT so the `api` package is importable from any working directory. Tests also rely on this — pytest discovers `src/` via the working directory.
+
+## Writing Tests
+
+Every test file manually inserts `src/` into `sys.path` (no conftest.py magic). API tests also insert PROJECT_ROOT so the `api` package resolves. Flask test clients use the `create_app()` factory with `tmp_path` for full isolation.
+
+Boilerplate for new test files:
+
+```python
+# src/ module tests
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+# API tests (need both src/ and project root)
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+from api.app import create_app
+
+# Flask test client fixture
+@pytest.fixture
+def client(tmp_path):
+    profiles_path = str(tmp_path / "profiles.json")
+    app = create_app(sessions_dir=tmp_path, profiles_path=profiles_path)
+    app.config["TESTING"] = True
+    with app.test_client() as c:
+        yield c
+```
 
 ## Key Details
 
@@ -159,7 +188,7 @@ From `docs/principles.md`: Simple over clever, patterns over tools, understand d
 - Full pipeline: audio → transcribe → diarize → enrich → save JSON
 - Speaker identification: embeddings → profiles → cosine matching
 - Flask API + React/TypeScript frontend with speaker review UI and profile gallery
-- 250+ automated tests (fast unit + slow integration)
+- 301 automated tests (289 fast unit + 12 slow integration)
 - Schema version 1.2.0 with inline corrections and speaker labels at word level
 - Session initialization from inbox with duplicate detection
 
