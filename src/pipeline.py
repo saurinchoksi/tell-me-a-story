@@ -410,6 +410,21 @@ if __name__ == "__main__":
             embeddings_path = os.path.join(session_dir, "embeddings.json")
             save_embeddings(result["embeddings"], embeddings_path)
 
+        # Auto-identify against existing profiles
+        from identify import identify_speakers, save_identifications
+        from profiles import load_profiles
+        profiles = load_profiles()
+        if profiles.get("profiles") and result["embeddings"] is not None:
+            identifications = identify_speakers(os.path.join(session_dir, "embeddings.json"))
+            save_identifications(identifications, os.path.join(session_dir, "identifications.json"))
+            matched = [i for i in identifications["identifications"] if i["status"] != "unknown"]
+            if matched:
+                print(f"\nSpeaker identification: {len(matched)} matched")
+                for m in matched:
+                    print(f"  {m['speaker_key']} → {m['profile_name']} ({m['status']}, {m['confidence']})")
+            else:
+                print(f"\nSpeaker identification: no matches (0/{len(identifications['identifications'])} speakers)")
+
         # Flatten enriched words for utterance grouping
         labeled_words = []
         for seg in result["transcript"]["segments"]:

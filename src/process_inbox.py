@@ -60,6 +60,19 @@ def process_inbox():
                     result["embeddings"],
                     str(SESSIONS_DIR / session_id / "embeddings.json"),
                 )
+
+                # Auto-identify against existing profiles
+                from profiles import load_profiles
+                from identify import identify_speakers, save_identifications
+                profiles = load_profiles()
+                if profiles.get("profiles"):
+                    identifications = identify_speakers(
+                        str(SESSIONS_DIR / session_id / "embeddings.json")
+                    )
+                    save_identifications(
+                        identifications,
+                        str(SESSIONS_DIR / session_id / "identifications.json"),
+                    )
             created.append(session_id)
             print(f"  ✓ Done — {session_id}")
         except Exception as e:
