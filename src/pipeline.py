@@ -187,14 +187,13 @@ def save_computed(session_dir: str, transcript_raw: dict, transcript: dict, diar
         json.dump(diarization, f, indent=2)
 
 
-def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None, num_speakers: int = 2) -> dict:
+def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None) -> dict:
     """Run full pipeline on an audio file.
 
     Args:
         audio_path: Path to audio file
         verbose: Print progress messages
         library_path: Path to dictionary library JSON (defaults to data/mahabharata.json)
-        num_speakers: Speaker count hint for diarization (default=2). None to let pyannote decide.
 
     Returns:
         Dict with 'session_id', 'transcript_raw', 'transcript', 'diarization',
@@ -227,8 +226,7 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     if verbose:
         print("\nDiarizing (this takes a few minutes)...")
 
-    diarization = diarize(audio_path, num_speakers=num_speakers)
-    diarization["_num_speakers_hint"] = num_speakers
+    diarization = diarize(audio_path)
 
     # Embedding extraction (diarization model already freed by diarize())
     embeddings_result = None
@@ -342,8 +340,6 @@ if __name__ == "__main__":
                         help="Re-enrich an existing session from transcript-raw.json")
     parser.add_argument("--library", default=None,
                         help="Path to dictionary library JSON")
-    parser.add_argument("--num-speakers", type=int, default=2, metavar="N",
-                        help="Speaker count hint for diarization (default: 2). 0 = auto-detect.")
     args = parser.parse_args()
 
     if args.re_enrich:
@@ -397,8 +393,7 @@ if __name__ == "__main__":
         print(f"  Dictionary corrections: {counts['dict_count']}")
     else:
         # Full pipeline mode
-        num_speakers = args.num_speakers if args.num_speakers > 0 else None
-        result = run_pipeline(args.path, library_path=args.library, num_speakers=num_speakers)
+        result = run_pipeline(args.path, library_path=args.library)
 
         session_id = result["session_id"]
         session_dir = f"sessions/{session_id}"
