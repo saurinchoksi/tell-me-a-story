@@ -365,6 +365,32 @@ def test_pipeline_accepts_valid_session_id():
     assert result["session_id"] == "20260217-143000"
 
 
+def test_pipeline_embedding_failure_returns_none():
+    """Embedding extraction failure → pipeline continues, embeddings is None."""
+    fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)
+    enrichment_processing = [
+        {"stage": "diarization_enrichment", "model": "pyannote/speaker-diarization-community-1", "status": "success"},
+        {"stage": "gap_detection", "gaps_found": 0, "status": "success"},
+        {"stage": "llm_normalization", "model": "qwen3:8b", "status": "success", "corrections_applied": 0},
+        {"stage": "dictionary_normalization", "library": "data/mahabharata.json", "status": "success", "corrections_applied": 0},
+    ]
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            enrich_transcript=MagicMock(
+                return_value=(fake_transcript, enrichment_processing, {"llm_count": 0, "dict_count": 0})
+            ),
+            load_embedding_model=MagicMock(side_effect=RuntimeError("Model download failed")),
+        )
+        result = run_pipeline("/sessions/20260301-120000/audio.m4a", verbose=False)
+
+    assert result["embeddings"] is None
+    # Pipeline still produces valid transcript and diarization
+    assert "transcript" in result
+    assert "diarization" in result
+    assert result["session_id"] == "20260301-120000"
+
+
 def test_pipeline_accepts_zeroed_session_id():
     """Test session 00000000-000000 passes validation."""
     fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)

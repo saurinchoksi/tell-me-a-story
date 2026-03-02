@@ -65,6 +65,7 @@ def test_process_inbox_init_and_pipeline_success(capsys):
             "transcript_raw": {"segments": []},
             "transcript": {"segments": []},
             "diarization": {"segments": []},
+            "embeddings": None,
         })
         mock_save = MagicMock()
 
@@ -79,6 +80,77 @@ def test_process_inbox_init_and_pipeline_success(capsys):
         mock_save.assert_called_once()
         output = capsys.readouterr().out
         assert "20260301-120000" in output
+
+
+def test_process_inbox_saves_embeddings(capsys):
+    """Embeddings are saved to session directory when present in pipeline result."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = _make_inbox(tmp, ["story.m4a"])
+        sessions = Path(tmp) / "sessions"
+        sessions.mkdir()
+        session_dir = sessions / "20260301-120000"
+        session_dir.mkdir()
+        (session_dir / "audio.m4a").write_bytes(b"fake audio")
+
+        fake_embeddings = {
+            "_generator": "wespeaker-voxceleb-resnet34-LM",
+            "_dimension": 256,
+            "speakers": {"SPEAKER_00": {"vector": [0.1] * 256, "num_segments": 2, "total_duration_s": 5.0}},
+        }
+
+        mock_init = MagicMock(return_value=("20260301-120000", "audio.m4a"))
+        mock_pipeline = MagicMock(return_value={
+            "transcript_raw": {"segments": []},
+            "transcript": {"segments": []},
+            "diarization": {"segments": []},
+            "embeddings": fake_embeddings,
+        })
+        mock_save = MagicMock()
+        mock_save_embeddings = MagicMock()
+
+        with contextlib.ExitStack() as stack:
+            _patch_dirs(stack, inbox, sessions)
+            stack.enter_context(patch("process_inbox.init_session", mock_init))
+            stack.enter_context(patch("process_inbox.run_pipeline", mock_pipeline))
+            stack.enter_context(patch("process_inbox.save_computed", mock_save))
+            stack.enter_context(patch("process_inbox.save_embeddings", mock_save_embeddings))
+            process_inbox()
+
+        mock_save_embeddings.assert_called_once_with(
+            fake_embeddings,
+            str(sessions / "20260301-120000" / "embeddings.json"),
+        )
+
+
+def test_process_inbox_skips_embeddings_when_none(capsys):
+    """Embeddings are not saved when pipeline returns None for embeddings."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = _make_inbox(tmp, ["story.m4a"])
+        sessions = Path(tmp) / "sessions"
+        sessions.mkdir()
+        session_dir = sessions / "20260301-120000"
+        session_dir.mkdir()
+        (session_dir / "audio.m4a").write_bytes(b"fake audio")
+
+        mock_init = MagicMock(return_value=("20260301-120000", "audio.m4a"))
+        mock_pipeline = MagicMock(return_value={
+            "transcript_raw": {"segments": []},
+            "transcript": {"segments": []},
+            "diarization": {"segments": []},
+            "embeddings": None,
+        })
+        mock_save = MagicMock()
+        mock_save_embeddings = MagicMock()
+
+        with contextlib.ExitStack() as stack:
+            _patch_dirs(stack, inbox, sessions)
+            stack.enter_context(patch("process_inbox.init_session", mock_init))
+            stack.enter_context(patch("process_inbox.run_pipeline", mock_pipeline))
+            stack.enter_context(patch("process_inbox.save_computed", mock_save))
+            stack.enter_context(patch("process_inbox.save_embeddings", mock_save_embeddings))
+            process_inbox()
+
+        mock_save_embeddings.assert_not_called()
 
 
 def test_process_inbox_init_returns_none(capsys):
@@ -173,6 +245,7 @@ def test_process_inbox_mixed_results(capsys):
             "transcript_raw": {"segments": []},
             "transcript": {"segments": []},
             "diarization": {"segments": []},
+            "embeddings": None,
         })
         mock_save = MagicMock()
 
@@ -261,6 +334,7 @@ def test_process_inbox_save_computed_raises(capsys):
             "transcript_raw": {"segments": []},
             "transcript": {"segments": []},
             "diarization": {"segments": []},
+            "embeddings": None,
         })
         mock_save = MagicMock(side_effect=OSError("disk full"))
 

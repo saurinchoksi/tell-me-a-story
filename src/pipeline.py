@@ -10,8 +10,11 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
+import torch
+
 from transcribe import transcribe, clean_transcript, MODEL as TRANSCRIPTION_MODEL, make_processing_entry as make_transcription_entry
 from diarize import diarize
+from embeddings import load_embedding_model, extract_speaker_embeddings, save_embeddings
 from speaker import enrich_with_diarization, detect_unintelligible_gaps, DIARIZATION_MODEL
 from mutagen import File as MutagenFile
 from normalize import llm_normalize, MODEL as LLM_MODEL
@@ -193,7 +196,8 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
         library_path: Path to dictionary library JSON (defaults to data/mahabharata.json)
 
     Returns:
-        Dict with 'transcript_raw', 'transcript', 'diarization' keys.
+        Dict with 'session_id', 'transcript_raw', 'transcript', 'diarization',
+        and 'embeddings' keys. 'embeddings' is None if extraction failed.
     """
     if not os.path.exists(audio_path):
         raise FileNotFoundError(f"Audio file not found: {audio_path}")
@@ -224,6 +228,19 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
 
     diarization = diarize(audio_path)
 
+    # Embedding extraction (diarization model already freed by diarize())
+    embeddings_result = None
+    try:
+        if verbose:
+            print("\nExtracting speaker embeddings...")
+        embedding_model = load_embedding_model()
+        embeddings_result = extract_speaker_embeddings(embedding_model, audio_path, diarization)
+        del embedding_model
+        if torch.backends.mps.is_available():
+            torch.mps.empty_cache()
+    except Exception as e:
+        logger.warning(f"Embedding extraction failed: {e}")
+
     # Enrichment (normalization + diarization)
     transcript, enrichment_processing, _ = enrich_transcript(
         transcript, diarization, library_path=library_path, verbose=verbose
@@ -241,6 +258,7 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
         "transcript_raw": transcript_raw,
         "transcript": transcript,
         "diarization": diarization,
+        "embeddings": embeddings_result,
     }
 
 
@@ -387,6 +405,11 @@ if __name__ == "__main__":
             diarization=result["diarization"],
         )
 
+        # Save embeddings if extraction succeeded
+        if result["embeddings"] is not None:
+            embeddings_path = os.path.join(session_dir, "embeddings.json")
+            save_embeddings(result["embeddings"], embeddings_path)
+
         # Flatten enriched words for utterance grouping
         labeled_words = []
         for seg in result["transcript"]["segments"]:
@@ -400,6 +423,9 @@ if __name__ == "__main__":
         print(f"  transcript-raw.json")
         print(f"  transcript-rich.json")
         print(f"  diarization.json")
+        if result["embeddings"] is not None:
+            n_speakers = len(result["embeddings"]["speakers"])
+            print(f"  embeddings.json ({n_speakers} speakers)")
 
         processing = result["transcript"]["_processing"]
         for entry in processing:

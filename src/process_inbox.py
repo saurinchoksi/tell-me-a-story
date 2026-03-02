@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from init_session import INBOX_DIR, SESSIONS_DIR, SUPPORTED_FORMATS, init_session
 from pipeline import run_pipeline, save_computed
+from embeddings import save_embeddings
 
 
 def process_inbox():
@@ -54,6 +55,11 @@ def process_inbox():
                 result["transcript"],
                 result["diarization"],
             )
+            if result.get("embeddings") is not None:
+                save_embeddings(
+                    result["embeddings"],
+                    str(SESSIONS_DIR / session_id / "embeddings.json"),
+                )
             created.append(session_id)
             print(f"  ✓ Done — {session_id}")
         except Exception as e:
