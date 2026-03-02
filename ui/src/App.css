@@ -81,3 +81,49 @@
 .sessions-table a:hover {
   text-decoration: underline;
 }
+
+/* --- Health dot (shared across profile pages) --- */
+
+.health-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.health-dot--green  { background: var(--color-success); }
+.health-dot--yellow { background: var(--color-warning); }
+.health-dot--red    { background: var(--color-error); }
+.health-dot--grey   { background: var(--color-text-muted); opacity: 0.4; }
+
+/* --- Button utilities (shared) --- */
+
+.btn {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.btn:hover {
+  border-color: var(--color-accent);
+}
+
+.btn--danger {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.btn--danger:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+.btn--small {
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.75rem;
+}

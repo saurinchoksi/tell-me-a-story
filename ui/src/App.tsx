@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Sessions from './pages/Sessions';
 import SessionSpeakers from './pages/SessionSpeakers';
 import ProfileGallery from './pages/ProfileGallery';
+import ProfileDetail from './pages/ProfileDetail';
 import './App.css';
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
           <Route path="/sessions" element={<Sessions />} />
           <Route path="/sessions/:id/speakers" element={<SessionSpeakers />} />
           <Route path="/profiles" element={<ProfileGallery />} />
+          <Route path="/profiles/:id" element={<ProfileDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>

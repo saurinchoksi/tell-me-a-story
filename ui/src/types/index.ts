@@ -85,6 +85,52 @@ export interface ProfileSummary {
   updated: string;
   embeddings: number;       // count, not the actual vectors
   voice_variants: number;   // count
+  latest_match_score?: number | null;
+  latest_match_session?: string | null;
+  last_seen?: string | null;
+}
+
+/** Enriched embedding info from GET /api/profiles/:id. */
+export interface ProfileEmbeddingInfo {
+  session_id: string | null;
+  source_speaker_key: string | null;
+  total_duration_s: number | null;
+  num_segments: number | null;
+}
+
+/** Voice variant metadata from GET /api/profiles/:id. */
+export interface ProfileVariantInfo {
+  id: string;
+  created: string;
+  session_id: string | null;
+  source_speaker_key: string | null;
+}
+
+/** Reference to an audio segment for speaker preview. */
+export interface AudioSampleRef {
+  session_id: string;
+  start: number;
+  end: number;
+}
+
+/** Most recent identification match for a profile. */
+export interface LatestMatch {
+  session_id: string;
+  confidence: number;
+  identified_at: string;
+}
+
+/** Full profile detail from GET /api/profiles/:id. */
+export interface ProfileDetail {
+  id: string;
+  name: string;
+  role: string;
+  created: string;
+  updated: string;
+  embeddings: ProfileEmbeddingInfo[];
+  voice_variants: ProfileVariantInfo[];
+  audio_sample: AudioSampleRef | null;
+  latest_match: LatestMatch | null;
 }
 
 // --- Speaker confirmation (Task 6) ---

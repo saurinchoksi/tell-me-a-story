@@ -10,6 +10,7 @@ import type {
   SessionDetail,
   IdentificationData,
   ProfileSummary,
+  ProfileDetail,
   Decision,
   ConfirmSpeakersResponse,
 } from '../types';
@@ -84,5 +85,26 @@ export async function updateProfile(
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updates),
+  });
+}
+
+export async function getProfile(id: string): Promise<ProfileDetail> {
+  return fetchJSON<ProfileDetail>(`/api/profiles/${id}`);
+}
+
+export async function deleteProfile(id: string): Promise<void> {
+  await fetchJSON(`/api/profiles/${id}`, { method: 'DELETE' });
+}
+
+export async function refreshCentroid(id: string): Promise<void> {
+  await fetchJSON(`/api/profiles/${id}/refresh-centroid`, { method: 'POST' });
+}
+
+export async function removeEmbedding(
+  profileId: string,
+  sessionId: string,
+): Promise<{ embeddings_remaining: number }> {
+  return fetchJSON(`/api/profiles/${profileId}/embeddings/${sessionId}`, {
+    method: 'DELETE',
   });
 }
