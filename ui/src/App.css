@@ -20,6 +20,13 @@
 
   --radius: 6px;
   --radius-lg: 10px;
+
+  /* Speaker accent colors — warm tones for visual differentiation */
+  --speaker-0: #d97706;
+  --speaker-1: #0d9488;
+  --speaker-2: #e11d48;
+  --speaker-3: #7c3aed;
+  --speaker-4: #475569;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -86,3 +86,22 @@ export interface ProfileSummary {
   embeddings: number;       // count, not the actual vectors
   voice_variants: number;   // count
 }
+
+// --- Speaker confirmation (Task 6) ---
+
+export type DecisionAction = 'confirm' | 'confirm_variant' | 'create' | 'reassign' | 'skip';
+
+export interface Decision {
+  speaker_key: string;
+  action: DecisionAction;
+  profile_id?: string;
+  new_name?: string;
+  new_role?: string;
+}
+
+export interface ConfirmSpeakersResponse {
+  applied: number;
+  skipped: number;
+  created_profiles: string[];
+  identifications: IdentificationData;
+}

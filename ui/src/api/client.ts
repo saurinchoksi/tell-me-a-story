@@ -10,6 +10,8 @@ import type {
   SessionDetail,
   IdentificationData,
   ProfileSummary,
+  Decision,
+  ConfirmSpeakersResponse,
 } from '../types';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -40,6 +42,22 @@ export async function identifySpeakers(sessionId: string): Promise<Identificatio
 
 export function audioURL(sessionId: string): string {
   return `/api/sessions/${sessionId}/audio`;
+}
+
+// --- Speakers ---
+
+export async function confirmSpeakers(
+  sessionId: string,
+  decisions: Decision[],
+): Promise<ConfirmSpeakersResponse> {
+  return fetchJSON<ConfirmSpeakersResponse>(
+    `/api/sessions/${sessionId}/confirm-speakers`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decisions }),
+    },
+  );
 }
 
 // --- Profiles ---

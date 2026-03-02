@@ -43,10 +43,12 @@ def create_app(sessions_dir=None, profiles_path=None) -> Flask:
     from api.routes.sessions import bp as sessions_bp
     from api.routes.profiles import bp as profiles_bp
     from api.routes.audio import bp as audio_bp
+    from api.routes.speakers import bp as speakers_bp
 
     app.register_blueprint(sessions_bp, url_prefix="/api")
     app.register_blueprint(profiles_bp, url_prefix="/api")
     app.register_blueprint(audio_bp, url_prefix="/api")
+    app.register_blueprint(speakers_bp, url_prefix="/api")
 
     return app
 
