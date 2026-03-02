@@ -164,8 +164,8 @@ export default function SpeakerCard({
           {speakerKey}
         </div>
         <div className="speaker-card-meta">
-          {formatDuration(totalDuration)} &middot; {segments.length} segment{segments.length !== 1 ? 's' : ''}
-          {embedding.num_segments !== undefined && ` &middot; ${embedding.num_segments} emb`}
+          {formatDuration(totalDuration)} · {segments.length} segment{segments.length !== 1 ? 's' : ''}
+          {embedding.num_segments !== undefined && ` · ${embedding.num_segments} emb`}
         </div>
         {identification?.confidence != null && (
           <div className="speaker-card-confidence">
