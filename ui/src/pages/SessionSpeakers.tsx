@@ -103,16 +103,17 @@ export default function SessionSpeakers() {
       const decisionList = Object.values(decisions);
       const result = await confirmSpeakers(id, decisionList);
 
-      // Update identifications from response
+      // Update identifications from response (for display badges)
       setIdentifications(result.identifications);
 
       // Re-fetch profiles (counts may have changed, new profiles created)
       const freshProfiles = await listProfiles();
       setProfiles(freshProfiles);
 
-      // Rebuild decisions from fresh identifications
-      const speakerKeys = Object.keys(decisions).sort();
-      setDecisions(initDecisions(speakerKeys, result.identifications));
+      // Don't rebuild decisions — user already made their choices and they saved
+      // successfully. Rebuilding would reset variants to "skip" because variant
+      // embeddings don't update the centroid, so re-identification still returns
+      // "suggested" and initDecisions maps that to skip.
 
       setSaveState('success');
       setTimeout(() => setSaveState('idle'), 2000);
