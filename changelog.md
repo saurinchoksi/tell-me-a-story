@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-03-02 — Speaker identification: from experiment to working UI
+
+**What:** Completed the full speaker identification feature in one day — 7 tasks from profile storage through React UI. Backend: profiles.py, embeddings.py, identify.py. Frontend: Flask API (13 endpoints), React/TypeScript app with session speaker review and profile gallery views.
+**Result:** 289 fast tests. System works end to end: pipeline extracts embeddings → identification proposes matches → human confirms in session review → profiles build up over time. One command runs everything (`cd ui && npm run dev`).
+**Decided:** Dropped num_speakers hint (Task 4) — hardcoding speaker counts trades visible fragmentation for invisible collapsed speakers. Audio strategy: serve full file with frontend seeking, no ffmpeg dependency. Identification is on-demand (UI-triggered), not automatic. Batch confirm endpoint saves all speaker decisions at once.
+**Learned:** The experiment data (0.85/0.79 same-person, 0.55-0.59 uncertain zone) held up through implementation. Three confidence zones (0.75/0.45 thresholds) feel right. Cold start — no profiles, everything unknown — needs to feel like a starting point, not an error.
+
 ## 2026-02-26 — Session Reviewer enters the page
 
 **What:** Added Session Reviewer section to portfolio with screenshot. Updated System UI card (Planned → Building). Changed Pipeline card tagline. Refined principle cards with quotes, accent borders, decorative marks. Renamed "On the Horizon" → "Pipeline Roadmap."
