@@ -1,0 +1,76 @@
+/* Design tokens — Tasks 6/7 build on these custom properties */
+:root {
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-text: #1a1a2e;
+  --color-text-muted: #6b7280;
+  --color-accent: #4f46e5;
+  --color-accent-bg: #eef2ff;
+  --color-border: #e5e7eb;
+  --color-success: #16a34a;
+  --color-warning: #ca8a04;
+  --color-error: #dc2626;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius: 6px;
+  --radius-lg: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #111827;
+    --color-surface: #1f2937;
+    --color-text: #f3f4f6;
+    --color-text-muted: #9ca3af;
+    --color-accent: #818cf8;
+    --color-accent-bg: #1e1b4b;
+    --color-border: #374151;
+  }
+}
+
+/* Utility styles */
+.error {
+  color: var(--color-error);
+}
+
+/* Sessions table */
+.sessions-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--space-4);
+}
+
+.sessions-table th,
+.sessions-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sessions-table th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sessions-table td {
+  font-size: 0.9rem;
+}
+
+.sessions-table a {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-family: monospace;
+}
+
+.sessions-table a:hover {
+  text-decoration: underline;
+}

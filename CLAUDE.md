@@ -36,6 +36,13 @@ pytest                    # All tests
 pytest -m "not slow"      # Fast unit tests only
 pytest -m slow            # Integration tests (requires audio files)
 pytest tests/test_align.py::test_function_name  # Single test
+
+# Full dev environment (API on :5002 + Vite on :5174)
+cd ui && npm run dev
+
+# Or run separately:
+python api/app.py         # API only (port 5002)
+cd ui && npm run dev:vite  # Vite only (port 5174)
 ```
 
 ## Architecture
@@ -76,6 +83,21 @@ Two-layer approach with different purposes:
 
 Key insight: `no_speech_prob` is NOT useful for our case. It stays low during hallucination because real speech IS happening (quiet child voice) — the model just can't decode it.
 
+## API + Frontend (Task 5)
+
+- **`api/`** — Flask app serving session data, profiles, and audio on port 5002
+  - `app.py` — `create_app()` factory with injectable paths for test isolation
+  - `helpers.py` — `validate_session_id()`, `get_session_dir()`, `discover_sessions()`
+  - `routes/sessions.py` — `GET /api/sessions`, `GET /api/sessions/:id`, `POST /api/sessions/:id/identify`
+  - `routes/profiles.py` — `GET /api/profiles`, `POST /api/profiles`, `PUT /api/profiles/:id`
+  - `routes/audio.py` — `GET /api/sessions/:id/audio` (Flask handles range requests)
+- **`ui/`** — React + TypeScript + Vite on port 5174
+  - Vite proxies `/api` → localhost:5002 (no CORS in dev)
+  - Routes: `/sessions`, `/sessions/:id/speakers` (Task 6), `/profiles` (Task 7)
+  - `AudioPlayer` component: play/pause, scrub, external `seekTo` prop for caption sync
+  - `api/client.ts` — typed fetch wrapper matching all API endpoints
+  - CSS custom properties in `App.css` establish design tokens for Tasks 6/7
+
 ## Session Directory Structure
 
 Each session is stored at `sessions/{session-id}/`:
@@ -86,6 +108,8 @@ sessions/00000000-000000/
   transcript-raw.json
   transcript-rich.json
   diarization.json
+  embeddings.json
+  identifications.json
   validation-notes.json
 ```
 
@@ -107,7 +131,9 @@ From `docs/principles.md`: Simple over clever, patterns over tools, understand d
 ## Current State
 
 - Full pipeline complete: audio → transcribe → diarize → enrich → save JSON
-- 93+ automated tests (fast unit + slow integration)
+- Speaker identification: profiles.py, embeddings.py, identify.py
+- Flask API + React/TypeScript frontend scaffold (Task 5)
+- 250+ automated tests (fast unit + slow integration)
 - Schema version 1.2.0 with inline corrections and speaker labels at word level
 - Mahabharata reference library (56 entries, variants vs. aliases distinction)
 - Session initialization from inbox with duplicate detection

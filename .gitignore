@@ -27,6 +27,13 @@ CLAUDE.md*.swp
 tools/transcript_validator/notes/
 checkpoints/
 
+# Frontend
+ui/node_modules/
+ui/dist/
+
+# Speaker profiles (private voice data)
+data/speaker_profiles.json
+
 # Experiments (scripts run locally, results are generated output)
 experiments/
 

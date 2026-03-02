@@ -2,3 +2,4 @@ mlx-whisper
 pyannote.audio
 pytest
 mutagen
+flask-cors
