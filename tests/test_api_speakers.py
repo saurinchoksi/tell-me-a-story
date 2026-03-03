@@ -337,3 +337,101 @@ def test_speaker_key_not_in_embeddings(env):
     )
     assert resp.status_code == 400
     assert "speaker" in resp.get_json()["error"].lower()
+
+
+# ---------------------------------------------------------------------------
+# Confirmed field persistence
+# ---------------------------------------------------------------------------
+
+def test_confirm_action_sets_confirmed_fields(env):
+    """Confirm action annotates the identification with confirmed fields."""
+    resp = env.client.post(
+        f"/api/sessions/{env.session_id}/confirm-speakers",
+        json={"decisions": [
+            {"speaker_key": "SPEAKER_00", "action": "confirm", "profile_id": "spk_aaa111"},
+        ]},
+    )
+    data = resp.get_json()
+    ident = next(
+        i for i in data["identifications"]["identifications"]
+        if i["speaker_key"] == "SPEAKER_00"
+    )
+    assert ident["confirmed"] is True
+    assert ident["confirmed_action"] == "confirm"
+    assert ident["confirmed_profile_id"] == "spk_aaa111"
+
+
+def test_confirm_variant_sets_confirmed_fields(env):
+    """confirm_variant action stores variant-specific confirmed_action."""
+    resp = env.client.post(
+        f"/api/sessions/{env.session_id}/confirm-speakers",
+        json={"decisions": [
+            {"speaker_key": "SPEAKER_01", "action": "confirm_variant", "profile_id": "spk_aaa111"},
+        ]},
+    )
+    data = resp.get_json()
+    ident = next(
+        i for i in data["identifications"]["identifications"]
+        if i["speaker_key"] == "SPEAKER_01"
+    )
+    assert ident["confirmed"] is True
+    assert ident["confirmed_action"] == "confirm_variant"
+    assert ident["confirmed_profile_id"] == "spk_aaa111"
+
+
+def test_create_sets_confirmed_profile_id(env):
+    """Create action maps confirmed_profile_id to the newly-created profile."""
+    resp = env.client.post(
+        f"/api/sessions/{env.session_id}/confirm-speakers",
+        json={"decisions": [
+            {"speaker_key": "SPEAKER_01", "action": "create", "new_name": "Arti", "new_role": "child"},
+        ]},
+    )
+    data = resp.get_json()
+    new_id = data["created_profiles"][0]
+    ident = next(
+        i for i in data["identifications"]["identifications"]
+        if i["speaker_key"] == "SPEAKER_01"
+    )
+    assert ident["confirmed"] is True
+    assert ident["confirmed_action"] == "create"
+    assert ident["confirmed_profile_id"] == new_id
+
+
+def test_skip_has_no_confirmed_fields(env):
+    """Skipped speakers should not have confirmed fields."""
+    resp = env.client.post(
+        f"/api/sessions/{env.session_id}/confirm-speakers",
+        json={"decisions": [
+            {"speaker_key": "SPEAKER_00", "action": "skip"},
+            {"speaker_key": "SPEAKER_01", "action": "confirm", "profile_id": "spk_aaa111"},
+        ]},
+    )
+    data = resp.get_json()
+    ident_00 = next(
+        i for i in data["identifications"]["identifications"]
+        if i["speaker_key"] == "SPEAKER_00"
+    )
+    assert "confirmed" not in ident_00
+
+
+def test_confirmed_fields_persisted_to_disk(env):
+    """GET session after save should return the confirmed fields from disk."""
+    env.client.post(
+        f"/api/sessions/{env.session_id}/confirm-speakers",
+        json={"decisions": [
+            {"speaker_key": "SPEAKER_00", "action": "confirm", "profile_id": "spk_aaa111"},
+        ]},
+    )
+
+    # Read identifications.json directly from disk
+    ident_path = env.session_dir / "identifications.json"
+    assert ident_path.exists()
+    ident_data = json.loads(ident_path.read_text())
+    ident_00 = next(
+        i for i in ident_data["identifications"]
+        if i["speaker_key"] == "SPEAKER_00"
+    )
+    assert ident_00["confirmed"] is True
+    assert ident_00["confirmed_action"] == "confirm"
+    assert ident_00["confirmed_profile_id"] == "spk_aaa111"

@@ -40,7 +40,18 @@ function initDecisions(
   const decisions: Record<string, Decision> = {};
   for (const key of speakerKeys) {
     const ident = idMap.get(key);
-    if (ident?.status === 'identified' && ident.profile_id) {
+    if (ident?.confirmed && ident.confirmed_profile_id) {
+      // Normalize one-time actions: 'create' and 'reassign' already happened,
+      // so on reload they become regular confirmations.
+      const action = ident.confirmed_action === 'confirm_variant'
+        ? 'confirm_variant'
+        : 'confirm';
+      decisions[key] = {
+        speaker_key: key,
+        action,
+        profile_id: ident.confirmed_profile_id,
+      };
+    } else if (ident?.status === 'identified' && ident.profile_id) {
       decisions[key] = {
         speaker_key: key,
         action: 'confirm',
@@ -110,10 +121,11 @@ export default function SessionSpeakers() {
       const freshProfiles = await listProfiles();
       setProfiles(freshProfiles);
 
-      // Don't rebuild decisions — user already made their choices and they saved
-      // successfully. Rebuilding would reset variants to "skip" because variant
-      // embeddings don't update the centroid, so re-identification still returns
-      // "suggested" and initDecisions maps that to skip.
+      // Rebuild decisions from fresh identifications (confirmed fields now persist)
+      const speakerKeys = session?.embeddings
+        ? Object.keys(session.embeddings.speakers).sort()
+        : [];
+      setDecisions(initDecisions(speakerKeys, result.identifications));
 
       setSaveState('success');
       setTimeout(() => setSaveState('idle'), 2000);
@@ -121,7 +133,7 @@ export default function SessionSpeakers() {
       setSaveState('error');
       setErrorMessage(e instanceof Error ? e.message : 'Save failed');
     }
-  }, [id, decisions]);
+  }, [id, decisions, session]);
 
   // --- Render guards ---
   if (loading) return <p>Loading...</p>;
@@ -156,7 +168,8 @@ export default function SessionSpeakers() {
 
   for (const key of speakerKeys) {
     const ident = idMap.get(key);
-    if (ident?.status === 'identified') identified.push(key);
+    if (ident?.confirmed) identified.push(key);
+    else if (ident?.status === 'identified') identified.push(key);
     else if (ident?.status === 'suggested') suggested.push(key);
     else unknown.push(key);
   }

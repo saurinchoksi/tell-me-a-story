@@ -86,6 +86,7 @@ def confirm_speakers(session_id: str):
     applied = 0
     skipped = 0
     created_profiles = []
+    confirmed_map = {}  # speaker_key -> (action, profile_id)
 
     for d in decisions:
         action = d["action"]
@@ -104,6 +105,7 @@ def confirm_speakers(session_id: str):
 
         if action in ("confirm", "reassign"):
             add_embedding(profiles, d["profile_id"], embedding_data)
+            confirmed_map[speaker_key] = (action, d["profile_id"])
             applied += 1
 
         elif action == "confirm_variant":
@@ -113,12 +115,14 @@ def confirm_speakers(session_id: str):
                 "vector": speaker_embedding["vector"],
             }
             add_voice_variant(profiles, d["profile_id"], variant_data)
+            confirmed_map[speaker_key] = (action, d["profile_id"])
             applied += 1
 
         elif action == "create":
             new_id = create_profile(profiles, d["new_name"], d["new_role"])
             add_embedding(profiles, new_id, embedding_data)
             created_profiles.append(new_id)
+            confirmed_map[speaker_key] = (action, new_id)
             applied += 1
 
     # --- Save profiles once ---
@@ -128,6 +132,15 @@ def confirm_speakers(session_id: str):
     identifications = identify_speakers(
         str(embeddings_path), profiles_path=profiles_path
     )
+
+    # --- Overlay confirmed human decisions onto algorithmic results ---
+    for ident in identifications.get("identifications", []):
+        if ident["speaker_key"] in confirmed_map:
+            action, pid = confirmed_map[ident["speaker_key"]]
+            ident["confirmed"] = True
+            ident["confirmed_action"] = action
+            ident["confirmed_profile_id"] = pid
+
     save_identifications(
         identifications, str(session_dir / "identifications.json")
     )

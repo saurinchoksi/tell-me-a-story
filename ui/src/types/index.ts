@@ -74,6 +74,9 @@ export interface SpeakerIdentification {
   profile_id: string | null;
   profile_name: string | null;
   confidence: number | null;
+  confirmed?: boolean;
+  confirmed_action?: DecisionAction;
+  confirmed_profile_id?: string;
 }
 
 /** Profile as returned by GET /api/profiles (vectors stripped). */
