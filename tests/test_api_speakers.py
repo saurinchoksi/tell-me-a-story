@@ -22,7 +22,7 @@ EMBEDDING_DIM = 256
 def _make_embeddings(speaker_keys):
     """Build a minimal embeddings.json dict for the given speaker keys."""
     return {
-        "_generator": "test",
+        "_generator_version": "test",
         "_dimension": EMBEDDING_DIM,
         "speakers": {
             key: {"vector": [0.1 * (i + 1)] * EMBEDDING_DIM, "num_segments": 3}

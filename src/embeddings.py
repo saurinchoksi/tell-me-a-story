@@ -68,7 +68,7 @@ def extract_speaker_embeddings(
     Returns:
         Dict with schema:
         {
-            "_generator": "wespeaker-voxceleb-resnet34-LM",
+            "_generator_version": "wespeaker-voxceleb-resnet34-LM",
             "_dimension": 256,
             "speakers": {
                 "SPEAKER_00": {
@@ -100,7 +100,7 @@ def extract_speaker_embeddings(
                 logger.warning(f"No usable segments for {speaker}, skipping")
 
         return {
-            "_generator": _model_label(),
+            "_generator_version": _model_label(),
             "_dimension": model.dimension,
             "speakers": speakers,
         }

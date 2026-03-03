@@ -128,7 +128,7 @@ def add_embedding(profiles: dict, profile_id: str, embedding_data: dict) -> None
         profiles: Top-level profiles container
         profile_id: ID of the target profile
         embedding_data: Dict with at least "vector" (list of floats).
-            May also include "session_id", "source_speaker_ids", etc.
+            May also include "session_id", "source_speaker_key", etc.
 
     Raises:
         KeyError: If profile_id not found

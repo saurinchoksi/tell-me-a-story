@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-03-03 — Cross-session identification works
+
+**What:** Auto-identification added to pipeline (runs after embedding extraction). All three test sessions reprocessed. Speaker decision persistence bug fixed — confirmed/variant choices now survive page reload via overlay fields in identifications.json.
+**Result:** Saurin identified at 96%, Arti at 94% on a completely different recording session with only one prior embedding each. Voice variants (distant mic, silly voice) correctly land in suggested tier (~54%). 295 tests passing.
+**Decided:** Identification runs automatically at end of pipeline when profiles exist (added to both pipeline.py and process_inbox.py). Reprocessing existing sessions from scratch is safe — save_computed only writes its own artifacts, validation-notes.json untouched.
+**Learned:** Profiles generalize across recording sessions with just one enrollment. The suggested tier (0.45–0.75) is doing its job — acoustically different fragments from the same person don't clear the identified threshold but aren't strangers either. Variant is the right concept for these.
+
 ## 2026-03-02 — Speaker identification: from experiment to working UI
 
 **What:** Completed the full speaker identification feature in one day — 7 tasks from profile storage through React UI. Backend: profiles.py, embeddings.py, identify.py. Frontend: Flask API (13 endpoints), React/TypeScript app with session speaker review and profile gallery views.

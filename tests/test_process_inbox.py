@@ -93,7 +93,7 @@ def test_process_inbox_saves_embeddings(capsys):
         (session_dir / "audio.m4a").write_bytes(b"fake audio")
 
         fake_embeddings = {
-            "_generator": "wespeaker-voxceleb-resnet34-LM",
+            "_generator_version": "wespeaker-voxceleb-resnet34-LM",
             "_dimension": 256,
             "speakers": {"SPEAKER_00": {"vector": [0.1] * 256, "num_segments": 2, "total_duration_s": 5.0}},
         }

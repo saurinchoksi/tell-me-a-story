@@ -51,7 +51,7 @@ export interface DiarizationSegment {
 
 export interface EmbeddingsData {
   speakers: Record<string, SpeakerEmbedding>;
-  _generator?: string;
+  _generator_version?: string;
   _dimension?: number;
 }
 

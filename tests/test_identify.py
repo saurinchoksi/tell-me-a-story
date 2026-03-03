@@ -71,7 +71,7 @@ def _vector_with_similarity(base, target_sim):
 def _embeddings_data(speakers_dict):
     """Build an embeddings.json-shaped dict."""
     return {
-        "_generator": "test",
+        "_generator_version": "test",
         "_dimension": DIM,
         "speakers": speakers_dict,
     }

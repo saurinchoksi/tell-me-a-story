@@ -254,7 +254,7 @@ def test_vectors_are_finite(mock_load, mock_prepare):
 @patch("embeddings.prepare_audio_for_diarization")
 @patch("embeddings.torchaudio.load")
 def test_output_schema_keys(mock_load, mock_prepare):
-    """Output has _generator, _dimension, speakers keys."""
+    """Output has _generator_version, _dimension, speakers keys."""
     import torch
 
     mock_prepare.return_value = "/tmp/fake.wav"
@@ -269,7 +269,7 @@ def test_output_schema_keys(mock_load, mock_prepare):
     with patch("embeddings.os.unlink"):
         result = extract_speaker_embeddings(model, "/fake/audio.m4a", diarization)
 
-    assert result["_generator"] == "wespeaker-voxceleb-resnet34-LM"
+    assert result["_generator_version"] == "wespeaker-voxceleb-resnet34-LM"
     assert result["_dimension"] == 256
     assert "speakers" in result
 
@@ -339,7 +339,7 @@ def test_temp_wav_cleaned_up_on_error(mock_load, mock_prepare):
 def test_save_embeddings_writes_valid_json():
     """save_embeddings writes JSON that round-trips correctly."""
     data = {
-        "_generator": "wespeaker-voxceleb-resnet34-LM",
+        "_generator_version": "wespeaker-voxceleb-resnet34-LM",
         "_dimension": 256,
         "speakers": {
             "SPEAKER_00": {
@@ -362,7 +362,7 @@ def test_save_embeddings_writes_valid_json():
 
 def test_save_embeddings_creates_parent_dirs():
     """save_embeddings creates parent directories if needed."""
-    data = {"_generator": "test", "_dimension": 256, "speakers": {}}
+    data = {"_generator_version": "test", "_dimension": 256, "speakers": {}}
 
     with tempfile.TemporaryDirectory() as tmpdir:
         path = os.path.join(tmpdir, "nested", "dir", "embeddings.json")
@@ -405,7 +405,7 @@ def test_real_embedding_extraction():
 
     # Should have at least one speaker
     assert len(result["speakers"]) > 0
-    assert result["_generator"] == "wespeaker-voxceleb-resnet34-LM"
+    assert result["_generator_version"] == "wespeaker-voxceleb-resnet34-LM"
     assert result["_dimension"] == 256
 
     for speaker, data in result["speakers"].items():

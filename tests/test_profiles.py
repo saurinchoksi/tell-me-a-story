@@ -25,29 +25,24 @@ from profiles import (
 # ---------------------------------------------------------------------------
 
 def _embedding(session_id="session-001", vector=None):
-    """Build a minimal embedding_data dict."""
+    """Build a minimal embedding_data dict matching production shape (speakers.py)."""
     if vector is None:
         vector = [1.0] * 256
     return {
         "session_id": session_id,
-        "source_speaker_ids": ["SPEAKER_00"],
+        "source_speaker_key": "SPEAKER_00",
         "vector": vector,
-        "duration_seconds": 120.0,
-        "quality": "confirmed",
     }
 
 
-def _variant(source_session_id="session-001", vector=None):
-    """Build a minimal variant_data dict (without id/created — module auto-generates)."""
+def _variant(session_id="session-001", vector=None):
+    """Build a minimal variant_data dict matching production shape (speakers.py)."""
     if vector is None:
         vector = [0.5] * 256
     return {
-        "name": None,
-        "source_session_id": source_session_id,
-        "source_speaker_id": "SPEAKER_01",
+        "session_id": session_id,
+        "source_speaker_key": "SPEAKER_01",
         "vector": vector,
-        "duration_seconds": 30.0,
-        "similarity_to_centroid": 0.55,
     }
 
 
@@ -325,7 +320,7 @@ def test_full_round_trip():
 
     vec = [float(i % 7) for i in range(256)]
     add_embedding(profiles, pid, _embedding(session_id="20260207-172315", vector=vec))
-    add_voice_variant(profiles, pid, _variant(source_session_id="20260218-185123"))
+    add_voice_variant(profiles, pid, _variant(session_id="20260218-185123"))
 
     with tempfile.TemporaryDirectory() as tmp:
         path = str(Path(tmp) / "profiles.json")
@@ -340,4 +335,4 @@ def test_full_round_trip():
     assert p["embeddings"][0]["session_id"] == "20260207-172315"
     assert p["centroid"] == pytest.approx(vec)
     assert len(p["voice_variants"]) == 1
-    assert p["voice_variants"][0]["source_session_id"] == "20260218-185123"
+    assert p["voice_variants"][0]["session_id"] == "20260218-185123"

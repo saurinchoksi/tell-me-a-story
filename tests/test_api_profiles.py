@@ -56,7 +56,7 @@ def _make_identifications(session_id, entries):
 def _make_embeddings(speaker_keys):
     """Build a minimal embeddings.json dict."""
     return {
-        "_generator": "test",
+        "_generator_version": "test",
         "_dimension": EMBEDDING_DIM,
         "speakers": {
             key: {
