@@ -296,6 +296,19 @@ def test_add_variant_centroid_unchanged():
     assert profiles["profiles"][0]["centroid"] == pytest.approx(centroid_before)
 
 
+def test_add_variant_duplicate_session():
+    profiles = {"profiles": []}
+    pid = create_profile(profiles, "Test", "parent")
+    variant_a = {"session_id": "same-session", "vector": [1.0] * 256}
+    variant_b = {"session_id": "same-session", "vector": [9.0] * 256}
+    add_voice_variant(profiles, pid, variant_a)
+    add_voice_variant(profiles, pid, variant_b)
+
+    p = profiles["profiles"][0]
+    assert len(p["voice_variants"]) == 1
+    assert p["voice_variants"][0]["vector"][0] == 1.0
+
+
 def test_add_variant_not_found():
     profiles = {"profiles": []}
     with pytest.raises(KeyError):

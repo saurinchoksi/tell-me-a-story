@@ -152,6 +152,9 @@ def add_voice_variant(profiles: dict, profile_id: str, variant_data: dict) -> No
     Does NOT recompute the centroid — variants are acoustic fragments preserved
     for reference but excluded from the speaker's identity vector.
 
+    Idempotent: if a variant with the same session_id already exists, the call
+    is silently skipped (safe to retry).
+
     Args:
         profiles: Top-level profiles container
         profile_id: ID of the target profile
@@ -161,6 +164,13 @@ def add_voice_variant(profiles: dict, profile_id: str, variant_data: dict) -> No
         KeyError: If profile_id not found
     """
     profile = _find_profile(profiles, profile_id)
+
+    session_id = variant_data.get("session_id")
+    if session_id is not None:
+        for existing in profile["voice_variants"]:
+            if existing.get("session_id") == session_id:
+                return
+
     variant_data.setdefault("id", "var_" + secrets.token_hex(3))
     variant_data.setdefault("created", datetime.now(timezone.utc).isoformat())
     profile["voice_variants"].append(variant_data)

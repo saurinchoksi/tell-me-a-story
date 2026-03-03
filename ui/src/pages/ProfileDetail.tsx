@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import type { ProfileDetail as ProfileDetailType } from '../types';
 import {
@@ -47,9 +47,10 @@ export default function ProfileDetail() {
   const [editName, setEditName] = useState('');
   const [editRole, setEditRole] = useState('');
 
-  const fetchProfile = useCallback(() => {
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  useEffect(() => {
     if (!id) return;
-    setLoading(true);
     getProfile(id)
       .then((p) => {
         setProfile(p);
@@ -58,11 +59,7 @@ export default function ProfileDetail() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [id]);
-
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+  }, [id, refreshCounter]);
 
   // --- Handlers ---
 
@@ -71,7 +68,7 @@ export default function ProfileDetail() {
     try {
       await updateProfile(id, { name: editName, role: editRole });
       setEditing(false);
-      fetchProfile();
+      setRefreshCounter(c => c + 1);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Update failed');
     }
@@ -100,7 +97,7 @@ export default function ProfileDetail() {
     if (!id) return;
     try {
       await refreshCentroid(id);
-      fetchProfile();
+      setRefreshCounter(c => c + 1);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Refresh failed');
     }
@@ -111,7 +108,7 @@ export default function ProfileDetail() {
     if (!window.confirm(`Remove enrollment from session ${sessionId}?`)) return;
     try {
       await removeEmbedding(id, sessionId);
-      fetchProfile();
+      setRefreshCounter(c => c + 1);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Remove failed');
     }
