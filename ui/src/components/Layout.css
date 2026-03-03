@@ -14,8 +14,10 @@
 }
 
 .layout-title {
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 1.1rem;
+  color: var(--color-maroon, var(--color-text));
   margin-right: auto;
 }
 

@@ -31,6 +31,7 @@ export default function Sessions() {
             <th>Diarization</th>
             <th>Embeddings</th>
             <th>Identified</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -44,6 +45,11 @@ export default function Sessions() {
               <td>{s.has_diarization ? 'Y' : '-'}</td>
               <td>{s.has_embeddings ? 'Y' : '-'}</td>
               <td>{s.has_identifications ? 'Y' : '-'}</td>
+              <td>
+                {s.has_transcript && (
+                  <Link to={`/sessions/${s.id}/validate`}>Validate</Link>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>

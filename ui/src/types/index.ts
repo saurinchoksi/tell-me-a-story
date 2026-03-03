@@ -136,6 +136,82 @@ export interface ProfileDetail {
   latest_match: LatestMatch | null;
 }
 
+// --- Validator types ---
+
+export interface ValidatorWord {
+  word: string;
+  start: number;
+  end: number;
+  probability: number;
+  _speaker?: {
+    label: string | null;
+    coverage: number;
+  };
+  _original?: string;
+  _corrections?: Array<{
+    stage: string;
+    from: string;
+    to: string;
+  }>;
+}
+
+export interface ValidatorSegment {
+  id: number | string;
+  start: number;
+  end: number;
+  text: string;
+  words: ValidatorWord[];
+  temperature?: number;
+  compression_ratio?: number;
+  no_speech_prob?: number;
+  avg_logprob?: number;
+  _speaker?: {
+    label: string | null;
+    coverage: number;
+  };
+  _source?: string;
+}
+
+export interface Note {
+  id: string;
+  segmentId: number | string | null;
+  wordIndex: number | null;
+  wordText: string | null;
+  wordStart: number | null;
+  timestamp: number;
+  text: string;
+  createdAt: string;
+}
+
+export interface FilterState {
+  silenceGap: boolean;
+  nearZero: boolean;
+  duplicates: boolean;
+}
+
+export interface ContextTarget {
+  type: 'segment' | 'word' | 'timestamp';
+  segmentId?: number | string;
+  segmentIndex?: number;
+  wordIndex?: number;
+  wordText?: string;
+  wordStart?: number;
+  timestamp?: number;
+}
+
+export interface ContextMenuState {
+  visible: boolean;
+  x: number;
+  y: number;
+  target: ContextTarget | null;
+}
+
+export interface NoteModalState {
+  visible: boolean;
+  target: ContextTarget | null;
+  existingNote: Note | null;
+}
+
 // --- Speaker confirmation (Task 6) ---
 
 export type DecisionAction = 'confirm' | 'confirm_variant' | 'create' | 'reassign' | 'skip';

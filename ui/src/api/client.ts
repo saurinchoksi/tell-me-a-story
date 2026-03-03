@@ -13,6 +13,7 @@ import type {
   ProfileDetail,
   Decision,
   ConfirmSpeakersResponse,
+  Note,
 } from '../types';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -106,5 +107,20 @@ export async function removeEmbedding(
 ): Promise<{ embeddings_remaining: number }> {
   return fetchJSON(`/api/profiles/${profileId}/embeddings/${sessionId}`, {
     method: 'DELETE',
+  });
+}
+
+// --- Notes ---
+
+export async function getNotes(sessionId: string): Promise<Note[]> {
+  const data = await fetchJSON<{ notes: Note[] }>(`/api/sessions/${sessionId}/notes`);
+  return data.notes;
+}
+
+export async function saveNotes(sessionId: string, notes: Note[]): Promise<{ saved: number }> {
+  return fetchJSON<{ saved: number }>(`/api/sessions/${sessionId}/notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notes }),
   });
 }
