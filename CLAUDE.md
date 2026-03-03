@@ -51,6 +51,14 @@ cd ui && npm run lint
 python src/process_inbox.py
 ```
 
+## Environment
+
+- Apple Silicon Mac (MLX models require Metal GPU)
+- Python 3.14 (venv in project root)
+- Node.js (for `ui/`)
+- FFmpeg (audio conversion in `diarize.py`)
+- `HF_TOKEN` env var for pyannote model access
+
 ## Architecture
 
 Audio flows through stages:
@@ -67,7 +75,7 @@ Audio flows through stages:
    - `enrich_transcript()` — runs four enrichment passes:
      - **Diarization enrichment** (`speaker.py`) — Adds `_speaker` labels to each word by temporal overlap
      - **Gap detection** (`speaker.py`) — Injects `[unintelligible]` segments where speaker detected but no transcript
-     - **LLM normalization** (`normalize.py`) — MLX-LM/Qwen3-8B corrects phonetic mishearings of Sanskrit names (spawned subprocess for GPU isolation)
+     - **LLM normalization** (`normalize.py`) — MLX-LM/Qwen3-8B corrects phonetic mishearings of Sanskrit names (subprocess isolates GPU memory from pyannote to prevent OOM)
      - **Dictionary normalization** (`dictionary.py`) — Reference library corrects known variant spellings
      - Corrections are applied via `corrections.py`, which preserves `_original` and `_corrections` audit trails
    - `save_computed()` — writes `transcript-raw.json`, `transcript-rich.json`, `diarization.json`
@@ -172,36 +180,18 @@ def client(tmp_path):
 
 ## Key Details
 
-- Requires `HF_TOKEN` env var for pyannote model access
 - Pyannote struggles with soft/child speech—alignment heuristics compensate
 - Test audio: `sessions/00000000-000000/audio.m4a`
 - Private data in `sessions/` is gitignored
-- `tools/transcript_validator/` — standalone Flask app for manual transcript review with filter visualization
+- `tools/transcript_validator/` — standalone Flask app on port 5001 for manual transcript review with filter visualization
 - Reference library: `data/mahabharata.json` (56 entries, variants vs. aliases distinction)
+- Supported audio formats: `.m4a`, `.mp3`, `.wav` (defined in `init_session.py`)
 
-## Development Principles
+## Coding Conventions
 
-From `docs/principles.md`: Simple over clever, patterns over tools, understand deeply before scaling with AI.
+**Fail Loud.** No silent fallbacks. Use `utt["words"]` not `utt.get("words", [])`. If assumptions break, fail immediately — don't hide bugs behind default values. (See `docs/principles.md` for full list.)
 
-## Current State
-
-- Full pipeline: audio → transcribe → diarize → enrich → save JSON
-- Speaker identification: embeddings → profiles → cosine matching
-- Flask API + React/TypeScript frontend with speaker review UI and profile gallery
-- 301 automated tests (289 fast unit + 12 slow integration)
-- Schema version 1.2.0 with inline corrections and speaker labels at word level
-- Session initialization from inbox with duplicate detection
-
-## Future Work
-
-- Story element extraction (characters, worlds, plot beats)
-- Searchable story bible
-- Mobile browser interface for session selection with synced captions
-- Hardware: ESP32 capture devices, Jetson Orin Nano deployment
-
-## Journal
-
-Daily build log in `journal/` tracks decisions, experiments, and learnings.
+**Changelog entries** (`changelog.md`): **What** (what changed), **Result** (outcome with numbers), **Decided** (decisions + why), **Learned** (insights). Not all fields required. Newest entries at top.
 
 ## SYNC.md Handoff Protocol
 
