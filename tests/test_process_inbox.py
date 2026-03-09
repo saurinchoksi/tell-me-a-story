@@ -309,6 +309,64 @@ def test_print_summary_only_failed(capsys):
     assert "Skipped" not in output
 
 
+def test_process_inbox_target_file_valid(capsys):
+    """target_file processes only the specified file from inbox."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = _make_inbox(tmp, ["target.m4a", "other.m4a"])
+        sessions = Path(tmp) / "sessions"
+        sessions.mkdir()
+        session_dir = sessions / "20260701-100000"
+        session_dir.mkdir()
+        (session_dir / "audio.m4a").write_bytes(b"fake audio")
+
+        mock_init = MagicMock(return_value=("20260701-100000", "audio.m4a"))
+        mock_pipeline = MagicMock(return_value={
+            "transcript_raw": {"segments": []},
+            "transcript": {"segments": []},
+            "diarization": {"segments": []},
+            "embeddings": None,
+        })
+        mock_save = MagicMock()
+
+        with contextlib.ExitStack() as stack:
+            _patch_dirs(stack, inbox, sessions)
+            stack.enter_context(patch("process_inbox.init_session", mock_init))
+            stack.enter_context(patch("process_inbox.run_pipeline", mock_pipeline))
+            stack.enter_context(patch("process_inbox.save_computed", mock_save))
+            process_inbox(target_file="target.m4a")
+
+        # init_session called with only the target file, not both
+        mock_init.assert_called_once()
+        called_path = mock_init.call_args[0][0]
+        assert called_path.name == "target.m4a"
+
+
+def test_process_inbox_target_file_not_found():
+    """target_file pointing to nonexistent file raises FileNotFoundError."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = _make_inbox(tmp, [])
+        sessions = Path(tmp) / "sessions"
+        sessions.mkdir()
+
+        with contextlib.ExitStack() as stack:
+            _patch_dirs(stack, inbox, sessions)
+            with pytest.raises(FileNotFoundError, match="ghost.m4a"):
+                process_inbox(target_file="ghost.m4a")
+
+
+def test_process_inbox_target_file_unsupported_format():
+    """target_file with unsupported extension raises ValueError."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = _make_inbox(tmp, ["notes.txt"])
+        sessions = Path(tmp) / "sessions"
+        sessions.mkdir()
+
+        with contextlib.ExitStack() as stack:
+            _patch_dirs(stack, inbox, sessions)
+            with pytest.raises(ValueError, match="Unsupported format"):
+                process_inbox(target_file="notes.txt")
+
+
 def test_process_inbox_missing_inbox_dir():
     """Missing inbox directory raises FileNotFoundError."""
     with tempfile.TemporaryDirectory() as tmp:

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Process all audio files in the inbox: init session → run pipeline → save artifacts."""
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -11,8 +12,18 @@ from pipeline import run_pipeline, save_computed
 from embeddings import save_embeddings
 
 
-def process_inbox():
-    audio_files = [f for f in INBOX_DIR.iterdir() if f.suffix.lower() in SUPPORTED_FORMATS]
+def process_inbox(target_file: str | None = None):
+    if target_file:
+        path = INBOX_DIR / target_file
+        if not path.exists():
+            raise FileNotFoundError(f"File not found in inbox: {target_file}")
+        if path.suffix.lower() not in SUPPORTED_FORMATS:
+            raise ValueError(
+                f"Unsupported format '{path.suffix}'. Supported: {', '.join(sorted(SUPPORTED_FORMATS))}"
+            )
+        audio_files = [path]
+    else:
+        audio_files = [f for f in INBOX_DIR.iterdir() if f.suffix.lower() in SUPPORTED_FORMATS]
 
     if not audio_files:
         print("Inbox is empty — nothing to process.")
@@ -101,4 +112,10 @@ def _print_summary(created, skipped, failed):
 
 
 if __name__ == "__main__":
-    process_inbox()
+    parser = argparse.ArgumentParser(description="Process inbox audio files.")
+    parser.add_argument(
+        "--file",
+        help="Process only this filename from the inbox (e.g. 'New Recording 37.m4a')",
+    )
+    args = parser.parse_args()
+    process_inbox(target_file=args.file)

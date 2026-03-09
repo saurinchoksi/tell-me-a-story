@@ -1,7 +1,9 @@
 """Initialize session folders from inbox audio files."""
 
 import hashlib
+import json
 import shutil
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -14,15 +16,68 @@ DUPLICATES_DIR = INBOX_DIR / "duplicates"
 SUPPORTED_FORMATS = {".m4a", ".mp3", ".wav"}
 
 
-def get_creation_time(filepath: Path) -> datetime:
-    """Get file creation time.
+def _run_ffprobe(filepath: Path) -> dict | None:
+    """Run ffprobe and return parsed JSON, or None on any failure."""
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format",
+             str(filepath)],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode != 0:
+            return None
+        return json.loads(result.stdout)
+    except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        return None
 
-    Uses st_birthtime on macOS, falls back to st_mtime (modification time)
-    on Linux and other platforms where birth time is not available.
+
+def _get_ffprobe_tags(filepath: Path) -> dict:
+    """Extract format-level tags from ffprobe, or empty dict on failure."""
+    probe = _run_ffprobe(filepath)
+    if probe is None:
+        return {}
+    return probe.get("format", {}).get("tags", {})
+
+
+def _get_metadata_creation_time(filepath: Path) -> datetime | None:
+    """Extract recording date from ffprobe creation_time tag.
+
+    Apple Voice Memos (when dragged from the Mac Voice Memos app) stores
+    the original recording timestamp in the container's creation_time tag.
+    Returns a naive local datetime, or None if unavailable.
     """
+    tags = _get_ffprobe_tags(filepath)
+    creation_time = tags.get("creation_time")
+    if not creation_time:
+        return None
+    try:
+        dt = datetime.fromisoformat(creation_time.replace("Z", "+00:00"))
+        return dt.astimezone().replace(tzinfo=None)
+    except (ValueError, OSError):
+        return None
+
+
+def get_creation_time(filepath: Path) -> datetime:
+    """Get file creation time, preferring embedded metadata over filesystem.
+
+    Checks ffprobe creation_time first (accurate for Voice Memos dragged
+    from the Mac app). Falls back to filesystem birth time / mtime.
+    Prints a diagnostic note when metadata and filesystem dates diverge.
+    """
+    metadata_time = _get_metadata_creation_time(filepath)
+
     stat = filepath.stat()
     timestamp = getattr(stat, "st_birthtime", stat.st_mtime)
-    return datetime.fromtimestamp(timestamp)
+    filesystem_time = datetime.fromtimestamp(timestamp)
+
+    if metadata_time and metadata_time != filesystem_time:
+        delta = abs((metadata_time - filesystem_time).total_seconds())
+        if delta > 3600:
+            print(f"  note: metadata date {metadata_time:%Y-%m-%d %H:%M} "
+                  f"differs from filesystem {filesystem_time:%Y-%m-%d %H:%M} "
+                  f"(using metadata)")
+
+    return metadata_time if metadata_time else filesystem_time
 
 
 def generate_session_id(dt: datetime) -> str:
@@ -39,11 +94,46 @@ def file_hash(filepath: Path) -> str:
     return h.hexdigest()
 
 
+def _find_uuid_duplicate(uuid: str) -> str | None:
+    """Check existing sessions for a matching voice-memo-uuid.
+
+    Scans each session's audio.m4a via ffprobe for the voice-memo-uuid tag.
+    Returns the session_id if a duplicate is found, None otherwise.
+    """
+    if not SESSIONS_DIR.exists():
+        return None
+    for session_dir in SESSIONS_DIR.iterdir():
+        if not session_dir.is_dir():
+            continue
+        audio_path = session_dir / "audio.m4a"
+        if not audio_path.exists():
+            continue
+        tags = _get_ffprobe_tags(audio_path)
+        if tags.get("voice-memo-uuid") == uuid:
+            return session_dir.name
+    return None
+
+
 def init_session(audio_path: Path) -> tuple[str, str] | None:
     """Move audio file to new session folder.
 
     Returns (session_id, audio_filename) on success, None if skipped.
     """
+    # Extract ffprobe tags once (used for UUID check and date)
+    tags = _get_ffprobe_tags(audio_path)
+
+    # UUID-based duplicate check (catches Voice Memos re-muxing)
+    uuid = tags.get("voice-memo-uuid")
+    if uuid:
+        existing_session = _find_uuid_duplicate(uuid)
+        if existing_session:
+            DUPLICATES_DIR.mkdir(parents=True, exist_ok=True)
+            dup_dest = DUPLICATES_DIR / f"{existing_session}_{audio_path.name}"
+            shutil.move(audio_path, dup_dest)
+            print(f"  {audio_path.name} → DUPLICATE of session {existing_session} "
+                  f"(same voice-memo-uuid, moved to duplicates/)")
+            return None
+
     creation_time = get_creation_time(audio_path)
     session_id = generate_session_id(creation_time)
     session_dir = SESSIONS_DIR / session_id
@@ -77,6 +167,7 @@ def init_session(audio_path: Path) -> tuple[str, str] | None:
     except Exception:
         session_dir.rmdir()  # Clean up the empty folder
         raise  # Re-raise so caller knows it failed
+
     print(f"  {audio_path.name} → {session_id}/{dest_path.name}")
     return session_id, dest_path.name
 

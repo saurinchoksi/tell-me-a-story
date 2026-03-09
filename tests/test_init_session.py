@@ -1,10 +1,11 @@
 """Tests for init_session module."""
 
+import json
 import sys
 import tempfile
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -16,6 +17,7 @@ from init_session import (
     file_hash,
     init_session,
     main,
+    _get_metadata_creation_time,
 )
 
 
@@ -26,6 +28,11 @@ def _make_audio_file(directory, name, content=b"audio data"):
     return path
 
 
+def _no_ffprobe_tags(*args, **kwargs):
+    """Return empty tags dict — simulates no ffprobe metadata."""
+    return {}
+
+
 # --- get_creation_time tests ---
 
 
@@ -33,8 +40,71 @@ def test_get_creation_time_returns_datetime():
     """Return value is a datetime instance."""
     with tempfile.TemporaryDirectory() as tmp:
         f = _make_audio_file(tmp, "test.m4a")
-        result = get_creation_time(f)
+        with patch("init_session._get_metadata_creation_time", return_value=None):
+            result = get_creation_time(f)
         assert isinstance(result, datetime)
+
+
+def test_get_creation_time_prefers_metadata():
+    """When ffprobe returns creation_time, that date is used over filesystem."""
+    metadata_dt = datetime(2026, 1, 17, 20, 22, 37)
+    with tempfile.TemporaryDirectory() as tmp:
+        f = _make_audio_file(tmp, "test.m4a")
+        with patch("init_session._get_metadata_creation_time", return_value=metadata_dt):
+            result = get_creation_time(f)
+        assert result == metadata_dt
+
+
+def test_get_creation_time_falls_back_on_ffprobe_failure():
+    """When ffprobe fails (returns None), filesystem time is used."""
+    with tempfile.TemporaryDirectory() as tmp:
+        f = _make_audio_file(tmp, "test.m4a")
+        with patch("init_session._get_metadata_creation_time", return_value=None):
+            result = get_creation_time(f)
+        # Should return a datetime close to "now" (file just created)
+        assert isinstance(result, datetime)
+        assert (datetime.now() - result).total_seconds() < 5
+
+
+def test_get_creation_time_falls_back_when_no_tags():
+    """ffprobe succeeds but no creation_time tag → filesystem fallback."""
+    with tempfile.TemporaryDirectory() as tmp:
+        f = _make_audio_file(tmp, "test.m4a")
+        with patch("init_session._run_ffprobe", return_value={"format": {"tags": {}}}):
+            result = get_creation_time(f)
+        assert isinstance(result, datetime)
+        assert (datetime.now() - result).total_seconds() < 5
+
+
+def test_get_creation_time_converts_utc_to_local():
+    """creation_time in UTC is converted to naive local datetime."""
+    # Mock ffprobe returning a UTC timestamp
+    utc_str = "2026-01-18T01:22:37.000000Z"
+    probe_result = {"format": {"tags": {"creation_time": utc_str}}}
+    with tempfile.TemporaryDirectory() as tmp:
+        f = _make_audio_file(tmp, "test.m4a")
+        with patch("init_session._run_ffprobe", return_value=probe_result):
+            result = _get_metadata_creation_time(f)
+        assert result is not None
+        assert result.tzinfo is None  # naive
+        # The exact local time depends on the machine's timezone,
+        # but it should differ from UTC by the local offset
+        utc_dt = datetime(2026, 1, 18, 1, 22, 37, tzinfo=timezone.utc)
+        expected_local = utc_dt.astimezone().replace(tzinfo=None)
+        assert result == expected_local
+
+
+def test_get_creation_time_prints_divergence_note(capsys):
+    """When metadata and filesystem dates differ by >1h, a note is printed."""
+    # Metadata says Jan 17, filesystem says Feb 7 (weeks apart)
+    metadata_dt = datetime(2026, 1, 17, 20, 22, 37)
+    with tempfile.TemporaryDirectory() as tmp:
+        f = _make_audio_file(tmp, "test.m4a")
+        with patch("init_session._get_metadata_creation_time", return_value=metadata_dt):
+            get_creation_time(f)
+        output = capsys.readouterr().out
+        assert "note: metadata date" in output
+        assert "using metadata" in output
 
 
 # --- generate_session_id tests ---
@@ -87,6 +157,7 @@ def test_init_session_creates_session_dir():
             patch("init_session.SESSIONS_DIR", sessions),
             patch("init_session.INBOX_DIR", inbox),
             patch("init_session.DUPLICATES_DIR", inbox / "duplicates"),
+            patch("init_session._get_ffprobe_tags", return_value={}),
             patch("init_session.get_creation_time", return_value=datetime(2026, 3, 1, 14, 0, 0)),
         ):
             result = init_session(audio)
@@ -112,6 +183,7 @@ def test_init_session_normalizes_extension():
             patch("init_session.SESSIONS_DIR", sessions),
             patch("init_session.INBOX_DIR", inbox),
             patch("init_session.DUPLICATES_DIR", inbox / "duplicates"),
+            patch("init_session._get_ffprobe_tags", return_value={}),
             patch("init_session.get_creation_time", return_value=datetime(2026, 4, 1, 10, 0, 0)),
         ):
             result = init_session(audio)
@@ -142,6 +214,7 @@ def test_init_session_duplicate_detected():
             patch("init_session.SESSIONS_DIR", sessions),
             patch("init_session.INBOX_DIR", inbox),
             patch("init_session.DUPLICATES_DIR", duplicates),
+            patch("init_session._get_ffprobe_tags", return_value={}),
             patch("init_session.get_creation_time", return_value=datetime(2026, 5, 1, 12, 0, 0)),
         ):
             result = init_session(audio)
@@ -169,6 +242,7 @@ def test_init_session_collision_different_hash():
             patch("init_session.SESSIONS_DIR", sessions),
             patch("init_session.INBOX_DIR", inbox),
             patch("init_session.DUPLICATES_DIR", inbox / "duplicates"),
+            patch("init_session._get_ffprobe_tags", return_value={}),
             patch("init_session.get_creation_time", return_value=datetime(2026, 6, 1, 9, 0, 0)),
         ):
             result = init_session(audio)
@@ -193,6 +267,7 @@ def test_init_session_collision_no_existing_audio():
             patch("init_session.SESSIONS_DIR", sessions),
             patch("init_session.INBOX_DIR", inbox),
             patch("init_session.DUPLICATES_DIR", inbox / "duplicates"),
+            patch("init_session._get_ffprobe_tags", return_value={}),
             patch("init_session.get_creation_time", return_value=datetime(2026, 7, 1, 10, 0, 0)),
         ):
             result = init_session(audio)
@@ -214,6 +289,7 @@ def test_init_session_move_failure_cleans_up():
             patch("init_session.SESSIONS_DIR", sessions),
             patch("init_session.INBOX_DIR", inbox),
             patch("init_session.DUPLICATES_DIR", inbox / "duplicates"),
+            patch("init_session._get_ffprobe_tags", return_value={}),
             patch("init_session.get_creation_time", return_value=datetime(2026, 8, 1, 12, 0, 0)),
             patch("init_session.shutil.move", side_effect=OSError("disk full")),
         ):
@@ -221,6 +297,67 @@ def test_init_session_move_failure_cleans_up():
                 init_session(audio)
 
         assert not (sessions / "20260801-120000").exists()
+
+
+def test_init_session_uuid_duplicate_detected():
+    """Same voice-memo-uuid in existing session → duplicate, even with different MD5."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = Path(tmp) / "inbox"
+        inbox.mkdir()
+        sessions = Path(tmp) / "sessions"
+        sessions.mkdir()
+        duplicates = inbox / "duplicates"
+
+        # Existing session with audio.m4a that has a UUID in its tags
+        session_dir = sessions / "20260117-202237"
+        session_dir.mkdir()
+        _make_audio_file(session_dir, "audio.m4a", b"original bytes")
+
+        # New file with DIFFERENT content but same UUID
+        audio = _make_audio_file(inbox, "New Recording 63.m4a", b"re-muxed different bytes")
+
+        with (
+            patch("init_session.SESSIONS_DIR", sessions),
+            patch("init_session.INBOX_DIR", inbox),
+            patch("init_session.DUPLICATES_DIR", duplicates),
+            patch("init_session._get_ffprobe_tags", return_value={"voice-memo-uuid": "ABC-123"}),
+        ):
+            result = init_session(audio)
+
+        assert result is None
+        assert not audio.exists()
+        assert (duplicates / "20260117-202237_New Recording 63.m4a").exists()
+
+
+def test_init_session_no_uuid_falls_through_to_hash():
+    """No UUID in ffprobe tags → falls through to MD5 hash comparison."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = Path(tmp) / "inbox"
+        inbox.mkdir()
+        sessions = Path(tmp) / "sessions"
+        sessions.mkdir()
+        duplicates = inbox / "duplicates"
+
+        # Existing session with same content
+        session_dir = sessions / "20260501-120000"
+        session_dir.mkdir()
+        _make_audio_file(session_dir, "audio.m4a", b"same bytes")
+
+        # New file with same content, no UUID
+        audio = _make_audio_file(inbox, "copy.m4a", b"same bytes")
+
+        with (
+            patch("init_session.SESSIONS_DIR", sessions),
+            patch("init_session.INBOX_DIR", inbox),
+            patch("init_session.DUPLICATES_DIR", duplicates),
+            patch("init_session._get_ffprobe_tags", return_value={}),
+            patch("init_session.get_creation_time", return_value=datetime(2026, 5, 1, 12, 0, 0)),
+        ):
+            result = init_session(audio)
+
+        assert result is None
+        assert not audio.exists()
+        assert (duplicates / "20260501-120000_copy.m4a").exists()
 
 
 # --- main tests ---
@@ -280,6 +417,7 @@ def test_main_processes_supported_files(capsys):
             patch("init_session.INBOX_DIR", inbox),
             patch("init_session.SESSIONS_DIR", sessions),
             patch("init_session.DUPLICATES_DIR", inbox / "duplicates"),
+            patch("init_session._get_ffprobe_tags", return_value={}),
             patch("init_session.get_creation_time", return_value=datetime(2026, 9, 1, 20, 0, 0)),
         ):
             main()

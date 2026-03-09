@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -128,7 +129,11 @@ def enrich_transcript(
 
 
 def get_audio_info(filepath: str) -> dict | None:
-    """Return basic properties of an audio file, or None if unreadable."""
+    """Return audio properties enriched with ffprobe metadata.
+
+    Reads Mutagen for codec info and ffprobe for recording date,
+    Voice Memos UUID, and encoder tags directly from the audio file.
+    """
     path = Path(filepath)
 
     if not path.exists():
@@ -139,13 +144,33 @@ def get_audio_info(filepath: str) -> dict | None:
     if audio is None:
         return None
 
-    return {
+    info = {
         "filename": path.name,
         "format": type(audio).__name__,
         "duration_seconds": audio.info.length,
         "sample_rate": audio.info.sample_rate,
         "channels": audio.info.channels,
     }
+
+    # Enrich from ffprobe tags embedded in the audio file
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format",
+             str(path)],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode == 0:
+            tags = json.loads(result.stdout).get("format", {}).get("tags", {})
+            if tags.get("creation_time"):
+                info["recording_date_utc"] = tags["creation_time"]
+            if tags.get("voice-memo-uuid"):
+                info["voice_memo_uuid"] = tags["voice-memo-uuid"]
+            if tags.get("encoder"):
+                info["encoder"] = tags["encoder"]
+    except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        pass
+
+    return info
 
 
 def compute_file_hash(file_path: str) -> str:
