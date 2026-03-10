@@ -92,6 +92,7 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
         cursorWidth: 2,
         height: 100,
         minPxPerSec: 100,
+        hideScrollbar: true,
         normalize: true,
         plugins: [
           Minimap.create({

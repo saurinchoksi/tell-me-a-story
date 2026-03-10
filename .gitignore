@@ -23,8 +23,7 @@ sessions/debug/
 CLAUDE.md*.swp
 *.swp
 
-# Validation notes (personal)
-tools/transcript_validator/notes/
+# Checkpoints
 checkpoints/
 
 # Frontend

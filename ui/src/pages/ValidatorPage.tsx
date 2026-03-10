@@ -86,7 +86,15 @@ export default function ValidatorPage() {
     Promise.all([getSession(id), getNotes(id)])
       .then(([session, notes]) => {
         const segments = (session.transcript?.segments ?? []) as ValidatorSegment[];
-        dispatch({ type: 'LOAD_SESSION', segments, notes });
+        const speakerNames = new Map<string, string>();
+        if (session.identifications?.identifications) {
+          for (const ident of session.identifications.identifications) {
+            if (ident.profile_name) {
+              speakerNames.set(ident.speaker_key, ident.profile_name);
+            }
+          }
+        }
+        dispatch({ type: 'LOAD_SESSION', segments, notes, speakerNames });
       })
       .catch((e) => dispatch({ type: 'SET_ERROR', error: e.message }));
   }, [id, dispatch]);
@@ -357,7 +365,7 @@ export default function ValidatorPage() {
           <select
             className="validator-session-select"
             value={id}
-            onChange={(e) => navigate(`/validate/${e.target.value}`)}
+            onChange={(e) => navigate(`/sessions/${e.target.value}/validate`)}
           >
             {state.sessions.map((s) => (
               <option key={s.id} value={s.id}>{s.id}</option>
@@ -455,6 +463,7 @@ export default function ValidatorPage() {
               filterReasons={activeReasons}
               allFilterReasons={allReasons}
               hasNotes={derived.notesBySegment.has(seg.id)}
+              speakerNames={state.speakerNames}
               onSeek={handleSeek}
               onContextMenu={handleContextMenu}
               cardRef={getCardRef(seg.id)}

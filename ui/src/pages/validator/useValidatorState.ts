@@ -25,12 +25,13 @@ export interface ValidatorState {
   drawerTab: 'notes' | 'low-confidence';
   contextMenu: ContextMenuState;
   noteModal: NoteModalState;
+  speakerNames: Map<string, string>;
   loading: boolean;
   error: string | null;
 }
 
 export type ValidatorAction =
-  | { type: 'LOAD_SESSION'; segments: ValidatorSegment[]; notes: Note[] }
+  | { type: 'LOAD_SESSION'; segments: ValidatorSegment[]; notes: Note[]; speakerNames: Map<string, string> }
   | { type: 'SET_TIME'; time: number }
   | { type: 'SET_ACTIVE_SEGMENT'; index: number }
   | { type: 'SET_DURATION'; duration: number }
@@ -63,6 +64,7 @@ const initialState: ValidatorState = {
   drawerTab: 'notes',
   contextMenu: { visible: false, x: 0, y: 0, target: null },
   noteModal: { visible: false, target: null, existingNote: null },
+  speakerNames: new Map(),
   loading: true,
   error: null,
 };
@@ -74,6 +76,7 @@ function reducer(state: ValidatorState, action: ValidatorAction): ValidatorState
         ...state,
         segments: action.segments,
         notes: action.notes,
+        speakerNames: action.speakerNames,
         duplicateIds: findDuplicateSegmentIds(action.segments),
         loading: false,
         error: null,

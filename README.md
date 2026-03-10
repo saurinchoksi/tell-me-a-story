@@ -104,15 +104,6 @@ python src/pipeline.py sessions/<session-id>/ --re-enrich
 
 Models download on first run. Supported formats: `.m4a`, `.mp3`, `.wav`.
 
-## Transcript Validator
-
-A browser-based tool for reviewing transcripts against the source audio — waveform playback, word-level highlighting, speaker coloring, and hallucination filter badges.
-
-```bash
-python tools/transcript_validator/server.py
-# Open http://localhost:5001 in your browser
-```
-
 ## Tests
 
 ```bash

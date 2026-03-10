@@ -197,6 +197,9 @@ export default function SessionSpeakers() {
 
   return (
     <div className="session-speakers">
+      <Link to="/sessions" className="session-speakers-back">
+        &larr; Sessions
+      </Link>
       <div className="session-speakers-header">
         <h1>Speaker Review</h1>
         <code>{id}</code>

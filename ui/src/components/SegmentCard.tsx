@@ -19,6 +19,7 @@ interface SegmentCardProps {
   filterReasons: string[];
   allFilterReasons: string[];
   hasNotes: boolean;
+  speakerNames: Map<string, string>;
   onSeek: (time: number) => void;
   onContextMenu: (e: React.MouseEvent, segmentIndex: number, wordIndex: number) => void;
   cardRef: RefCallback<HTMLDivElement>;
@@ -31,12 +32,14 @@ function SegmentCardInner({
   filterReasons,
   allFilterReasons,
   hasNotes,
+  speakerNames,
   onSeek,
   onContextMenu,
   cardRef,
 }: SegmentCardProps) {
   const isGap = segment._source === 'diarization_gap';
   const dominant = getDominantSpeaker(segment);
+  const displayName = dominant ? (speakerNames.get(dominant) ?? dominant) : null;
   const speakerClass = getSpeakerClass(dominant);
   const duration = (segment.end - segment.start).toFixed(2);
 
@@ -52,6 +55,13 @@ function SegmentCardInner({
       data-segment-index={index}
       data-segment-id={segment.id}
     >
+      {/* Speaker name — prominent top-left label */}
+      {displayName && (
+        <div className={`segment-speaker-name ${speakerClass}`}>
+          {displayName}
+        </div>
+      )}
+
       {/* Header row — clickable to seek */}
       <div
         className="segment-header"
@@ -64,11 +74,6 @@ function SegmentCardInner({
         <span className="segment-time">
           {segment.start.toFixed(2)}s — {segment.end.toFixed(2)}s ({duration}s)
         </span>
-        {dominant && (
-          <span className={`segment-speaker-badge ${speakerClass}`}>
-            {dominant}
-          </span>
-        )}
       </div>
 
       {/* Badge row */}
@@ -128,7 +133,8 @@ function areEqual(prev: SegmentCardProps, next: SegmentCardProps): boolean {
     prev.filterReasons.length === next.filterReasons.length &&
     prev.filterReasons.every((r, i) => r === next.filterReasons[i]) &&
     prev.allFilterReasons.length === next.allFilterReasons.length &&
-    prev.allFilterReasons.every((r, i) => r === next.allFilterReasons[i])
+    prev.allFilterReasons.every((r, i) => r === next.allFilterReasons[i]) &&
+    prev.speakerNames === next.speakerNames
   );
 }
 

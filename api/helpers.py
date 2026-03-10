@@ -10,10 +10,7 @@ def validate_session_id(session_id: str) -> bool:
 
 
 def validate_path(base_dir: Path, subpath: Path) -> Path:
-    """Prevent path traversal attacks.
-
-    Mirrors tools/transcript_validator/server.py:34-38.
-    """
+    """Prevent path traversal attacks."""
     full_path = (base_dir / subpath).resolve()
     if not str(full_path).startswith(str(base_dir.resolve())):
         raise ValueError("Invalid path")

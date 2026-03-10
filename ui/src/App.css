@@ -41,8 +41,8 @@
   --shadow-md: 0 4px 12px rgba(61, 56, 51, 0.1);
 
   /* Speaker colors — semantic assignments */
-  --speaker-0: #5B7B95;  /* dad — old blue */
-  --speaker-1: #9B6B8A;  /* arti — dusty purple */
+  --speaker-0: #3E7CA8;  /* dad — ocean blue */
+  --speaker-1: #A04C7E;  /* arti — berry plum */
   --speaker-2: #B06050;  /* others */
   --speaker-3: #8B6CB0;
   --speaker-4: #8A8078;
@@ -76,8 +76,8 @@
     --color-maroon: #C07080;
     --color-warning: #C9A060;
     --color-error: #B87070;
-    --speaker-0: #6B8FAA;
-    --speaker-1: #A87D99;
+    --speaker-0: #5A94BD;
+    --speaker-1: #B86A9A;
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
     --color-prob-high: #7DAF83;
@@ -103,8 +103,8 @@
   --color-maroon: #C07080;
   --color-warning: #C9A060;
   --color-error: #B87070;
-  --speaker-0: #6B8FAA;
-  --speaker-1: #A87D99;
+  --speaker-0: #5A94BD;
+  --speaker-1: #B86A9A;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
   --color-prob-high: #7DAF83;
@@ -134,42 +134,6 @@ h1, h2, h3 {
 /* Utility styles */
 .error {
   color: var(--color-error);
-}
-
-/* Sessions table */
-.sessions-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: var(--space-4);
-}
-
-.sessions-table th,
-.sessions-table td {
-  padding: var(--space-2) var(--space-3);
-  text-align: left;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.sessions-table th {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.sessions-table td {
-  font-size: 0.9rem;
-}
-
-.sessions-table a {
-  color: var(--color-accent);
-  text-decoration: none;
-  font-family: var(--font-mono);
-}
-
-.sessions-table a:hover {
-  text-decoration: underline;
 }
 
 /* --- Health dot (shared across profile pages) --- */

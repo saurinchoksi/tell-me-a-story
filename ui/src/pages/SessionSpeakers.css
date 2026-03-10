@@ -2,6 +2,18 @@
   padding-bottom: 80px; /* Space for sticky ConfirmBar */
 }
 
+.session-speakers-back {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: var(--space-4);
+}
+
+.session-speakers-back:hover {
+  color: var(--color-accent);
+}
+
 .session-speakers-header {
   display: flex;
   align-items: baseline;

@@ -147,7 +147,7 @@ Word-level timestamps in transcript enable future caption sync (audio plays, wor
 
 ## Import Convention
 
-`src/` modules use **bare imports** (e.g. `from profiles import load_profiles`, not `from src.profiles import ...`). Both `api/app.py` and `tools/transcript_validator/server.py` add `src/` to `sys.path` at startup. `api/app.py` also adds PROJECT_ROOT so the `api` package is importable from any working directory. Tests also rely on this — pytest discovers `src/` via the working directory.
+`src/` modules use **bare imports** (e.g. `from profiles import load_profiles`, not `from src.profiles import ...`). `api/app.py` adds `src/` to `sys.path` at startup. `api/app.py` also adds PROJECT_ROOT so the `api` package is importable from any working directory. Tests also rely on this — pytest discovers `src/` via the working directory.
 
 ## Writing Tests
 
@@ -183,7 +183,6 @@ def client(tmp_path):
 - Pyannote struggles with soft/child speech—alignment heuristics compensate
 - Test audio: `sessions/00000000-000000/audio.m4a`
 - Private data in `sessions/` is gitignored
-- `tools/transcript_validator/` — standalone Flask app on port 5001 for manual transcript review with filter visualization
 - Reference library: `data/mahabharata.json` (56 entries, variants vs. aliases distinction)
 - Supported audio formats: `.m4a`, `.mp3`, `.wav` (defined in `init_session.py`)
 

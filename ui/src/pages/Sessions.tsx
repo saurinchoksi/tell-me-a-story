@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listSessions } from '../api/client';
+import { formatSessionDate } from '../utils/time';
 import type { SessionSummary } from '../types';
+import './Sessions.css';
+
+const PIPELINE_STAGES = [
+  { key: 'has_audio' as const, label: 'Recorded' },
+  { key: 'has_transcript' as const, label: 'Transcribed' },
+  { key: 'has_diarization' as const, label: 'Diarized' },
+  { key: 'has_embeddings' as const, label: 'Embeddings' },
+  { key: 'has_identifications' as const, label: 'Identified' },
+];
 
 export default function Sessions() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
@@ -17,43 +27,65 @@ export default function Sessions() {
 
   if (loading) return <p>Loading sessions...</p>;
   if (error) return <p className="error">Error: {error}</p>;
-  if (sessions.length === 0) return <p>No sessions found.</p>;
+
+  if (sessions.length === 0) {
+    return (
+      <div className="sessions-page">
+        <div className="sessions-empty">
+          <h2>No stories yet</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1>Sessions</h1>
-      <table className="sessions-table">
-        <thead>
-          <tr>
-            <th>Session</th>
-            <th>Audio</th>
-            <th>Transcript</th>
-            <th>Diarization</th>
-            <th>Embeddings</th>
-            <th>Identified</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {sessions.map((s) => (
-            <tr key={s.id}>
-              <td>
-                <Link to={`/sessions/${s.id}/speakers`}>{s.id}</Link>
-              </td>
-              <td>{s.has_audio ? 'Y' : '-'}</td>
-              <td>{s.has_transcript ? 'Y' : '-'}</td>
-              <td>{s.has_diarization ? 'Y' : '-'}</td>
-              <td>{s.has_embeddings ? 'Y' : '-'}</td>
-              <td>{s.has_identifications ? 'Y' : '-'}</td>
-              <td>
+    <div className="sessions-page">
+      <div className="sessions-header">
+        <h1>Story Sessions</h1>
+        <p className="sessions-subtitle">
+          {sessions.length} session{sessions.length !== 1 ? 's' : ''} recorded
+        </p>
+      </div>
+
+      <div className="sessions-list">
+        {sessions.map((s) => {
+          const { date, time } = formatSessionDate(s.id);
+
+          return (
+            <div key={s.id} className="session-row">
+              <span className="session-row-day">{date}</span>
+              <span className="session-row-time">{time}</span>
+
+              <div className="session-row-pipeline">
+                {PIPELINE_STAGES.map((stage) => (
+                  <div
+                    key={stage.key}
+                    className={`pipeline-dot ${s[stage.key] ? 'pipeline-dot--done' : 'pipeline-dot--pending'}`}
+                    data-label={stage.label}
+                  />
+                ))}
+              </div>
+
+              <div className="session-row-actions">
+                <Link
+                  to={`/sessions/${s.id}/speakers`}
+                  className="session-action-primary"
+                >
+                  Speakers
+                </Link>
                 {s.has_transcript && (
-                  <Link to={`/sessions/${s.id}/validate`}>Validate</Link>
+                  <Link
+                    to={`/sessions/${s.id}/validate`}
+                    className="session-action-secondary"
+                  >
+                    Validate
+                  </Link>
                 )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -72,20 +72,26 @@
   font-family: var(--font-mono, monospace);
 }
 
-.segment-speaker-badge {
-  padding: 1px 6px;
-  border-radius: var(--radius);
-  font-size: 0.7rem;
+/* Speaker name — contained chip above metadata */
+.segment-speaker-name {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 0.9rem;
   font-weight: 600;
-  color: white;
+  letter-spacing: 0.03em;
+  margin-bottom: var(--space-2);
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius);
+  color: var(--color-text);
+  border-left: 3px solid transparent;
 }
 
-.segment-speaker-badge.speaker-0 { background: var(--speaker-0); }
-.segment-speaker-badge.speaker-1 { background: var(--speaker-1); }
-.segment-speaker-badge.speaker-2 { background: var(--speaker-2); }
-.segment-speaker-badge.speaker-3 { background: var(--speaker-3); }
-.segment-speaker-badge.speaker-4 { background: var(--speaker-4); }
-.segment-speaker-badge.speaker-unknown { background: var(--color-text-muted); }
+.segment-speaker-name.speaker-0 { background: rgba(62, 124, 168, 0.15); border-left-color: var(--speaker-0); }
+.segment-speaker-name.speaker-1 { background: rgba(160, 76, 126, 0.15); border-left-color: var(--speaker-1); }
+.segment-speaker-name.speaker-2 { background: rgba(176, 96, 80, 0.15); border-left-color: var(--speaker-2); }
+.segment-speaker-name.speaker-3 { background: rgba(139, 108, 176, 0.15); border-left-color: var(--speaker-3); }
+.segment-speaker-name.speaker-4 { background: rgba(138, 128, 120, 0.15); border-left-color: var(--speaker-4); }
+.segment-speaker-name.speaker-unknown { background: rgba(92, 83, 72, 0.12); border-left-color: var(--color-text-muted); }
 
 /* Badge row */
 .segment-badges {
