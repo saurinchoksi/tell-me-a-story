@@ -4,6 +4,12 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-03-10 — Pipeline processing statistics (TMAS-13)
+
+**What:** Added per-stage timing (`started_at` + `duration_seconds`) to all 7 pipeline stages in `_processing`, plus a new `_stats` block with pipeline totals, word/segment/speaker counts, and output file sizes. Covers transcription, diarization (ML inference), 4 enrichment passes, and embedding extraction. Both full pipeline and `--re-enrich` paths instrumented. `process_inbox.py` also records file sizes.
+**Result:** 319 tests passing. Every `_processing` entry now has `started_at` and `duration_seconds`. New `_stats` key in transcript-rich.json with `pipeline_started_at`, `pipeline_duration_seconds`, `segments`, `words`, `speakers`, `file_sizes`. Pipeline prints timing summary at completion.
+**Decided:** `time.monotonic()` for durations (immune to clock adjustments), `datetime.now(timezone.utc).isoformat()` for wall-clock `started_at`. Timing wraps stages externally in pipeline.py — no stage function signature changes. Error entries get `started_at` but not `duration_seconds` (stage didn't complete). File sizes recorded after save, then transcript-rich.json re-saved with sizes (~100 byte difference, acceptable).
+
 ## 2026-03-10 — Tracker migration: SYNC files out, Linear in
 
 **What:** Replaced Notion database + SYNC.md handoff system with Linear as single source of truth for all project tasks. Retired SYNC.md, SYNC-LOG.md. Rewrote CURRENT.md to contain only project state (no tasks). Created skills for both Chat and Code to interact with Linear. Seeded backlog with 8 tickets from surfaced issues and deferred work.

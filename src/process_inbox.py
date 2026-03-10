@@ -2,6 +2,8 @@
 """Process all audio files in the inbox: init session → run pipeline → save artifacts."""
 
 import argparse
+import json
+import os
 import sys
 from pathlib import Path
 
@@ -72,6 +74,20 @@ def process_inbox(target_file: str | None = None):
                     str(SESSIONS_DIR / session_id / "embeddings.json"),
                 )
 
+            # Measure file sizes and attach to _stats
+            session_path = str(SESSIONS_DIR / session_id)
+            file_sizes = {}
+            for name in ["transcript-raw.json", "transcript-rich.json", "diarization.json"]:
+                file_sizes[name] = os.path.getsize(os.path.join(session_path, name))
+            if result.get("embeddings") is not None:
+                file_sizes["embeddings.json"] = os.path.getsize(
+                    os.path.join(session_path, "embeddings.json")
+                )
+            result["transcript"]["_stats"]["file_sizes"] = file_sizes
+            with open(os.path.join(session_path, "transcript-rich.json"), "w") as f:
+                json.dump(result["transcript"], f, indent=2)
+
+            if result.get("embeddings") is not None:
                 # Auto-identify against existing profiles
                 from profiles import load_profiles
                 from identify import identify_speakers, save_identifications

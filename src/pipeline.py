@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import subprocess
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -15,7 +16,7 @@ import torch
 
 from transcribe import transcribe, clean_transcript, MODEL as TRANSCRIPTION_MODEL, make_processing_entry as make_transcription_entry
 from diarize import diarize
-from embeddings import load_embedding_model, extract_speaker_embeddings, save_embeddings
+from embeddings import load_embedding_model, extract_speaker_embeddings, save_embeddings, MODEL as EMBEDDING_MODEL
 from speaker import enrich_with_diarization, detect_unintelligible_gaps, DIARIZATION_MODEL
 from mutagen import File as MutagenFile
 from normalize import llm_normalize, MODEL as LLM_MODEL
@@ -58,7 +59,11 @@ def enrich_transcript(
 
     # Pass 1: Diarization enrichment
     try:
+        started_at = datetime.now(timezone.utc).isoformat()
+        t0 = time.monotonic()
         transcript, diar_entry = enrich_with_diarization(transcript, diarization)
+        diar_entry["started_at"] = started_at
+        diar_entry["duration_seconds"] = round(time.monotonic() - t0, 2)
         processing.append(diar_entry)
     except Exception as e:
         logger.warning(f"Diarization enrichment failed: {e}")
@@ -67,12 +72,17 @@ def enrich_transcript(
             "model": DIARIZATION_MODEL,
             "status": "error",
             "error": str(e),
+            "started_at": started_at,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
     # Pass 2: Unintelligible gap detection
     try:
+        started_at = datetime.now(timezone.utc).isoformat()
+        t0 = time.monotonic()
         transcript, gap_entry = detect_unintelligible_gaps(transcript, diarization)
+        gap_entry["started_at"] = started_at
+        gap_entry["duration_seconds"] = round(time.monotonic() - t0, 2)
         processing.append(gap_entry)
         if verbose:
             logger.info(f"Gap detection: {gap_entry['gaps_found']} unintelligible gaps injected")
@@ -82,15 +92,20 @@ def enrich_transcript(
             "stage": "gap_detection",
             "status": "error",
             "error": str(e),
+            "started_at": started_at,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
     # Pass 3: LLM normalization
     try:
+        started_at = datetime.now(timezone.utc).isoformat()
+        t0 = time.monotonic()
         text = extract_text(transcript)
         llm_corrections, llm_entry = llm_normalize(text, model=LLM_MODEL)
         transcript, llm_count = apply_corrections(transcript, llm_corrections, "llm")
         llm_entry["corrections_applied"] = llm_count
+        llm_entry["started_at"] = started_at
+        llm_entry["duration_seconds"] = round(time.monotonic() - t0, 2)
         processing.append(llm_entry)
         if verbose:
             logger.info(f"LLM normalization: {llm_count} corrections applied")
@@ -101,18 +116,24 @@ def enrich_transcript(
             "model": LLM_MODEL,
             "status": "error",
             "error": str(e),
+            "started_at": started_at,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
     # Pass 4: Dictionary normalization
     lib_path = library_path or _DEFAULT_LIBRARY_PATH
     try:
+        started_at = datetime.now(timezone.utc).isoformat()
+        t0 = time.monotonic()
         library = load_library(lib_path)
         variant_map = build_variant_map(library)
         text = extract_text(transcript)
         dict_corrections = normalize_variants(text, variant_map)
         transcript, dict_count = apply_corrections(transcript, dict_corrections, "dictionary")
-        processing.append(make_dictionary_entry(lib_path, dict_count))
+        dict_entry = make_dictionary_entry(lib_path, dict_count)
+        dict_entry["started_at"] = started_at
+        dict_entry["duration_seconds"] = round(time.monotonic() - t0, 2)
+        processing.append(dict_entry)
         if verbose:
             logger.info(f"Dictionary normalization: {dict_count} corrections applied")
     except Exception as e:
@@ -122,6 +143,7 @@ def enrich_transcript(
             "library": lib_path,
             "status": "error",
             "error": str(e),
+            "started_at": started_at,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
@@ -234,6 +256,8 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
             f"(from parent directory of {audio_path})"
         )
 
+    pipeline_start = time.monotonic()
+
     # Get audio info
     audio_info = get_audio_info(audio_path)
 
@@ -243,28 +267,63 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
         print(f"Using: {TRANSCRIPTION_MODEL}")
 
     transcript_time = datetime.now(timezone.utc).isoformat()
+    t0 = time.monotonic()
     raw_transcript = transcribe(audio_path, model=TRANSCRIPTION_MODEL)
     transcript = clean_transcript(raw_transcript)
+    transcription_duration = round(time.monotonic() - t0, 2)
     transcript_raw = copy.deepcopy(transcript)
+
+    transcription_entry = make_transcription_entry(compute_file_hash(audio_path), transcript_time)
+    transcription_entry["started_at"] = transcript_time
+    transcription_entry["duration_seconds"] = transcription_duration
 
     # Diarization
     if verbose:
         print("\nDiarizing (this takes a few minutes)...")
 
+    diar_started_at = datetime.now(timezone.utc).isoformat()
+    t0 = time.monotonic()
     diarization = diarize(audio_path)
+    diarization_entry = {
+        "stage": "diarization",
+        "model": DIARIZATION_MODEL,
+        "status": "success",
+        "started_at": diar_started_at,
+        "duration_seconds": round(time.monotonic() - t0, 2),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
 
     # Embedding extraction (diarization model already freed by diarize())
     embeddings_result = None
+    embedding_entry = None
     try:
         if verbose:
             print("\nExtracting speaker embeddings...")
+        emb_started_at = datetime.now(timezone.utc).isoformat()
+        t0 = time.monotonic()
         embedding_model = load_embedding_model()
         embeddings_result = extract_speaker_embeddings(embedding_model, audio_path, diarization)
+        embedding_entry = {
+            "stage": "embedding_extraction",
+            "model": EMBEDDING_MODEL,
+            "status": "success",
+            "started_at": emb_started_at,
+            "duration_seconds": round(time.monotonic() - t0, 2),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
         del embedding_model
         if torch.backends.mps.is_available():
             torch.mps.empty_cache()
     except Exception as e:
         logger.warning(f"Embedding extraction failed: {e}")
+        embedding_entry = {
+            "stage": "embedding_extraction",
+            "model": EMBEDDING_MODEL,
+            "status": "error",
+            "error": str(e),
+            "started_at": emb_started_at,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
 
     # Enrichment (normalization + diarization)
     transcript, enrichment_processing, _ = enrich_transcript(
@@ -274,9 +333,22 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     # Fold audio info into enriched transcript
     transcript["audio"] = audio_info
 
-    audio_hash = compute_file_hash(audio_path)
-    processing = [make_transcription_entry(audio_hash, transcript_time)] + enrichment_processing
+    processing = [transcription_entry, diarization_entry] + enrichment_processing
+    if embedding_entry is not None:
+        processing.append(embedding_entry)
     transcript["_processing"] = processing
+
+    # Build _stats
+    segments = transcript["segments"]
+    total_words = sum(len(seg["words"]) for seg in segments)
+    speakers = {w["_speaker"]["label"] for seg in segments for w in seg["words"] if "_speaker" in w}
+    transcript["_stats"] = {
+        "pipeline_started_at": transcript_time,
+        "pipeline_duration_seconds": round(time.monotonic() - pipeline_start, 2),
+        "segments": len(segments),
+        "words": total_words,
+        "speakers": len(speakers),
+    }
 
     return {
         "session_id": session_id,
@@ -387,9 +459,12 @@ if __name__ == "__main__":
         transcript = copy.deepcopy(transcript_raw)
 
         print("Running enrichment stages...")
+        enrich_started_at = datetime.now(timezone.utc).isoformat()
+        enrich_start = time.monotonic()
         transcript, enrichment_processing, counts = enrich_transcript(
             transcript, diarization, library_path=args.library
         )
+        enrich_duration = round(time.monotonic() - enrich_start, 2)
 
         # Build transcription stub from raw's generator version
         transcription_entry = {
@@ -409,11 +484,37 @@ if __name__ == "__main__":
         processing = [transcription_entry] + enrichment_processing
         transcript["_processing"] = processing
 
-        # Save only the enriched transcript
+        # Build _stats for re-enrich
+        segments = transcript["segments"]
+        total_words = sum(len(seg["words"]) for seg in segments)
+        speakers = {w["_speaker"]["label"] for seg in segments for w in seg["words"] if "_speaker" in w}
+        transcript["_stats"] = {
+            "pipeline_started_at": enrich_started_at,
+            "pipeline_duration_seconds": enrich_duration,
+            "segments": len(segments),
+            "words": total_words,
+            "speakers": len(speakers),
+        }
+
+        # Save enriched transcript
+        with open(os.path.join(session_dir, "transcript-rich.json"), "w") as f:
+            json.dump(transcript, f, indent=2)
+
+        # Measure file sizes and re-save with them
+        file_sizes = {}
+        for name in ["transcript-raw.json", "transcript-rich.json", "diarization.json"]:
+            fpath = os.path.join(session_dir, name)
+            if os.path.exists(fpath):
+                file_sizes[name] = os.path.getsize(fpath)
+        emb_path = os.path.join(session_dir, "embeddings.json")
+        if os.path.exists(emb_path):
+            file_sizes["embeddings.json"] = os.path.getsize(emb_path)
+        transcript["_stats"]["file_sizes"] = file_sizes
         with open(os.path.join(session_dir, "transcript-rich.json"), "w") as f:
             json.dump(transcript, f, indent=2)
 
         print(f"\nSaved to: {session_dir}/transcript-rich.json")
+        print(f"  Enrichment: {enrich_duration}s")
         print(f"  LLM corrections: {counts['llm_count']}")
         print(f"  Dictionary corrections: {counts['dict_count']}")
     else:
@@ -434,6 +535,17 @@ if __name__ == "__main__":
         if result["embeddings"] is not None:
             embeddings_path = os.path.join(session_dir, "embeddings.json")
             save_embeddings(result["embeddings"], embeddings_path)
+
+        # Measure file sizes and attach to _stats
+        file_sizes = {}
+        for name in ["transcript-raw.json", "transcript-rich.json", "diarization.json"]:
+            file_sizes[name] = os.path.getsize(os.path.join(session_dir, name))
+        if result["embeddings"] is not None:
+            file_sizes["embeddings.json"] = os.path.getsize(os.path.join(session_dir, "embeddings.json"))
+        result["transcript"]["_stats"]["file_sizes"] = file_sizes
+        # Re-save with file sizes
+        with open(os.path.join(session_dir, "transcript-rich.json"), "w") as f:
+            json.dump(result["transcript"], f, indent=2)
 
         # Auto-identify against existing profiles
         from identify import identify_speakers, save_identifications
@@ -473,3 +585,12 @@ if __name__ == "__main__":
                 print(f"\nLLM Normalization: {entry.get('corrections_applied', 0)} corrections")
             elif entry["stage"] == "dictionary_normalization":
                 print(f"Dictionary Normalization: {entry.get('corrections_applied', 0)} corrections")
+
+        # Print timing summary
+        stats = result["transcript"]["_stats"]
+        print(f"\nPipeline stats:")
+        print(f"  Total: {stats['pipeline_duration_seconds']}s")
+        print(f"  Segments: {stats['segments']}, Words: {stats['words']}, Speakers: {stats['speakers']}")
+        for entry in processing:
+            if "duration_seconds" in entry:
+                print(f"  {entry['stage']}: {entry['duration_seconds']}s")

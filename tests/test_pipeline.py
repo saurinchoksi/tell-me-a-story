@@ -119,6 +119,11 @@ _FAKE_TRANSCRIPT = {
 }
 
 
+def _find_stage(processing, stage_name):
+    """Find a processing entry by stage name."""
+    return next(e for e in processing if e["stage"] == stage_name)
+
+
 def _apply_pipeline_mocks(stack, **overrides):
     """Enter common mock patches onto an ExitStack and return a dict of active mocks.
 
@@ -132,6 +137,8 @@ def _apply_pipeline_mocks(stack, **overrides):
         "get_audio_info": MagicMock(return_value={"duration": 10.0}),
         "compute_file_hash": MagicMock(return_value="sha256:fake"),
         "os.path.exists": MagicMock(return_value=True),
+        "load_embedding_model": MagicMock(return_value=MagicMock()),
+        "extract_speaker_embeddings": MagicMock(return_value=None),
     }
     defaults.update(overrides)
 
@@ -163,29 +170,43 @@ def test_pipeline_both_normalizations_succeed():
         result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 5
+    assert len(processing) == 7
 
-    assert processing[0]["stage"] == "transcription"
-    assert processing[0]["status"] == "success"
-    assert processing[0]["audio_hash"] == "sha256:fake"
-    assert "timestamp" in processing[0]
+    transcription = _find_stage(processing, "transcription")
+    assert transcription["status"] == "success"
+    assert transcription["audio_hash"] == "sha256:fake"
+    assert "timestamp" in transcription
+    assert "started_at" in transcription
+    assert "duration_seconds" in transcription
 
-    assert processing[1]["stage"] == "diarization_enrichment"
-    assert processing[1]["status"] == "success"
+    assert _find_stage(processing, "diarization")["status"] == "success"
+    assert "duration_seconds" in _find_stage(processing, "diarization")
 
-    assert processing[2]["stage"] == "gap_detection"
-    assert processing[2]["status"] == "success"
+    assert _find_stage(processing, "diarization_enrichment")["status"] == "success"
+    assert _find_stage(processing, "gap_detection")["status"] == "success"
 
-    assert processing[3]["stage"] == "llm_normalization"
-    assert processing[3]["status"] == "success"
-    assert processing[3]["corrections_applied"] == 5
+    llm = _find_stage(processing, "llm_normalization")
+    assert llm["status"] == "success"
+    assert llm["corrections_applied"] == 5
 
-    assert processing[4]["stage"] == "dictionary_normalization"
-    assert processing[4]["status"] == "success"
-    assert processing[4]["corrections_applied"] == 3
+    dict_entry = _find_stage(processing, "dictionary_normalization")
+    assert dict_entry["status"] == "success"
+    assert dict_entry["corrections_applied"] == 3
+
+    emb = _find_stage(processing, "embedding_extraction")
+    assert emb["status"] == "success"
+    assert "duration_seconds" in emb
 
     assert "llm_count" not in result
     assert "dict_count" not in result
+
+    # Verify _stats
+    assert "_stats" in result["transcript"]
+    stats = result["transcript"]["_stats"]
+    assert "pipeline_started_at" in stats
+    assert "pipeline_duration_seconds" in stats
+    assert stats["segments"] == 1
+    assert stats["words"] == 2
 
 
 def test_pipeline_llm_fails_dictionary_continues():
@@ -209,15 +230,13 @@ def test_pipeline_llm_fails_dictionary_continues():
         result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 5
+    assert len(processing) == 7
 
-    llm_entry = processing[3]
-    assert llm_entry["stage"] == "llm_normalization"
+    llm_entry = _find_stage(processing, "llm_normalization")
     assert llm_entry["status"] == "error"
     assert "Ollama not running" in llm_entry["error"]
 
-    dict_entry = processing[4]
-    assert dict_entry["stage"] == "dictionary_normalization"
+    dict_entry = _find_stage(processing, "dictionary_normalization")
     assert dict_entry["status"] == "success"
     assert dict_entry["corrections_applied"] == 2
 
@@ -246,15 +265,13 @@ def test_pipeline_empty_corrections():
         result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 5
+    assert len(processing) == 7
 
-    assert processing[3]["stage"] == "llm_normalization"
-    assert processing[3]["status"] == "success"
-    assert processing[3]["corrections_applied"] == 0
+    assert _find_stage(processing, "llm_normalization")["status"] == "success"
+    assert _find_stage(processing, "llm_normalization")["corrections_applied"] == 0
 
-    assert processing[4]["stage"] == "dictionary_normalization"
-    assert processing[4]["status"] == "success"
-    assert processing[4]["corrections_applied"] == 0
+    assert _find_stage(processing, "dictionary_normalization")["status"] == "success"
+    assert _find_stage(processing, "dictionary_normalization")["corrections_applied"] == 0
 
     # Words should be unchanged
     words = result["transcript"]["segments"][0]["words"]
@@ -283,10 +300,9 @@ def test_pipeline_diarization_enrichment_succeeds():
         result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 5
+    assert len(processing) == 7
 
-    enrichment_entry = processing[1]
-    assert enrichment_entry["stage"] == "diarization_enrichment"
+    enrichment_entry = _find_stage(processing, "diarization_enrichment")
     assert enrichment_entry["status"] == "success"
     assert enrichment_entry["model"] == "pyannote/speaker-diarization-community-1"
 
@@ -312,10 +328,9 @@ def test_pipeline_diarization_enrichment_fails_gracefully():
         result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 5
+    assert len(processing) == 7
 
-    enrichment_entry = processing[1]
-    assert enrichment_entry["stage"] == "diarization_enrichment"
+    enrichment_entry = _find_stage(processing, "diarization_enrichment")
     assert enrichment_entry["status"] == "error"
     assert "Enrichment crashed" in enrichment_entry["error"]
 
@@ -390,6 +405,11 @@ def test_pipeline_embedding_failure_returns_none():
     assert "diarization" in result
     assert result["session_id"] == "20260301-120000"
 
+    # Embedding failure is still recorded in processing
+    emb_entry = _find_stage(result["transcript"]["_processing"], "embedding_extraction")
+    assert emb_entry["status"] == "error"
+    assert "Model download failed" in emb_entry["error"]
+
 
 def test_pipeline_accepts_zeroed_session_id():
     """Test session 00000000-000000 passes validation."""
@@ -409,3 +429,63 @@ def test_pipeline_accepts_zeroed_session_id():
         )
         result = run_pipeline("/sessions/00000000-000000/audio.m4a", verbose=False)
     assert result["session_id"] == "00000000-000000"
+
+
+def test_pipeline_stats_structure():
+    """_stats contains all expected keys with correct types."""
+    fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)
+    # Add _speaker to words so speaker count is nonzero
+    for word in fake_transcript["segments"][0]["words"]:
+        word["_speaker"] = {"label": "SPEAKER_00"}
+
+    enrichment_processing = [
+        {"stage": "diarization_enrichment", "model": "pyannote/speaker-diarization-community-1", "status": "success"},
+        {"stage": "gap_detection", "gaps_found": 0, "status": "success"},
+        {"stage": "llm_normalization", "model": "qwen3:8b", "status": "success", "corrections_applied": 0},
+        {"stage": "dictionary_normalization", "library": "data/mahabharata.json", "status": "success", "corrections_applied": 0},
+    ]
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            enrich_transcript=MagicMock(
+                return_value=(fake_transcript, enrichment_processing, {"llm_count": 0, "dict_count": 0})
+            ),
+        )
+        result = run_pipeline("/sessions/20260310-120000/audio.m4a", verbose=False)
+
+    stats = result["transcript"]["_stats"]
+    assert isinstance(stats["pipeline_started_at"], str)
+    assert isinstance(stats["pipeline_duration_seconds"], float)
+    assert stats["segments"] == 1
+    assert stats["words"] == 2
+    assert stats["speakers"] == 1
+
+
+def test_pipeline_processing_stage_order():
+    """Processing entries appear in pipeline execution order."""
+    fake_transcript = copy.deepcopy(_FAKE_TRANSCRIPT)
+    enrichment_processing = [
+        {"stage": "diarization_enrichment", "model": "pyannote/speaker-diarization-community-1", "status": "success"},
+        {"stage": "gap_detection", "gaps_found": 0, "status": "success"},
+        {"stage": "llm_normalization", "model": "qwen3:8b", "status": "success", "corrections_applied": 0},
+        {"stage": "dictionary_normalization", "library": "data/mahabharata.json", "status": "success", "corrections_applied": 0},
+    ]
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            enrich_transcript=MagicMock(
+                return_value=(fake_transcript, enrichment_processing, {"llm_count": 0, "dict_count": 0})
+            ),
+        )
+        result = run_pipeline("/sessions/20260310-120000/audio.m4a", verbose=False)
+
+    stages = [e["stage"] for e in result["transcript"]["_processing"]]
+    assert stages == [
+        "transcription",
+        "diarization",
+        "diarization_enrichment",
+        "gap_detection",
+        "llm_normalization",
+        "dictionary_normalization",
+        "embedding_extraction",
+    ]

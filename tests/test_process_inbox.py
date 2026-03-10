@@ -1,6 +1,7 @@
 """Tests for process_inbox module."""
 
 import contextlib
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -26,6 +27,25 @@ def _patch_dirs(stack, inbox_dir, sessions_dir):
     """Patch module-level directory constants onto an ExitStack."""
     stack.enter_context(patch("process_inbox.INBOX_DIR", inbox_dir))
     stack.enter_context(patch("process_inbox.SESSIONS_DIR", sessions_dir))
+
+
+def _make_pipeline_result(embeddings=None):
+    """Build a mock pipeline result with _stats (matching real run_pipeline output)."""
+    return {
+        "transcript_raw": {"segments": []},
+        "transcript": {"segments": [], "_stats": {}},
+        "diarization": {"segments": []},
+        "embeddings": embeddings,
+    }
+
+
+def _make_saving_mock(session_dir):
+    """Create a save_computed mock that writes actual files (needed for file-size measurement)."""
+    def _save(sd, raw, transcript, diarization):
+        for name, data in [("transcript-raw.json", raw), ("transcript-rich.json", transcript), ("diarization.json", diarization)]:
+            with open(Path(sd) / name, "w") as f:
+                json.dump(data, f)
+    return MagicMock(side_effect=_save)
 
 
 # --- process_inbox tests ---
@@ -61,13 +81,8 @@ def test_process_inbox_init_and_pipeline_success(capsys):
         (session_dir / "audio.m4a").write_bytes(b"fake audio")
 
         mock_init = MagicMock(return_value=("20260301-120000", "audio.m4a"))
-        mock_pipeline = MagicMock(return_value={
-            "transcript_raw": {"segments": []},
-            "transcript": {"segments": []},
-            "diarization": {"segments": []},
-            "embeddings": None,
-        })
-        mock_save = MagicMock()
+        mock_pipeline = MagicMock(return_value=_make_pipeline_result())
+        mock_save = _make_saving_mock(session_dir)
 
         with contextlib.ExitStack() as stack:
             _patch_dirs(stack, inbox, sessions)
@@ -99,14 +114,14 @@ def test_process_inbox_saves_embeddings(capsys):
         }
 
         mock_init = MagicMock(return_value=("20260301-120000", "audio.m4a"))
-        mock_pipeline = MagicMock(return_value={
-            "transcript_raw": {"segments": []},
-            "transcript": {"segments": []},
-            "diarization": {"segments": []},
-            "embeddings": fake_embeddings,
-        })
-        mock_save = MagicMock()
-        mock_save_embeddings = MagicMock()
+        mock_pipeline = MagicMock(return_value=_make_pipeline_result(embeddings=fake_embeddings))
+        mock_save = _make_saving_mock(session_dir)
+
+        def _save_emb(data, path):
+            with open(path, "w") as f:
+                json.dump(data, f)
+
+        mock_save_embeddings = MagicMock(side_effect=_save_emb)
 
         with contextlib.ExitStack() as stack:
             _patch_dirs(stack, inbox, sessions)
@@ -120,6 +135,8 @@ def test_process_inbox_saves_embeddings(capsys):
             fake_embeddings,
             str(sessions / "20260301-120000" / "embeddings.json"),
         )
+        output = capsys.readouterr().out
+        assert "Done" in output
 
 
 def test_process_inbox_skips_embeddings_when_none(capsys):
@@ -133,13 +150,8 @@ def test_process_inbox_skips_embeddings_when_none(capsys):
         (session_dir / "audio.m4a").write_bytes(b"fake audio")
 
         mock_init = MagicMock(return_value=("20260301-120000", "audio.m4a"))
-        mock_pipeline = MagicMock(return_value={
-            "transcript_raw": {"segments": []},
-            "transcript": {"segments": []},
-            "diarization": {"segments": []},
-            "embeddings": None,
-        })
-        mock_save = MagicMock()
+        mock_pipeline = MagicMock(return_value=_make_pipeline_result())
+        mock_save = _make_saving_mock(session_dir)
         mock_save_embeddings = MagicMock()
 
         with contextlib.ExitStack() as stack:
@@ -241,13 +253,8 @@ def test_process_inbox_mixed_results(capsys):
             else:
                 raise Exception("bad file")  # failure
 
-        mock_pipeline = MagicMock(return_value={
-            "transcript_raw": {"segments": []},
-            "transcript": {"segments": []},
-            "diarization": {"segments": []},
-            "embeddings": None,
-        })
-        mock_save = MagicMock()
+        mock_pipeline = MagicMock(return_value=_make_pipeline_result())
+        mock_save = _make_saving_mock(session_dir)
 
         with contextlib.ExitStack() as stack:
             _patch_dirs(stack, inbox, sessions)
@@ -320,13 +327,8 @@ def test_process_inbox_target_file_valid(capsys):
         (session_dir / "audio.m4a").write_bytes(b"fake audio")
 
         mock_init = MagicMock(return_value=("20260701-100000", "audio.m4a"))
-        mock_pipeline = MagicMock(return_value={
-            "transcript_raw": {"segments": []},
-            "transcript": {"segments": []},
-            "diarization": {"segments": []},
-            "embeddings": None,
-        })
-        mock_save = MagicMock()
+        mock_pipeline = MagicMock(return_value=_make_pipeline_result())
+        mock_save = _make_saving_mock(session_dir)
 
         with contextlib.ExitStack() as stack:
             _patch_dirs(stack, inbox, sessions)
@@ -388,12 +390,7 @@ def test_process_inbox_save_computed_raises(capsys):
         sessions.mkdir()
 
         mock_init = MagicMock(return_value=("20260601-100000", "audio.m4a"))
-        mock_pipeline = MagicMock(return_value={
-            "transcript_raw": {"segments": []},
-            "transcript": {"segments": []},
-            "diarization": {"segments": []},
-            "embeddings": None,
-        })
+        mock_pipeline = MagicMock(return_value=_make_pipeline_result())
         mock_save = MagicMock(side_effect=OSError("disk full"))
 
         with contextlib.ExitStack() as stack:
