@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-03-10 — Tracker to Notion for mobile access
+
+**What:** Explored tracker options that work from mobile. Built an artifact tracker prototype with persistent `window.storage`, then pivoted to Notion when we realized the MCP connector lets Claude read/write tickets directly. Created TMS Tracker database in Notion.
+**Result:** Notion database live with Ticket, Type, Status, Notes columns. First ticket seeded from conversation. Claude can create/read tickets in session. Accessible from any device.
+**Decided:** Notion over Linear — mobile access is the priority. Linear's MCP was better for querying but Notion's connector works from mobile Claude.ai browser, eliminating copy-paste and context switching. Artifact tracker shelved — `window.storage` persistence works but Claude can't read/write to it from conversation, and the artifact must be regenerated each session.
+**Learned:** The friction that matters most is "can I capture a thought from my phone." The best query API doesn't matter if you can't reach it. Also: artifact persistent storage is real and works, but the sandbox boundary means Claude and the artifact can't share data.
+
 ## 2026-03-10 — Pipeline processing statistics (TMAS-13)
 
 **What:** Added per-stage timing (`started_at` + `duration_seconds`) to all 7 pipeline stages in `_processing`, plus a new `_stats` block with pipeline totals, word/segment/speaker counts, and output file sizes. Covers transcription, diarization (ML inference), 4 enrichment passes, and embedding extraction. Both full pipeline and `--re-enrich` paths instrumented. `process_inbox.py` also records file sizes.
