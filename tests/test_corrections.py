@@ -1,10 +1,5 @@
 """Tests for corrections module."""
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 from corrections import extract_text, apply_corrections
 
 

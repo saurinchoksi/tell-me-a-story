@@ -1,13 +1,8 @@
 """Tests for API audio endpoint."""
 
 import json
-import sys
-from pathlib import Path
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from api.app import create_app
 

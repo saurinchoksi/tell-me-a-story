@@ -1,12 +1,8 @@
 """Tests for detect_unintelligible_gaps and its helpers in speaker.py."""
 
-import sys
-import os
 import copy
 
 import pytest
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from speaker import detect_unintelligible_gaps, enrich_with_diarization, _dominant_speaker, _word_coverage
 

@@ -1,10 +1,5 @@
 """Tests for transcribe module."""
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 from transcribe import transcribe, clean_transcript, make_processing_entry, MODEL
 
 

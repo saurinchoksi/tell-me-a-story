@@ -8,3 +8,4 @@ markers = [
     "slow: marks tests as slow (run with 'pytest -m slow' or skip with 'pytest -m \"not slow\"')",
 ]
 testpaths = ["tests"]
+pythonpath = [".", "src"]

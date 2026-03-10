@@ -4,12 +4,8 @@ import contextlib
 import copy
 import json
 import os
-import sys
 import tempfile
-from pathlib import Path
 from unittest.mock import patch, MagicMock
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from pipeline import compute_file_hash, save_computed, run_pipeline
 

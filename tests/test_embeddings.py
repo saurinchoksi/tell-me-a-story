@@ -2,15 +2,11 @@
 
 import json
 import os
-import sys
 import tempfile
-from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import numpy as np
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from embeddings import extract_speaker_embeddings, save_embeddings, load_embedding_model
 

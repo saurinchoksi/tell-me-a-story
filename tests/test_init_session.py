@@ -1,15 +1,12 @@
 """Tests for init_session module."""
 
 import json
-import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from init_session import (
     get_creation_time,

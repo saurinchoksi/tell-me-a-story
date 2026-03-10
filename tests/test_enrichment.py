@@ -1,10 +1,5 @@
 """Tests for enrichment module — speaker diarization alignment."""
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 from speaker import _compute_speaker_coverage, enrich_with_diarization, DIARIZATION_MODEL as MODEL
 
 

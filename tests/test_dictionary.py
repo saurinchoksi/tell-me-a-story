@@ -1,13 +1,9 @@
 """Tests for dictionary module."""
 
 import json
-import sys
-from pathlib import Path
 from unittest.mock import mock_open, patch
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from dictionary import build_variant_map, load_library, normalize_variants
 

@@ -1,10 +1,5 @@
 """Tests for src/filters.py — hallucination detection predicates."""
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
 from filters import silence_gap, near_zero_probability, find_duplicate_segments
 
 

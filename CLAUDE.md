@@ -151,21 +151,15 @@ Word-level timestamps in transcript enable future caption sync (audio plays, wor
 
 ## Writing Tests
 
-Every test file manually inserts `src/` into `sys.path` (no conftest.py magic). API tests also insert PROJECT_ROOT so the `api` package resolves. Flask test clients use the `create_app()` factory with `tmp_path` for full isolation.
+pytest is configured with `pythonpath = [".", "src"]` in `pyproject.toml`, so bare imports work automatically — no `sys.path` hacks needed. Flask test clients use the `create_app()` factory with `tmp_path` for full isolation.
 
 Boilerplate for new test files:
 
 ```python
-# src/ module tests
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# src/ module tests — just import directly
+from corrections import apply_corrections
 
-# API tests (need both src/ and project root)
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# API tests — just import directly
 from api.app import create_app
 
 # Flask test client fixture

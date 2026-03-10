@@ -2,14 +2,11 @@
 
 import contextlib
 import json
-import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from process_inbox import process_inbox, _print_summary
 
