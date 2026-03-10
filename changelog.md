@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-03-10 — Tracker migration: SYNC files out, Linear in
+
+**What:** Replaced Notion database + SYNC.md handoff system with Linear as single source of truth for all project tasks. Retired SYNC.md, SYNC-LOG.md. Rewrote CURRENT.md to contain only project state (no tasks). Created skills for both Chat and Code to interact with Linear. Seeded backlog with 8 tickets from surfaced issues and deferred work.
+**Result:** 8 open tickets in Linear (1 Done, 8 Todo). Two clean skills: `tmas-tracker` (Chat project skill) and `linear-tmas-tracker` (Code skill at `~/.claude/skills/`). CURRENT.md cut by ~40%. Zero task-related content in local files.
+**Decided:** Linear over Notion — purpose-built issue tracker with proper query/filter tools, one-call ticket listing vs 12-20 calls in Notion. Linear over GitHub Issues — richer schema, better mobile app, native Claude connector. SYNC.md retired — the tracker replaces both directions. CURRENT.md stays as project state only. Ticket body template: Context / Problem / Goal / Intent / Desired Result / References. Status lifecycle: Todo (idea) → Backlog (scoped) → In Progress → In Review → Done.
+**Learned:** Notion's MCP connector has no database query tool on Free/Plus plans — only semantic search. This meant multiple broad queries + individual fetches for every ticket. Linear's MCP gives filtered, property-rich results in a single call. The right tool for the job matters more than the sunk cost of the wrong one.
+
 ## 2026-03-03 — Cross-session identification works
 
 **What:** Auto-identification added to pipeline (runs after embedding extraction). All three test sessions reprocessed. Speaker decision persistence bug fixed — confirmed/variant choices now survive page reload via overlay fields in identifications.json.
