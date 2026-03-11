@@ -54,7 +54,7 @@ def test_enrich_all_stages_succeed():
          patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
 
         result, processing, counts = enrich_transcript(
-            transcript, diarization, verbose=False
+            transcript, diarization, library_path="fake/lib.json", verbose=False
         )
 
     assert len(processing) == 4
@@ -97,7 +97,7 @@ def test_enrich_llm_fails_others_continue():
          patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
 
         result, processing, counts = enrich_transcript(
-            transcript, diarization, verbose=False
+            transcript, diarization, library_path="fake/lib.json", verbose=False
         )
 
     assert len(processing) == 4
@@ -143,7 +143,43 @@ def test_enrich_does_not_set_processing_on_transcript():
          patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
 
         result, processing, counts = enrich_transcript(
-            transcript, diarization, verbose=False
+            transcript, diarization, library_path="fake/lib.json", verbose=False
         )
 
     assert "_processing" not in result
+
+
+def test_enrich_skips_dictionary_when_no_library():
+    """Dictionary normalization is skipped when no library_path is provided."""
+    transcript = copy.deepcopy(_CLEAN_TRANSCRIPT)
+    diarization = copy.deepcopy(_FAKE_DIARIZATION)
+
+    llm_entry = {"stage": "llm_normalization", "model": "qwen3:8b",
+                 "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+    diar_entry = {"stage": "diarization_enrichment",
+                  "model": "pyannote/speaker-diarization-community-1",
+                  "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+    gap_entry = {"stage": "gap_detection", "gaps_found": 0,
+                 "status": "success", "timestamp": "2026-01-01T00:00:00+00:00"}
+
+    with patch("pipeline.llm_normalize", return_value=([], llm_entry)), \
+         patch("pipeline.extract_text", return_value="hello world"), \
+         patch("pipeline.apply_corrections", return_value=(
+             copy.deepcopy(transcript), 0,
+         )), \
+         patch("pipeline.load_library") as mock_load_lib, \
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)), \
+         patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
+
+        result, processing, counts = enrich_transcript(
+            transcript, diarization, verbose=False
+        )
+
+    # Should have 4 entries: diar, gap, llm, dict(skipped)
+    assert len(processing) == 4
+    assert processing[3]["stage"] == "dictionary_normalization"
+    assert processing[3]["status"] == "skipped"
+    assert processing[3]["reason"] == "no_library_path"
+    assert counts["dict_count"] == 0
+    # load_library should never be called
+    mock_load_lib.assert_not_called()

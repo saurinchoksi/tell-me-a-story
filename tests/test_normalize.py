@@ -133,7 +133,7 @@ def test_llm_normalize_default_prompt(mock_call_mlx):
     mock_call_mlx.return_value = '{"corrections": []}'
     _, _ = llm_normalize("test text")
     prompt_arg = mock_call_mlx.call_args[0][0]
-    assert "Mahabharata" in prompt_arg
+    assert "proper nouns" in prompt_arg
     assert "test text" in prompt_arg
 
 

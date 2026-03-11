@@ -10,9 +10,9 @@ MAX_TOKENS = 512
 
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
-DEFAULT_PROMPT = """This text is from a conversation about the Mahabharata epic. A child is pronouncing Sanskrit names phonetically, often with significant distortion.
+DEFAULT_PROMPT = """This text is a transcription of a spoken conversation. Some proper nouns may be phonetically distorted or misheared by the transcription model.
 
-Look at the text and identify any words that might be phonetic mishearings of Mahabharata character or group names (like Pandavas, Kauravas, Yudhishthira, Duryodhana, Dhritarashtra, Pandu, etc.)
+Look at the text and identify any words that might be phonetic mishearings of proper nouns (names of people, places, or groups).
 
 ONLY return corrections for words that actually appear in the text.
 If no mishearings appear, return an empty list.

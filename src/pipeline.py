@@ -23,7 +23,7 @@ from normalize import llm_normalize, MODEL as LLM_MODEL
 from dictionary import load_library, build_variant_map, normalize_variants, make_processing_entry as make_dictionary_entry
 from corrections import extract_text, apply_corrections
 
-_DEFAULT_LIBRARY_PATH = str(Path(__file__).parent.parent / "data" / "mahabharata.json")
+_DEFAULT_LIBRARY_PATH = None
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,8 @@ def enrich_transcript(
     Args:
         transcript: Whisper transcript dict with segments containing words.
         diarization: Diarization result dict with a 'segments' list.
-        library_path: Path to dictionary library JSON (defaults to data/mahabharata.json).
+        library_path: Path to dictionary library JSON. When None (default),
+            dictionary normalization is skipped.
         verbose: Log progress messages.
 
     Returns:
@@ -122,30 +123,40 @@ def enrich_transcript(
 
     # Pass 4: Dictionary normalization
     lib_path = library_path or _DEFAULT_LIBRARY_PATH
-    try:
-        started_at = datetime.now(timezone.utc).isoformat()
-        t0 = time.monotonic()
-        library = load_library(lib_path)
-        variant_map = build_variant_map(library)
-        text = extract_text(transcript)
-        dict_corrections = normalize_variants(text, variant_map)
-        transcript, dict_count = apply_corrections(transcript, dict_corrections, "dictionary")
-        dict_entry = make_dictionary_entry(lib_path, dict_count)
-        dict_entry["started_at"] = started_at
-        dict_entry["duration_seconds"] = round(time.monotonic() - t0, 2)
-        processing.append(dict_entry)
+    if lib_path is None:
         if verbose:
-            logger.info(f"Dictionary normalization: {dict_count} corrections applied")
-    except Exception as e:
-        logger.warning(f"Dictionary normalization failed: {e}")
+            logger.info("Dictionary normalization: skipped (no library path)")
         processing.append({
             "stage": "dictionary_normalization",
-            "library": lib_path,
-            "status": "error",
-            "error": str(e),
-            "started_at": started_at,
+            "status": "skipped",
+            "reason": "no_library_path",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
+    else:
+        try:
+            started_at = datetime.now(timezone.utc).isoformat()
+            t0 = time.monotonic()
+            library = load_library(lib_path)
+            variant_map = build_variant_map(library)
+            text = extract_text(transcript)
+            dict_corrections = normalize_variants(text, variant_map)
+            transcript, dict_count = apply_corrections(transcript, dict_corrections, "dictionary")
+            dict_entry = make_dictionary_entry(lib_path, dict_count)
+            dict_entry["started_at"] = started_at
+            dict_entry["duration_seconds"] = round(time.monotonic() - t0, 2)
+            processing.append(dict_entry)
+            if verbose:
+                logger.info(f"Dictionary normalization: {dict_count} corrections applied")
+        except Exception as e:
+            logger.warning(f"Dictionary normalization failed: {e}")
+            processing.append({
+                "stage": "dictionary_normalization",
+                "library": lib_path,
+                "status": "error",
+                "error": str(e),
+                "started_at": started_at,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
 
     return transcript, processing, {"llm_count": llm_count, "dict_count": dict_count}
 
@@ -240,7 +251,8 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     Args:
         audio_path: Path to audio file
         verbose: Print progress messages
-        library_path: Path to dictionary library JSON (defaults to data/mahabharata.json)
+        library_path: Path to dictionary library JSON. When None (default),
+            dictionary normalization is skipped.
 
     Returns:
         Dict with 'session_id', 'transcript_raw', 'transcript', 'diarization',

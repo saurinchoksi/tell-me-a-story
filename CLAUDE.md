@@ -75,8 +75,8 @@ Audio flows through stages:
    - `enrich_transcript()` — runs four enrichment passes:
      - **Diarization enrichment** (`speaker.py`) — Adds `_speaker` labels to each word by temporal overlap
      - **Gap detection** (`speaker.py`) — Injects `[unintelligible]` segments where speaker detected but no transcript
-     - **LLM normalization** (`normalize.py`) — MLX-LM/Qwen3-8B corrects phonetic mishearings of Sanskrit names (subprocess isolates GPU memory from pyannote to prevent OOM)
-     - **Dictionary normalization** (`dictionary.py`) — Reference library corrects known variant spellings
+     - **LLM normalization** (`normalize.py`) — MLX-LM/Qwen3-8B corrects phonetic mishearings of proper nouns (subprocess isolates GPU memory from pyannote to prevent OOM). Generic by default; content-specific prompts passed explicitly.
+     - **Dictionary normalization** (`dictionary.py`) — Reference library corrects known variant spellings. Skipped when no library path provided (content-agnostic default).
      - Corrections are applied via `corrections.py`, which preserves `_original` and `_corrections` audit trails
    - `save_computed()` — writes `transcript-raw.json`, `transcript-rich.json`, `diarization.json`
    - `to_utterances()` — consolidates same-speaker word runs into utterances
@@ -177,7 +177,7 @@ def client(tmp_path):
 - Pyannote struggles with soft/child speech—alignment heuristics compensate
 - Test audio: `sessions/00000000-000000/audio.m4a`
 - Private data in `sessions/` is gitignored
-- Reference library: `data/mahabharata.json` (56 entries, variants vs. aliases distinction)
+- Reference library: `data/mahabharata.json` (56 entries, variants vs. aliases distinction). Opt-in via `library_path` — not loaded by default.
 - Supported audio formats: `.m4a`, `.mp3`, `.wav` (defined in `init_session.py`)
 
 ## Coding Conventions
@@ -186,27 +186,40 @@ def client(tmp_path):
 
 **Changelog entries** (`changelog.md`): **What** (what changed), **Result** (outcome with numbers), **Decided** (decisions + why), **Learned** (insights). Not all fields required. Newest entries at top.
 
-## SYNC.md Handoff Protocol
+## Linear Handoff Protocol
 
-When completing a task from SYNC.md:
+All tasks live in Linear (team: Tell Me A Story). SYNC.md and SYNC-LOG.md are retired.
 
-1. **Move** the task from "For Code" section to "From Code" section
-2. **Add Outcome:** What actually happened, what was built/changed
-3. **Add Surfaced:** Questions that came up, surprises, decisions you made that Desktop might want to revisit, loose threads, anything Desktop needs to know to continue intelligently
+**Status flow:** Backlog → In Progress → In Review → Done
 
-**Example:**
+**When picking up a task:**
+- Move ticket to In Progress
+- Read the full description — Context, Goal, Intent, Desired Result, References
 
-```markdown
-## From Code (for Desktop to process)
+**When implementation is complete — in this order:**
+1. Add a comment to the ticket with:
+   - **Outcome:** What was built, what changed, key results
+   - **Surfaced:** Surprises, decisions made, open questions, anything Desktop needs to know
+2. Move ticket to **In Review**
 
-### Completed: [Task name from original]
-**Completed:** 2026-01-30
+The comment is a briefing for Desktop's review — write it first so Desktop can review with full context. A ticket moved to In Review without this comment is incomplete.
 
-**Outcome:**
-[What you built, what changed, results]
+**Never** go directly from In Progress to Done. Always go through In Review — Desktop closes tickets after review.
 
-**Surfaced:**
-[Questions, surprises, things Desktop should know]
+**Ticket description format:**
 ```
+## Context
+[Situation and background]
 
-**Do not** write to SYNC-LOG.md — Desktop manages that file.
+## Goal
+[What we want]
+
+## Intent
+[Direction and approach — not step-by-step]
+
+## Desired Result
+[What done looks like]
+
+## References
+[File paths, related tickets]
+```
