@@ -92,6 +92,19 @@
 .segment-speaker-name.speaker-4 { background: rgba(138, 128, 120, 0.15); }
 .segment-speaker-name.speaker-unknown { background: rgba(92, 83, 72, 0.12); }
 
+/* Raw SPEAKER_XX labels: muted outline treatment to signal "not yet identified".
+   Extra .segment-speaker-name qualifier ensures this overrides .speaker-N backgrounds
+   regardless of source order. */
+.segment-speaker-name.segment-speaker-name.speaker-raw {
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  letter-spacing: 0;
+}
+
 /* Badge row */
 .segment-badges {
   display: flex;

@@ -20,6 +20,7 @@ interface SegmentCardProps {
   allFilterReasons: string[];
   hasNotes: boolean;
   speakerNames: Map<string, string>;
+  speakerColorMap: Map<string, string>;
   onSeek: (time: number) => void;
   onContextMenu: (e: React.MouseEvent, segmentIndex: number, wordIndex: number) => void;
   cardRef: RefCallback<HTMLDivElement>;
@@ -33,6 +34,7 @@ function SegmentCardInner({
   allFilterReasons,
   hasNotes,
   speakerNames,
+  speakerColorMap,
   onSeek,
   onContextMenu,
   cardRef,
@@ -40,7 +42,8 @@ function SegmentCardInner({
   const isGap = segment._source === 'diarization_gap';
   const dominant = getDominantSpeaker(segment);
   const displayName = dominant ? (speakerNames.get(dominant) ?? dominant) : null;
-  const speakerClass = getSpeakerClass(dominant);
+  const isIdentified = dominant !== null && speakerNames.has(dominant);
+  const speakerClass = (dominant && speakerColorMap.get(dominant)) ?? getSpeakerClass(dominant);
   const duration = (segment.end - segment.start).toFixed(2);
 
   return (
@@ -57,7 +60,10 @@ function SegmentCardInner({
     >
       {/* Speaker name — prominent top-left label */}
       {displayName && (
-        <div className={`segment-speaker-name ${speakerClass}`}>
+        <div
+          className={`segment-speaker-name ${speakerClass} ${isIdentified ? 'speaker-identified' : 'speaker-raw'}`}
+          title={isIdentified && dominant ? dominant : undefined}
+        >
           {displayName}
         </div>
       )}
@@ -134,7 +140,8 @@ function areEqual(prev: SegmentCardProps, next: SegmentCardProps): boolean {
     prev.filterReasons.every((r, i) => r === next.filterReasons[i]) &&
     prev.allFilterReasons.length === next.allFilterReasons.length &&
     prev.allFilterReasons.every((r, i) => r === next.allFilterReasons[i]) &&
-    prev.speakerNames === next.speakerNames
+    prev.speakerNames === next.speakerNames &&
+    prev.speakerColorMap === next.speakerColorMap
   );
 }
 

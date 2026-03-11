@@ -5,7 +5,7 @@
  * checks for silence gaps, near-zero probability, and duplicate detection.
  */
 
-import type { ValidatorSegment, FilterState } from '../types';
+import type { ValidatorSegment, FilterState, SpeakerIdentification } from '../types';
 
 /** Silence gap: single-word segment where diarization found no speaker. */
 export function isSilenceGap(segment: ValidatorSegment): boolean {
@@ -99,4 +99,38 @@ export function getSpeakerClass(label: string | null): string {
   const num = parseInt(label.replace('SPEAKER_', ''), 10);
   if (isNaN(num)) return 'speaker-unknown';
   return `speaker-${num % 5}`;
+}
+
+/**
+ * Build identity-based color map from identification data.
+ *
+ * All raw labels (SPEAKER_00, SPEAKER_03) that resolve to the same profile
+ * get the same CSS class, anchored to the lowest speaker number in the group.
+ * Falls back gracefully — unidentified speakers keep their raw-label color.
+ */
+export function buildSpeakerColorMap(
+  identifications: SpeakerIdentification[]
+): Map<string, string> {
+  // Group speaker keys by resolved identity (profile_id, or raw key if unidentified)
+  const identityGroups = new Map<string, string[]>();
+  for (const ident of identifications) {
+    const identity = ident.profile_id ?? ident.speaker_key;
+    const keys = identityGroups.get(identity) ?? [];
+    keys.push(ident.speaker_key);
+    identityGroups.set(identity, keys);
+  }
+
+  // Assign color by lowest speaker number in each group (preserves existing semantics)
+  const colorMap = new Map<string, string>();
+  for (const [, keys] of identityGroups) {
+    const nums = keys
+      .map(k => parseInt(k.replace('SPEAKER_', ''), 10))
+      .filter(n => !isNaN(n));
+    const baseNum = nums.length > 0 ? Math.min(...nums) : 0;
+    const cls = `speaker-${baseNum % 5}`;
+    for (const key of keys) {
+      colorMap.set(key, cls);
+    }
+  }
+  return colorMap;
 }

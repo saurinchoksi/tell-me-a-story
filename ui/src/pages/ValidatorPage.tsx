@@ -12,6 +12,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getSession, getNotes, saveNotes, audioURL, listSessions } from '../api/client';
 import type { ValidatorSegment, Note, ContextTarget } from '../types';
 import { formatTime } from '../utils/time';
+import { buildSpeakerColorMap } from '../utils/filters';
 import WaveformPlayer, { type WaveformPlayerHandle } from '../components/WaveformPlayer';
 import SegmentCard from '../components/SegmentCard';
 import ContextMenu from '../components/ContextMenu';
@@ -87,14 +88,14 @@ export default function ValidatorPage() {
       .then(([session, notes]) => {
         const segments = (session.transcript?.segments ?? []) as ValidatorSegment[];
         const speakerNames = new Map<string, string>();
-        if (session.identifications?.identifications) {
-          for (const ident of session.identifications.identifications) {
-            if (ident.profile_name) {
-              speakerNames.set(ident.speaker_key, ident.profile_name);
-            }
+        const identifications = session.identifications?.identifications ?? [];
+        for (const ident of identifications) {
+          if (ident.profile_name) {
+            speakerNames.set(ident.speaker_key, ident.profile_name);
           }
         }
-        dispatch({ type: 'LOAD_SESSION', segments, notes, speakerNames });
+        const speakerColorMap = buildSpeakerColorMap(identifications);
+        dispatch({ type: 'LOAD_SESSION', segments, notes, speakerNames, speakerColorMap });
       })
       .catch((e) => dispatch({ type: 'SET_ERROR', error: e.message }));
   }, [id, dispatch]);
@@ -464,6 +465,7 @@ export default function ValidatorPage() {
               allFilterReasons={allReasons}
               hasNotes={derived.notesBySegment.has(seg.id)}
               speakerNames={state.speakerNames}
+              speakerColorMap={state.speakerColorMap}
               onSeek={handleSeek}
               onContextMenu={handleContextMenu}
               cardRef={getCardRef(seg.id)}
