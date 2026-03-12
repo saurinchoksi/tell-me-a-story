@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-03-12 — Gemma 3n discovered, experiment plan expanded
+
+**What:** Deep dive into Hugging Face ecosystem led to discovering Gemma 3n (Google) as a strong candidate for audio-native model experiments. Updated Audio-Native Model Evaluation doc in Linear — Gemma 3n added as "try first" model, VibeVoice ASR and Audio Flamingo 3 added to tracking section.
+**Result:** Experiment plan expanded from 3 to 4 models. Gemma 3n is the only candidate with MLX ports (`mlx-vlm`), meaning it runs on Apple Silicon alongside existing TMAS stack (MLX Whisper, MLX-LM Qwen) without a PyTorch detour. 1.6M+ Hub downloads, 879 likes. 30s audio limit (vs Phi-4's 40s).
+**Decided:** Gemma 3n first for Experiment 0 — lowest setup cost, same runtime as existing pipeline. If it only transcribes (doesn't reason about audio), that's a useful finding, move to Phi-4 next. New model evaluation filter: "does an MLX port exist?" before considering PyTorch-only models.
+**Learned:** HF MCP's current value for TMAS is search/discovery, not remote execution. Spaces running target audio-native models are immature (community forks, zero likes, runtime errors). The MCP earned its keep by surfacing Gemma 3n and letting us compare adoption metrics across models in minutes. Also: TMAS stack is MLX-native, not transformers/PyTorch — that's a more sophisticated position than the default HF ecosystem assumes.
+
 ## 2026-03-10 — Pipeline processing statistics (TMAS-13)
 
 **What:** Added per-stage timing (`started_at` + `duration_seconds`) to all 7 pipeline stages in `_processing`, plus a new `_stats` block with pipeline totals, word/segment/speaker counts, and output file sizes. Covers transcription, diarization (ML inference), 4 enrichment passes, and embedding extraction. Both full pipeline and `--re-enrich` paths instrumented. `process_inbox.py` also records file sizes.
