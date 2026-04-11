@@ -188,7 +188,7 @@ def client(tmp_path):
 
 ## Linear Handoff Protocol
 
-All tasks live in Linear (team: Tell Me A Story). SYNC.md and SYNC-LOG.md are retired.
+All tasks live in Linear (team: Tell Me A Story).
 
 **Status flow:** Backlog → In Progress → In Review → Done
 
