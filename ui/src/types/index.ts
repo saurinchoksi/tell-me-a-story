@@ -1,5 +1,12 @@
 /** TypeScript interfaces matching API response shapes. */
 
+/**
+ * Segment identifier. Integer for real Whisper segments; string for injected
+ * gap segments (e.g. "gap_241.680" from speaker.py gap detection). The union
+ * is intentional — consumers must accept both, not narrow to `number`.
+ */
+export type SegmentId = number | string;
+
 export interface SessionSummary {
   id: string;
   has_audio: boolean;
@@ -24,6 +31,9 @@ export interface TranscriptData {
 }
 
 export interface TranscriptSegment {
+  id: SegmentId;
+  start: number;
+  end: number;
   text: string;
   words?: TranscriptWord[];
   [key: string]: unknown;
@@ -156,7 +166,7 @@ export interface ValidatorWord {
 }
 
 export interface ValidatorSegment {
-  id: number | string;
+  id: SegmentId;
   start: number;
   end: number;
   text: string;
@@ -174,7 +184,7 @@ export interface ValidatorSegment {
 
 export interface Note {
   id: string;
-  segmentId: number | string | null;
+  segmentId: SegmentId | null;
   wordIndex: number | null;
   wordText: string | null;
   wordStart: number | null;
@@ -191,7 +201,7 @@ export interface FilterState {
 
 export interface ContextTarget {
   type: 'segment' | 'word' | 'timestamp';
-  segmentId?: number | string;
+  segmentId?: SegmentId;
   segmentIndex?: number;
   wordIndex?: number;
   wordText?: string;

@@ -5,7 +5,7 @@
  * checks for silence gaps, near-zero probability, and duplicate detection.
  */
 
-import type { ValidatorSegment, FilterState, SpeakerIdentification } from '../types';
+import type { ValidatorSegment, FilterState, SpeakerIdentification, SegmentId } from '../types';
 
 /** Silence gap: single-word segment where diarization found no speaker. */
 export function isSilenceGap(segment: ValidatorSegment): boolean {
@@ -24,9 +24,9 @@ export function isNearZeroProbability(segment: ValidatorSegment): boolean {
  * Find duplicate segment IDs — later occurrences of text that appeared earlier.
  * Case-insensitive, trimmed. Returns a Set of segment IDs to mark as duplicates.
  */
-export function findDuplicateSegmentIds(segments: ValidatorSegment[]): Set<number | string> {
-  const seen = new Map<string, number | string>();
-  const duplicates = new Set<number | string>();
+export function findDuplicateSegmentIds(segments: ValidatorSegment[]): Set<SegmentId> {
+  const seen = new Map<string, SegmentId>();
+  const duplicates = new Set<SegmentId>();
 
   for (const seg of segments) {
     const key = seg.text.trim().toLowerCase();
@@ -44,7 +44,7 @@ export function findDuplicateSegmentIds(segments: ValidatorSegment[]): Set<numbe
 /** Get active filter reasons for a segment (only when filter is toggled on). */
 export function getFilterReasons(
   segment: ValidatorSegment,
-  duplicateIds: Set<number | string>,
+  duplicateIds: Set<SegmentId>,
   filters: FilterState,
 ): string[] {
   const reasons: string[] = [];
@@ -57,7 +57,7 @@ export function getFilterReasons(
 /** Get all matching filter reasons regardless of toggle state (for badge display). */
 export function getAllFilterReasons(
   segment: ValidatorSegment,
-  duplicateIds: Set<number | string>,
+  duplicateIds: Set<SegmentId>,
 ): string[] {
   const reasons: string[] = [];
   if (isSilenceGap(segment)) reasons.push('silence-gap');

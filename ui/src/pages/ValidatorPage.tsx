@@ -10,7 +10,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getSession, getNotes, saveNotes, audioURL, listSessions } from '../api/client';
-import type { ValidatorSegment, Note, ContextTarget } from '../types';
+import type { ValidatorSegment, Note, ContextTarget, SegmentId } from '../types';
 import { formatTime } from '../utils/time';
 import { buildSpeakerColorMap } from '../utils/filters';
 import WaveformPlayer, { type WaveformPlayerHandle } from '../components/WaveformPlayer';
@@ -63,7 +63,7 @@ export default function ValidatorPage() {
   const waveformRef = useRef<WaveformPlayerHandle>(null);
 
   // Map of segment ID → card DOM element for imperative .active toggling
-  const segmentRefsMap = useRef(new Map<number | string, HTMLDivElement>());
+  const segmentRefsMap = useRef(new Map<SegmentId, HTMLDivElement>());
   // Track current active indices to clear previous .active classes
   const activeSegRef = useRef(-1);
   const activeWordRef = useRef(-1);
@@ -243,7 +243,7 @@ export default function ValidatorPage() {
 
   // Create stable callback ref factory for segment cards
   const getCardRef = useCallback(
-    (segId: number | string) => (el: HTMLDivElement | null) => {
+    (segId: SegmentId) => (el: HTMLDivElement | null) => {
       if (el) {
         segmentRefsMap.current.set(segId, el);
       } else {

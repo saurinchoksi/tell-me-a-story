@@ -7,7 +7,7 @@
  */
 
 import { useReducer, useMemo } from 'react';
-import type { ValidatorSegment, Note, FilterState, ContextMenuState, NoteModalState, SessionSummary } from '../../types';
+import type { ValidatorSegment, Note, FilterState, ContextMenuState, NoteModalState, SessionSummary, SegmentId } from '../../types';
 import { findDuplicateSegmentIds, getFilterReasons, getAllFilterReasons } from '../../utils/filters';
 
 export interface ValidatorState {
@@ -20,7 +20,7 @@ export interface ValidatorState {
   playing: boolean;
   playbackRate: number;
   filters: FilterState;
-  duplicateIds: Set<number | string>;
+  duplicateIds: Set<SegmentId>;
   drawerOpen: boolean;
   drawerTab: 'notes' | 'low-confidence';
   contextMenu: ContextMenuState;
@@ -152,9 +152,9 @@ function reducer(state: ValidatorState, action: ValidatorAction): ValidatorState
 
 export interface DerivedState {
   filterCounts: { silenceGap: number; nearZero: number; duplicates: number };
-  segmentFilterReasons: Map<number | string, string[]>;
-  segmentAllFilterReasons: Map<number | string, string[]>;
-  notesBySegment: Map<number | string, Note[]>;
+  segmentFilterReasons: Map<SegmentId, string[]>;
+  segmentAllFilterReasons: Map<SegmentId, string[]>;
+  notesBySegment: Map<SegmentId, Note[]>;
 }
 
 export function useValidatorState() {
@@ -162,8 +162,8 @@ export function useValidatorState() {
 
   const derived = useMemo<DerivedState>(() => {
     const filterCounts = { silenceGap: 0, nearZero: 0, duplicates: 0 };
-    const segmentFilterReasons = new Map<number | string, string[]>();
-    const segmentAllFilterReasons = new Map<number | string, string[]>();
+    const segmentFilterReasons = new Map<SegmentId, string[]>();
+    const segmentAllFilterReasons = new Map<SegmentId, string[]>();
 
     for (const seg of state.segments) {
       const active = getFilterReasons(seg, state.duplicateIds, state.filters);
@@ -179,7 +179,7 @@ export function useValidatorState() {
       }
     }
 
-    const notesBySegment = new Map<number | string, Note[]>();
+    const notesBySegment = new Map<SegmentId, Note[]>();
     for (const note of state.notes) {
       if (note.segmentId !== null) {
         const existing = notesBySegment.get(note.segmentId) ?? [];

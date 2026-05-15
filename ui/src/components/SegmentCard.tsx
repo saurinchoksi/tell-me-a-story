@@ -87,10 +87,10 @@ function SegmentCardInner({
         {!isGap && (
           <>
             <span className="badge badge-temp" title="Temperature">
-              T: {segment.temperature.toFixed(2)}
+              T: {segment.temperature?.toFixed(2) ?? '—'}
             </span>
             <span className="badge badge-cr" title="Compression Ratio">
-              CR: {segment.compression_ratio.toFixed(2)}
+              CR: {segment.compression_ratio?.toFixed(2) ?? '—'}
             </span>
           </>
         )}

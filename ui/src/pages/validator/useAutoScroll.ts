@@ -14,7 +14,7 @@ const PAUSE_DURATION_MS = 5000;
 export function useAutoScroll(containerRef: React.RefObject<HTMLDivElement | null>) {
   const userScrolledAwayRef = useRef(false);
   const programmaticScrollUntilRef = useRef(0);
-  const resumeTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Scroll listener — detects user-initiated scrolls
   useEffect(() => {

@@ -20,7 +20,7 @@
 
 import { useEffect, useCallback } from 'react';
 import type { WaveformPlayerHandle } from '../../components/WaveformPlayer';
-import type { ValidatorSegment, FilterState } from '../../types';
+import type { ValidatorSegment, FilterState, SegmentId } from '../../types';
 import type { ValidatorAction } from './useValidatorState';
 
 interface KeyboardConfig {
@@ -28,7 +28,7 @@ interface KeyboardConfig {
   segments: ValidatorSegment[];
   activeSegmentIndex: number;
   filters: FilterState;
-  duplicateIds: Set<number>;
+  duplicateIds: Set<SegmentId>;
   modalOpen: boolean;
   dispatch: React.Dispatch<ValidatorAction>;
   onSeek: (time: number) => void;

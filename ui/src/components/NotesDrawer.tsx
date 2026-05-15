@@ -6,7 +6,7 @@
  */
 
 import { useMemo } from 'react';
-import type { Note, ValidatorSegment } from '../types';
+import type { Note, ValidatorSegment, SegmentId } from '../types';
 import { formatTime } from '../utils/time';
 import './NotesDrawer.css';
 
@@ -23,7 +23,7 @@ interface NotesDrawerProps {
 }
 
 interface LowConfidenceGroup {
-  segmentId: number | string;
+  segmentId: SegmentId;
   segmentIndex: number;
   words: Array<{ word: string; start: number; probability: number; wordIndex: number }>;
 }
