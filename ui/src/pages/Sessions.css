@@ -1,7 +1,7 @@
 /* --- Sessions page — compact row list --- */
 
 .sessions-page {
-  max-width: 720px;
+  max-width: 800px;
   padding: var(--space-6) var(--space-4);
 }
 
@@ -27,11 +27,31 @@
   flex-direction: column;
 }
 
+/* Column headers — grid mirrors .session-row for rigid alignment */
+
+.session-list-header {
+  display: grid;
+  grid-template-columns: 160px 68px 52px 68px 84px 48px 1fr;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-border);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.session-list-header-actions {
+  justify-self: end;
+}
+
 /* Row — CSS grid for rigid column alignment */
 
 .session-row {
   display: grid;
-  grid-template-columns: 160px 70px auto 1fr;
+  grid-template-columns: 160px 68px 52px 68px 84px 48px 1fr;
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-3);
@@ -57,6 +77,14 @@
 /* Time column */
 
 .session-row-time {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* Length column */
+
+.session-row-length {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--color-text-muted);
@@ -110,6 +138,50 @@
 
 .pipeline-dot:hover::after {
   opacity: 1;
+}
+
+/* Validation status — clickable 3-state indicator */
+
+.validation-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  background: none;
+  border: none;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.validation-status:disabled {
+  cursor: default;
+}
+
+.validation-status-icon {
+  font-size: 0.9rem;
+}
+
+.validation-status--not_started {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.validation-status--in_progress {
+  color: var(--color-accent);
+}
+
+.validation-status--done {
+  color: var(--color-success);
+}
+
+.validation-status:hover:not(:disabled) {
+  opacity: 1;
+}
+
+/* Notes-count column */
+
+.session-row-notes {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
 }
 
 /* Action links — right-aligned */
@@ -274,22 +346,25 @@
 /* Responsive: collapse grid to stacked on narrow screens */
 
 @media (max-width: 540px) {
+  .session-list-header {
+    display: none;
+  }
+
+  /* Collapse the 7-column grid to a single wrapping flex row.
+     Flex avoids fragile per-cell grid placement; the note is
+     forced onto its own line. */
   .session-row {
-    grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: var(--space-1) var(--space-3);
   }
 
-  .session-row-time {
-    justify-self: end;
-  }
-
-  .session-row-pipeline {
-    grid-column: 1;
-  }
-
   .session-row-actions {
-    grid-column: 2;
-    grid-row: 2;
+    margin-left: auto;
+  }
+
+  .session-note {
+    flex-basis: 100%;
   }
 }

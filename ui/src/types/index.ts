@@ -7,6 +7,9 @@
  */
 export type SegmentId = number | string;
 
+/** Human-review status for a session, set from the Sessions list. */
+export type ValidationStatus = 'not_started' | 'in_progress' | 'done';
+
 export interface SessionSummary {
   id: string;
   has_audio: boolean;
@@ -16,6 +19,12 @@ export interface SessionSummary {
   has_identifications: boolean;
   /** Session-level free-text note; '' when none set. */
   note: string;
+  /** Recording duration in seconds; null when the session isn't transcribed. */
+  duration_seconds: number | null;
+  /** Count of timestamped validation notes. */
+  note_count: number;
+  /** Human-review status. */
+  validation_status: ValidationStatus;
 }
 
 export interface SessionDetail {

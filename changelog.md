@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-05-15 — Sessions page: column headers + length, notes-count, validation-status
+
+**What:** Added a labeled column-header row to the Sessions list page, then three new per-row columns — recording **Length**, a **Notes** count (number of timestamped validation notes), and a 3-state **Validation** status (not started / in progress / done) cycled by clicking a per-row indicator. New `PUT /api/sessions/<id>/validation-status` endpoint; `GET /api/sessions` now also returns `duration_seconds`, `note_count`, and `validation_status`.
+**Result:** Sessions row/header grid rebuilt as 7 aligned columns (page widened 720→800px; mobile collapses to a wrapping flex row). New `ValidationStatus` React component with optimistic update + revert-on-error. 345 fast tests pass (13 new API tests), lint + typecheck clean.
+**Decided:** Validation status is new persistent state — none existed in the app, where validation was open-ended note-taking. Stored in `session-metadata.json` via read-merge-write alongside the existing note, behind a sibling `PUT` endpoint rather than a generalized metadata endpoint, to keep enum validation explicit. A manually-set flag, not inferred — completion is a human judgment. Compact icon (○ ◐ ●) over a text label: coherent with the existing pipeline-dot visual language, and keeps the dense 7-column row calm.
+**Learned:** The column-header row and each data row are independent CSS grids — they only stay aligned if every column but the last is fixed-width; a mid-row `auto` column makes everything after it drift. Also: `.badge` in `SegmentCard.css` is component-scoped (Vite doesn't scope plain CSS imports), so it is globally available only while a `SegmentCard` is mounted — reusing it elsewhere would be a latent bug.
+
 ## 2026-03-12 — Gemma 3n discovered, experiment plan expanded
 
 **What:** Deep dive into Hugging Face ecosystem led to discovering Gemma 3n (Google) as a strong candidate for audio-native model experiments. Updated Audio-Native Model Evaluation doc in Linear — Gemma 3n added as "try first" model, VibeVoice ASR and Audio Flamingo 3 added to tracking section.

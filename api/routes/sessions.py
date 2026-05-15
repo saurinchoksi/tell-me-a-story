@@ -16,7 +16,7 @@ def list_sessions():
     try:
         sessions = discover_sessions(current_app.config["SESSIONS_DIR"])
     except json.JSONDecodeError as e:
-        return jsonify({"error": f"Corrupt session-metadata.json: {e}"}), 500
+        return jsonify({"error": f"Corrupt session file: {e}"}), 500
     return jsonify({"sessions": sessions})
 
 
@@ -124,3 +124,51 @@ def save_session_note(session_id: str):
         json.dump(metadata, f, indent=2)
 
     return jsonify({"note": metadata["note"], "updatedAt": metadata["updatedAt"]})
+
+
+VALID_VALIDATION_STATUSES = {"not_started", "in_progress", "done"}
+
+
+@bp.route("/sessions/<session_id>/validation-status", methods=["PUT"])
+def save_validation_status(session_id: str):
+    """Save the human-review validation status (read-merge-write).
+
+    Reads any existing session-metadata.json so unrelated fields (note,
+    updatedAt) survive, then updates 'validationStatus' and 'updatedAt'.
+    """
+    try:
+        session_dir = get_session_dir(
+            current_app.config["SESSIONS_DIR"], session_id
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+
+    body = request.get_json(silent=True)
+    if body is None or "status" not in body:
+        return jsonify({"error": "Request body must contain 'status'"}), 400
+
+    status = body["status"]
+    if status not in VALID_VALIDATION_STATUSES:
+        return jsonify({
+            "error": f"'status' must be one of {sorted(VALID_VALIDATION_STATUSES)}"
+        }), 400
+
+    metadata_path = session_dir / "session-metadata.json"
+    if metadata_path.exists():
+        with open(metadata_path) as f:
+            metadata = json.load(f)
+    else:
+        metadata = {}
+
+    metadata["validationStatus"] = status
+    metadata["updatedAt"] = datetime.now(timezone.utc).isoformat()
+
+    with open(metadata_path, "w") as f:
+        json.dump(metadata, f, indent=2)
+
+    return jsonify({
+        "validationStatus": metadata["validationStatus"],
+        "updatedAt": metadata["updatedAt"],
+    })

@@ -8,6 +8,7 @@
 import type {
   SessionSummary,
   SessionDetail,
+  ValidationStatus,
   IdentificationData,
   ProfileSummary,
   ProfileDetail,
@@ -56,6 +57,20 @@ export async function saveSessionNote(
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ note }),
+    },
+  );
+}
+
+export async function setValidationStatus(
+  sessionId: string,
+  status: ValidationStatus,
+): Promise<{ validationStatus: ValidationStatus; updatedAt: string }> {
+  return fetchJSON<{ validationStatus: ValidationStatus; updatedAt: string }>(
+    `/api/sessions/${sessionId}/validation-status`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
     },
   );
 }

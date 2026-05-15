@@ -15,7 +15,8 @@ def sessions_dir(tmp_path):
     s1.mkdir()
     (s1 / "audio.m4a").write_bytes(b"fake audio data")
     (s1 / "transcript-rich.json").write_text(json.dumps({
-        "segments": [{"text": "hello"}]
+        "segments": [{"text": "hello"}],
+        "audio": {"duration_seconds": 338.07},
     }))
     (s1 / "diarization.json").write_text(json.dumps({
         "segments": [{"speaker": "SPEAKER_00", "start": 0.0, "end": 1.0}]
@@ -82,6 +83,32 @@ def test_list_sessions_empty_dir(tmp_path):
     with app.test_client() as c:
         resp = c.get("/api/sessions")
         assert resp.get_json()["sessions"] == []
+
+
+def test_list_sessions_includes_duration(client):
+    """duration_seconds comes from the transcript's audio block; None if no transcript."""
+    resp = client.get("/api/sessions")
+    sessions = {s["id"]: s for s in resp.get_json()["sessions"]}
+    assert sessions["20260101-120000"]["duration_seconds"] == 338.07
+    assert sessions["20260102-180000"]["duration_seconds"] is None
+
+
+def test_list_sessions_includes_note_count(client, sessions_dir):
+    """note_count is the validation-notes count; 0 when no file exists."""
+    notes_path = sessions_dir / "20260101-120000" / "validation-notes.json"
+    notes_path.write_text(json.dumps({"notes": [{"id": "a"}, {"id": "b"}, {"id": "c"}]}))
+
+    resp = client.get("/api/sessions")
+    sessions = {s["id"]: s for s in resp.get_json()["sessions"]}
+    assert sessions["20260101-120000"]["note_count"] == 3
+    assert sessions["20260102-180000"]["note_count"] == 0
+
+
+def test_list_sessions_includes_validation_status(client):
+    """With no metadata file, validation_status defaults to 'not_started'."""
+    resp = client.get("/api/sessions")
+    for s in resp.get_json()["sessions"]:
+        assert s["validation_status"] == "not_started"
 
 
 # --- GET /api/sessions/:id ---
