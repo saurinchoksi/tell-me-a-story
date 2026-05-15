@@ -144,6 +144,119 @@
   color: var(--color-accent);
 }
 
+/* Session-level note — full-width second line of the row */
+
+.session-note {
+  grid-column: 1 / -1;
+  margin-top: var(--space-1);
+}
+
+.session-note-display,
+.session-note-add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  padding: 2px 0;
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.session-note-display {
+  color: var(--color-text-muted);
+}
+
+.session-note-text {
+  white-space: pre-wrap;
+}
+
+.session-note-pencil {
+  flex-shrink: 0;
+  color: var(--color-accent);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.session-note-display:hover .session-note-pencil {
+  opacity: 1;
+}
+
+.session-note-add {
+  color: var(--color-accent);
+}
+
+.session-note-add:hover {
+  text-decoration: underline;
+}
+
+/* Note — editing state */
+
+.session-note--editing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.session-note-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  resize: vertical;
+}
+
+.session-note-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.session-note-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.session-note-save,
+.session-note-cancel {
+  padding: 2px 10px;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.session-note-save {
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  color: var(--color-bg);
+  font-weight: 600;
+}
+
+.session-note-save:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.session-note-cancel {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.session-note-error {
+  font-size: 0.75rem;
+  color: var(--color-error);
+}
+
 /* Empty state */
 
 .sessions-empty {

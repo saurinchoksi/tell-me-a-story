@@ -1,8 +1,9 @@
 """Session endpoints — list, detail, and speaker identification."""
 
 import json
+from datetime import datetime, timezone
 
-from flask import Blueprint, current_app, jsonify
+from flask import Blueprint, current_app, jsonify, request
 
 from api.helpers import get_session_dir, discover_sessions
 
@@ -12,7 +13,10 @@ bp = Blueprint("sessions", __name__)
 @bp.route("/sessions")
 def list_sessions():
     """List all sessions with artifact availability flags."""
-    sessions = discover_sessions(current_app.config["SESSIONS_DIR"])
+    try:
+        sessions = discover_sessions(current_app.config["SESSIONS_DIR"])
+    except json.JSONDecodeError as e:
+        return jsonify({"error": f"Corrupt session-metadata.json: {e}"}), 500
     return jsonify({"sessions": sessions})
 
 
@@ -81,3 +85,42 @@ def identify_session_speakers(session_id: str):
     save_identifications(results, output_path)
 
     return jsonify(results)
+
+
+@bp.route("/sessions/<session_id>/note", methods=["PUT"])
+def save_session_note(session_id: str):
+    """Save the session-level free-text note (read-merge-write).
+
+    Reads any existing session-metadata.json so unrelated fields survive,
+    then updates 'note' and 'updatedAt'.
+    """
+    try:
+        session_dir = get_session_dir(
+            current_app.config["SESSIONS_DIR"], session_id
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+
+    body = request.get_json(silent=True)
+    if body is None or "note" not in body:
+        return jsonify({"error": "Request body must contain 'note'"}), 400
+
+    if not isinstance(body["note"], str):
+        return jsonify({"error": "'note' must be a string"}), 400
+
+    metadata_path = session_dir / "session-metadata.json"
+    if metadata_path.exists():
+        with open(metadata_path) as f:
+            metadata = json.load(f)
+    else:
+        metadata = {}
+
+    metadata["note"] = body["note"]
+    metadata["updatedAt"] = datetime.now(timezone.utc).isoformat()
+
+    with open(metadata_path, "w") as f:
+        json.dump(metadata, f, indent=2)
+
+    return jsonify({"note": metadata["note"], "updatedAt": metadata["updatedAt"]})

@@ -46,6 +46,20 @@ export function audioURL(sessionId: string): string {
   return `/api/sessions/${sessionId}/audio`;
 }
 
+export async function saveSessionNote(
+  sessionId: string,
+  note: string,
+): Promise<{ note: string; updatedAt: string }> {
+  return fetchJSON<{ note: string; updatedAt: string }>(
+    `/api/sessions/${sessionId}/note`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ note }),
+    },
+  );
+}
+
 // --- Speakers ---
 
 export async function confirmSpeakers(

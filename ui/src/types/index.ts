@@ -14,6 +14,8 @@ export interface SessionSummary {
   has_diarization: boolean;
   has_embeddings: boolean;
   has_identifications: boolean;
+  /** Session-level free-text note; '' when none set. */
+  note: string;
 }
 
 export interface SessionDetail {

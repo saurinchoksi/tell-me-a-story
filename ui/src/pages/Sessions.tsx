@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { listSessions } from '../api/client';
 import { formatSessionDate } from '../utils/time';
 import type { SessionSummary } from '../types';
+import SessionNote from '../components/SessionNote';
 import './Sessions.css';
 
 const PIPELINE_STAGES = [
@@ -82,6 +83,8 @@ export default function Sessions() {
                   </Link>
                 )}
               </div>
+
+              <SessionNote sessionId={s.id} initialNote={s.note} />
             </div>
           );
         })}

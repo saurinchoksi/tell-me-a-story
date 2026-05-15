@@ -1,5 +1,6 @@
 """Shared helpers for the API — validation, path resolution, session discovery."""
 
+import json
 import re
 from pathlib import Path
 
@@ -36,6 +37,20 @@ def get_session_dir(sessions_dir: Path, session_id: str) -> Path:
     return session_dir
 
 
+def _read_session_note(session_dir: Path) -> str:
+    """Return the free-text session note, or '' if no metadata file exists.
+
+    A missing session-metadata.json is a legitimate empty state. A corrupt
+    file is not — json.JSONDecodeError propagates (fail loud).
+    """
+    metadata_path = session_dir / "session-metadata.json"
+    if not metadata_path.exists():
+        return ""
+    with open(metadata_path) as f:
+        data = json.load(f)
+    return data["note"]
+
+
 def discover_sessions(sessions_dir: Path) -> list[dict]:
     """Iterate session directories and report which artifacts exist.
 
@@ -59,6 +74,7 @@ def discover_sessions(sessions_dir: Path) -> list[dict]:
             "has_diarization": (entry / "diarization.json").exists(),
             "has_embeddings": (entry / "embeddings.json").exists(),
             "has_identifications": (entry / "identifications.json").exists(),
+            "note": _read_session_note(entry),
         })
 
     sessions.sort(key=lambda s: s["id"], reverse=True)
