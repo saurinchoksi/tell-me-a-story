@@ -15,6 +15,21 @@ const PIPELINE_STAGES = [
   { key: 'has_identifications' as const, label: 'Identified' },
 ];
 
+/** Human-readable labels for transcript-rich.json _processing stage keys. */
+const STAGE_LABELS: Record<string, string> = {
+  transcription: 'Transcription',
+  diarization: 'Diarization',
+  diarization_enrichment: 'Diarization enrichment',
+  gap_detection: 'Gap detection',
+  llm_normalization: 'LLM normalization',
+  dictionary_normalization: 'Dictionary normalization',
+  embedding_extraction: 'Embedding extraction',
+};
+
+function stageLabel(key: string): string {
+  return STAGE_LABELS[key] ?? key.replace(/_/g, ' ');
+}
+
 export default function Sessions() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +77,7 @@ export default function Sessions() {
       <div className="sessions-list">
         {sessions.map((s) => {
           const { date, time } = formatSessionDate(s.id);
+          const failedLabel = s.failed_stages.map(stageLabel).join(', ');
 
           return (
             <div key={s.id} className="session-row">
@@ -81,6 +97,16 @@ export default function Sessions() {
                     aria-label={stage.label}
                   />
                 ))}
+                {s.failed_stages.length > 0 && (
+                  <span
+                    className="pipeline-warning"
+                    role="img"
+                    data-label={`${failedLabel} failed`}
+                    aria-label={`Pipeline error: ${failedLabel} failed`}
+                  >
+                    ⚠
+                  </span>
+                )}
               </div>
 
               <ValidationStatus

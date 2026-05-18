@@ -4,6 +4,13 @@ Structured record of what changed, what was decided, and what was learned. Newes
 
 Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
 
+## 2026-05-18 — Sessions page: pipeline-health warning indicator
+
+**What:** Added a ⚠ marker to the Pipeline cell on the Sessions list, shown only when a session has a failed pipeline stage. `GET /api/sessions` now returns `failed_stages` — the stage names with `status: "error"` in `transcript-rich.json._processing`. Hovering the ⚠ shows an instant CSS tooltip naming the stage(s).
+**Result:** Two existing sessions that had silently carried an `llm_normalization` error are now flagged. `_read_duration_seconds()` consolidated into `_read_transcript_facts()` (one transcript parse yields both duration and failed-stages). 346 fast tests pass (1 new), lint + typecheck clean.
+**Decided:** Errors-only display — healthy rows unchanged (Calm Tech). Only `status: "error"` flags; `skipped` (e.g. dictionary normalization, by design) and `success` do not. The `_processing` stage set varies across pipeline versions, so the code iterates it rather than hardcoding a stage list. The tooltip reuses the existing `data-label`/`::after` CSS mechanism (shared with the pipeline dots), not the native `title` attribute.
+**Learned:** The pipeline records per-stage `status` in `transcript-rich.json._processing`, but the Sessions page showed only artifact-existence dots — so a non-fatal enrichment failure (LLM normalization looping on a proper noun) was completely invisible. Existence ≠ success.
+
 ## 2026-05-15 — Sessions page: column headers + length, notes-count, validation-status
 
 **What:** Added a labeled column-header row to the Sessions list page, then three new per-row columns — recording **Length**, a **Notes** count (number of timestamped validation notes), and a 3-state **Validation** status (not started / in progress / done) cycled by clicking a per-row indicator. New `PUT /api/sessions/<id>/validation-status` endpoint; `GET /api/sessions` now also returns `duration_seconds`, `note_count`, and `validation_status`.

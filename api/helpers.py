@@ -50,24 +50,37 @@ def _read_session_metadata(session_dir: Path) -> dict:
         return json.load(f)
 
 
-def _read_duration_seconds(session_dir: Path) -> float | None:
-    """Return the recording's duration in seconds, or None if unavailable.
+def _read_transcript_facts(session_dir: Path) -> dict:
+    """Read transcript-rich.json once for the facts the sessions list needs.
 
-    None when the session was never transcribed, or its transcript predates
-    the audio block. Parsing transcript-rich.json (~200-600KB) for one float
+    Returns {'duration_seconds': float|None, 'failed_stages': list[str]}.
+    Both empty when the session was never transcribed (or the transcript
+    predates the relevant block). Parsing transcript-rich.json (~200-600KB)
     is acceptable at this app's scale; if session counts grow, have the
-    pipeline cache duration into session-metadata.json instead. A corrupt
+    pipeline cache these into session-metadata.json instead. A corrupt
     transcript propagates json.JSONDecodeError (fail loud).
     """
     transcript_path = session_dir / "transcript-rich.json"
     if not transcript_path.exists():
-        return None
+        return {"duration_seconds": None, "failed_stages": []}
     with open(transcript_path) as f:
         data = json.load(f)
+
     audio = data.get("audio")
-    if not isinstance(audio, dict):
-        return None
-    return audio.get("duration_seconds")
+    duration = audio.get("duration_seconds") if isinstance(audio, dict) else None
+
+    # The _processing stage set is not fixed across pipeline versions —
+    # iterate whatever is present rather than assuming a stage list.
+    processing = data.get("_processing")
+    failed_stages = []
+    if isinstance(processing, list):
+        failed_stages = [
+            entry["stage"]
+            for entry in processing
+            if entry.get("status") == "error"
+        ]
+
+    return {"duration_seconds": duration, "failed_stages": failed_stages}
 
 
 def _read_note_count(session_dir: Path) -> int:
@@ -101,6 +114,7 @@ def discover_sessions(sessions_dir: Path) -> list[dict]:
             continue
 
         metadata = _read_session_metadata(entry)
+        facts = _read_transcript_facts(entry)
         sessions.append({
             "id": entry.name,
             "has_audio": next(entry.glob("audio.*"), None) is not None,
@@ -110,8 +124,9 @@ def discover_sessions(sessions_dir: Path) -> list[dict]:
             "has_identifications": (entry / "identifications.json").exists(),
             "note": metadata.get("note", ""),
             "validation_status": metadata.get("validationStatus", "not_started"),
-            "duration_seconds": _read_duration_seconds(entry),
+            "duration_seconds": facts["duration_seconds"],
             "note_count": _read_note_count(entry),
+            "failed_stages": facts["failed_stages"],
         })
 
     sessions.sort(key=lambda s: s["id"], reverse=True)

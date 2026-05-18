@@ -25,6 +25,8 @@ export interface SessionSummary {
   note_count: number;
   /** Human-review status. */
   validation_status: ValidationStatus;
+  /** Pipeline stages that errored (from transcript-rich.json _processing); [] when healthy. */
+  failed_stages: string[];
 }
 
 export interface SessionDetail {

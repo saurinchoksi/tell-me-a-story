@@ -17,6 +17,11 @@ def sessions_dir(tmp_path):
     (s1 / "transcript-rich.json").write_text(json.dumps({
         "segments": [{"text": "hello"}],
         "audio": {"duration_seconds": 338.07},
+        "_processing": [
+            {"stage": "transcription", "status": "success"},
+            {"stage": "llm_normalization", "status": "error", "error": "parse fail"},
+            {"stage": "dictionary_normalization", "status": "skipped"},
+        ],
     }))
     (s1 / "diarization.json").write_text(json.dumps({
         "segments": [{"speaker": "SPEAKER_00", "start": 0.0, "end": 1.0}]
@@ -109,6 +114,16 @@ def test_list_sessions_includes_validation_status(client):
     resp = client.get("/api/sessions")
     for s in resp.get_json()["sessions"]:
         assert s["validation_status"] == "not_started"
+
+
+def test_list_sessions_includes_failed_stages(client):
+    """failed_stages lists only _processing stages with status 'error'."""
+    resp = client.get("/api/sessions")
+    sessions = {s["id"]: s for s in resp.get_json()["sessions"]}
+    # s1's _processing has one success, one error, one skipped — only the error.
+    assert sessions["20260101-120000"]["failed_stages"] == ["llm_normalization"]
+    # s2 has no transcript at all.
+    assert sessions["20260102-180000"]["failed_stages"] == []
 
 
 # --- GET /api/sessions/:id ---
