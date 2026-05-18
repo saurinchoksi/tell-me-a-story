@@ -353,7 +353,7 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     # Build _stats
     segments = transcript["segments"]
     total_words = sum(len(seg["words"]) for seg in segments)
-    speakers = {w["_speaker"]["label"] for seg in segments for w in seg["words"] if "_speaker" in w}
+    speakers = {w["_speaker"]["label"] for seg in segments for w in seg["words"] if "_speaker" in w and w["_speaker"]["label"] is not None}
     transcript["_stats"] = {
         "pipeline_started_at": transcript_time,
         "pipeline_duration_seconds": round(time.monotonic() - pipeline_start, 2),
@@ -499,7 +499,7 @@ if __name__ == "__main__":
         # Build _stats for re-enrich
         segments = transcript["segments"]
         total_words = sum(len(seg["words"]) for seg in segments)
-        speakers = {w["_speaker"]["label"] for seg in segments for w in seg["words"] if "_speaker" in w}
+        speakers = {w["_speaker"]["label"] for seg in segments for w in seg["words"] if "_speaker" in w and w["_speaker"]["label"] is not None}
         transcript["_stats"] = {
             "pipeline_started_at": enrich_started_at,
             "pipeline_duration_seconds": enrich_duration,
