@@ -186,15 +186,6 @@ def client(tmp_path):
 
 **Changelog entries** (`changelog.md`): A `## YYYY-MM-DD — Title` heading, then one short plain-English paragraph — two or three sentences on what changed, with the lesson folded in when there's a real one (don't force it). No field headers, no file/function names, minimal jargon. An entry should be readable in about 15 seconds. Newest entries at top. Exact diffs live in git history; decision context lives in Linear.
 
-## Git Workflow
-
-Solo project — minimal ceremony.
-
-- Commit directly to `main`. No feature branches or pull requests for routine work.
-- Branches are reserved for genuine experiments (e.g. `experiment/quiet-speech-recovery`).
-- Commit locally after each discrete task — no need to ask first.
-- **Never push.** Choksi pushes to GitHub manually when ready.
-
 ## Linear Handoff Protocol
 
 All tasks live in Linear (team: Tell Me A Story).
