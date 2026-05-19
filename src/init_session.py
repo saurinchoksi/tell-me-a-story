@@ -168,6 +168,11 @@ def init_session(audio_path: Path) -> tuple[str, str] | None:
         session_dir.rmdir()  # Clean up the empty folder
         raise  # Re-raise so caller knows it failed
 
+    # Record the original inbox filename — the file is renamed to
+    # audio.<ext>, so this provenance would otherwise be lost.
+    with open(session_dir / "session-metadata.json", "w") as f:
+        json.dump({"originalFilename": audio_path.name}, f, indent=2)
+
     print(f"  {audio_path.name} → {session_id}/{dest_path.name}")
     return session_id, dest_path.name
 

@@ -167,6 +167,32 @@ def test_init_session_creates_session_dir():
         assert not audio.exists()  # moved out of inbox
 
 
+def test_init_session_records_original_filename():
+    """The original inbox filename is recorded in session-metadata.json."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = Path(tmp) / "inbox"
+        inbox.mkdir()
+        sessions = Path(tmp) / "sessions"
+        sessions.mkdir()
+        audio = _make_audio_file(inbox, "New Recording 99.m4a")
+
+        with (
+            patch("init_session.SESSIONS_DIR", sessions),
+            patch("init_session.INBOX_DIR", inbox),
+            patch("init_session.DUPLICATES_DIR", inbox / "duplicates"),
+            patch("init_session._get_ffprobe_tags", return_value={}),
+            patch("init_session.get_creation_time", return_value=datetime(2026, 3, 4, 20, 53, 54)),
+        ):
+            result = init_session(audio)
+
+        assert result is not None
+        session_id, _ = result
+        metadata_path = sessions / session_id / "session-metadata.json"
+        assert metadata_path.exists()
+        metadata = json.loads(metadata_path.read_text())
+        assert metadata["originalFilename"] == "New Recording 99.m4a"
+
+
 def test_init_session_normalizes_extension():
     """Uppercase .M4A extension is lowered in destination."""
     with tempfile.TemporaryDirectory() as tmp:
