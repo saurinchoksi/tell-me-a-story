@@ -111,7 +111,7 @@ def env(tmp_path):
             {"speaker_key": "SPEAKER_00", "status": "identified",
              "profile_id": "spk_aaa", "profile_name": "Saurin", "confidence": 0.85},
             {"speaker_key": "SPEAKER_01", "status": "suggested",
-             "profile_id": "spk_bbb", "profile_name": "Arti", "confidence": 0.62},
+             "profile_id": "spk_bbb", "profile_name": "Robin", "confidence": 0.62},
         ],
     )))
 
@@ -128,7 +128,7 @@ def env(tmp_path):
     profiles_path = str(tmp_path / "profiles.json")
     profiles_data = {"profiles": [
         _make_profile("spk_aaa", "Saurin", "parent", s1_id),
-        _make_profile("spk_bbb", "Arti", "child", s1_id),
+        _make_profile("spk_bbb", "Robin", "child", s1_id),
     ]}
     Path(profiles_path).write_text(json.dumps(profiles_data))
 
@@ -204,8 +204,8 @@ def test_list_includes_match_scores(env):
     assert saurin["latest_match_score"] == 0.85
     assert saurin["latest_match_session"] == env.s1_id
 
-    arti = next(p for p in profiles if p["id"] == "spk_bbb")
-    assert arti["latest_match_score"] == 0.62
+    robin = next(p for p in profiles if p["id"] == "spk_bbb")
+    assert robin["latest_match_score"] == 0.62
 
 
 def test_list_no_matches_returns_null(client):
@@ -231,7 +231,7 @@ def test_list_last_seen_from_embeddings(env):
 # ---------------------------------------------------------------------------
 
 def test_create_profile(client):
-    resp = client.post("/api/profiles", json={"name": "Arti", "role": "child"})
+    resp = client.post("/api/profiles", json={"name": "Robin", "role": "child"})
     assert resp.status_code == 201
     data = resp.get_json()
     assert "profile_id" in data
@@ -239,15 +239,15 @@ def test_create_profile(client):
 
 
 def test_create_profile_persists(client):
-    client.post("/api/profiles", json={"name": "Arti", "role": "child"})
+    client.post("/api/profiles", json={"name": "Robin", "role": "child"})
     resp = client.get("/api/profiles")
     profiles = resp.get_json()["profiles"]
     assert len(profiles) == 1
-    assert profiles[0]["name"] == "Arti"
+    assert profiles[0]["name"] == "Robin"
 
 
 def test_create_profile_missing_fields(client):
-    resp = client.post("/api/profiles", json={"name": "Arti"})
+    resp = client.post("/api/profiles", json={"name": "Robin"})
     assert resp.status_code == 400
 
     resp = client.post("/api/profiles", json={"role": "child"})
@@ -264,14 +264,14 @@ def test_create_profile_no_body(client):
 # ---------------------------------------------------------------------------
 
 def test_update_profile_name(client):
-    resp = client.post("/api/profiles", json={"name": "Arti", "role": "child"})
+    resp = client.post("/api/profiles", json={"name": "Robin", "role": "child"})
     profile_id = resp.get_json()["profile_id"]
 
-    resp = client.put(f"/api/profiles/{profile_id}", json={"name": "Artika"})
+    resp = client.put(f"/api/profiles/{profile_id}", json={"name": "Riley"})
     assert resp.status_code == 200
 
     resp = client.get("/api/profiles")
-    assert resp.get_json()["profiles"][0]["name"] == "Artika"
+    assert resp.get_json()["profiles"][0]["name"] == "Riley"
 
 
 def test_update_profile_not_found(client):
@@ -280,7 +280,7 @@ def test_update_profile_not_found(client):
 
 
 def test_update_profile_no_fields(client):
-    resp = client.post("/api/profiles", json={"name": "Arti", "role": "child"})
+    resp = client.post("/api/profiles", json={"name": "Robin", "role": "child"})
     profile_id = resp.get_json()["profile_id"]
 
     resp = client.put(f"/api/profiles/{profile_id}", json={})

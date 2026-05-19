@@ -140,9 +140,9 @@ def test_create_basic():
 
 def test_create_fields():
     profiles = {"profiles": []}
-    pid = create_profile(profiles, "Arti", "child")
+    pid = create_profile(profiles, "Robin", "child")
     p = profiles["profiles"][0]
-    assert p["name"] == "Arti"
+    assert p["name"] == "Robin"
     assert p["role"] == "child"
     assert p["embeddings"] == []
     assert p["centroid"] is None

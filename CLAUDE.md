@@ -11,7 +11,7 @@ A local-only pipeline for capturing bedtime stories. Records parent-child storyt
 - **Zero Latency** (Bret Victor): Immediate connection between intent and result
 - **Hard Fun** (Papert): Building this is the learning
 - **Calm Tech** (Weiser): Technology that enables rather than extracts
-- **The Arti Test**: Would I actually use this with my daughter? If no, don't build it
+- **The Daughter Test**: Would I actually use this with my daughter? If no, don't build it
 - **Slow Discovery**: Capture generously, extract tentatively. Let structure emerge from use.
 - **Honest Transcripts**: Mark unclear speech as `[unintelligible]` rather than deleting or inventing. Preserves truth that something was said; can be filled in later.
 

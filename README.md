@@ -2,13 +2,13 @@
 
 A local system for capturing bedtime stories. Audio goes in, speaker-labeled transcripts come out.
 
-Every night, my daughter Arti and I tell stories together. Characters recur, plot threads tangle across weeks of bedtime improv, and she asks questions I never saw coming.
+Every night, my daughter and I tell stories together. Characters recur, plot threads tangle across weeks of bedtime improv, and she asks questions I never saw coming.
 
 I wanted to capture those conversations — to eventually "see" the stories we're building together. So I built my own pipeline.
 
 ## The Mahabharata
 
-Our test recordings are of Arti asking questions about the Mahabharata — the ancient Indian epic I grew up with, now being passed to my daughter. "Why did Duryodhana want to be king?" "What happened to the Pandavas?" These are real questions from a four-year-old, and in some ways, the soul of the project.
+Our test recordings are of my daughter asking questions about the Mahabharata — the ancient Indian epic I grew up with, now being passed down to her. "Why did Duryodhana want to be king?" "What happened to the Pandavas?" These are real questions from a four-year-old, and in some ways, the soul of the project.
 
 The Mahabharata is the first content domain, not the only one. The pipeline is built to handle any storytelling session — improvised adventures, fairy tale retellings, interdimensional portal hopping tales, whatever. Where the Mahabharata shapes things (like name correction), it's pluggable: swap the reference library, swap the prompt, and the same pipeline works for different stories.
 
@@ -38,9 +38,9 @@ Raw Whisper output (what the transcriber hears):
 
 After enrichment (LLM + dictionary corrections, speaker labels):
 
-> **ARTI:** Dad, why do the **Pandavas** and the **Kauravas** want to be king?
+> **CHILD:** Dad, why do the **Pandavas** and the **Kauravas** want to be king?
 > **DAD:** Well, so the oldest brother of the **Kauravas**, his name was, do you remember?
-> **ARTI:** **Duryodhana**.
+> **CHILD:** **Duryodhana**.
 
 ## Hallucination Handling
 

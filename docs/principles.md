@@ -82,7 +82,7 @@ From the project pillars:
 - **Calm Tech** (Weiser): Technology that enables rather than extracts. 
   No cloud dependency.
 
-- **The Arti Test**: Would I actually use this with my daughter? If no, 
+- **The Daughter Test**: Would I actually use this with my daughter? If no, 
   don't build it.
 
 - **Honest Transcripts**: Mark unclear speech as `[unintelligible]` rather 

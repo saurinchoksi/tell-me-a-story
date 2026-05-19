@@ -26,7 +26,7 @@ All task tracking moved into Linear, retiring the old setup — a Notion databas
 
 ## 2026-03-03 — Speaker identification works across sessions
 
-Speaker identification now runs automatically when the pipeline finishes. On a completely different recording it matched Saurin at 96% and Arti at 94%, working from just one earlier voice sample each — a profile generalizes across sessions from a single enrollment. Odd cases, like a silly voice or a distant mic, land in the lower "suggested" tier instead of being forced into a confident match.
+Speaker identification now runs automatically when the pipeline finishes. On a completely different recording it matched Saurin at 96% and my daughter at 94%, working from just one earlier voice sample each — a profile generalizes across sessions from a single enrollment. Odd cases, like a silly voice or a distant mic, land in the lower "suggested" tier instead of being forced into a confident match.
 
 ## 2026-03-02 — Speaker identification built, backend to web UI
 
@@ -82,11 +82,11 @@ Twenty-nine separate journal files folded into this one changelog — 103KB of s
 
 ## 2026-02-08 — Claude Code takes over the quiet-speech experiments
 
-After three hand-run attempts to recover Arti's quietest speech all failed, the work shifted to letting Claude Code experiment on its own. The finding was firm: her voice is genuinely faint, not masked by noise, and Whisper has a hard floor that no decoding setting nudges past. What decided the quality of the autonomous work was the handoff — tight context, loose approach.
+After three hand-run attempts to recover my daughter's quietest speech all failed, the work shifted to letting Claude Code experiment on its own. The finding was firm: her voice is genuinely faint, not masked by noise, and Whisper has a hard floor that no decoding setting nudges past. What decided the quality of the autonomous work was the handoff — tight context, loose approach.
 
 ## 2026-02-08 — Audio boosting can't recover quiet speech
 
-Fourteen combinations of audio processing and prompting were tried to recover a moment where speaker detection heard Arti but transcription produced nothing. None worked — boosting volume can't create information the mic never captured. The attempt also exposed a trap: feeding Whisper narrative context as a hint makes it skip the matching audio entirely, so a hint should only ever be a plain word list.
+Fourteen combinations of audio processing and prompting were tried to recover a moment where speaker detection heard my daughter but transcription produced nothing. None worked — boosting volume can't create information the mic never captured. The attempt also exposed a trap: feeding Whisper narrative context as a hint makes it skip the matching audio entirely, so a hint should only ever be a plain word list.
 
 ## 2026-02-08 — Re-running corrections without re-transcribing
 
@@ -146,7 +146,7 @@ The validation player is designed — a way to listen back to a recording with t
 
 ## 2026-01-26 — The pipeline tested on two more real recordings
 
-The pipeline ran on two more real bedtime-story recordings. Speaker separation held up and Arti's quiet voice came through in many places. But the Sanskrit name problem showed up consistently — "Pandavas" heard as "Fondos," "Bondos," or "Pondos" depending on the moment.
+The pipeline ran on two more real bedtime-story recordings. Speaker separation held up and my daughter's quiet voice came through in many places. But the Sanskrit name problem showed up consistently — "Pandavas" heard as "Fondos," "Bondos," or "Pondos" depending on the moment.
 
 ## 2026-01-25 — The pipeline produces a structured transcript from audio
 
@@ -162,7 +162,7 @@ The last handful of unlabeled speech fragments turned out to be mostly turn-star
 
 ## 2026-01-22 — The first speaker-labeled transcript
 
-The step that combines transcription with speaker detection is built, and it produces the first transcript that reads as an actual conversation — unlabeled fragments down from 75 to 7, and 159 scattered pieces consolidated into 23 real turns. Arti remembering Duryodhana and Yudhishthira, in print: this is what the project is for.
+The step that combines transcription with speaker detection is built, and it produces the first transcript that reads as an actual conversation — unlabeled fragments down from 75 to 7, and 159 scattered pieces consolidated into 23 real turns. My daughter remembering Duryodhana and Yudhishthira, in print: this is what the project is for.
 
 > SPEAKER_01: Dad, why do the Fondos and the Goros want to be king?
 > SPEAKER_00: Uh-huh. Well, so the oldest brother of the Goros, his name was, do you remember?
@@ -170,7 +170,7 @@ The step that combines transcription with speaker detection is built, and it pro
 
 ## 2026-01-21 — Child speech needs the large Whisper model
 
-Speaker detection is running, and Whisper's small and large models were compared on the same stretch of audio. The small one produced absolute silence where Arti speaks; the large one caught her full sentence. With the wrong model, ten seconds of a child's voice simply vanish — and her voice is the whole point of the project.
+Speaker detection is running, and Whisper's small and large models were compared on the same stretch of audio. The small one produced absolute silence where my daughter speaks; the large one caught her full sentence. With the wrong model, ten seconds of a child's voice simply vanish — and her voice is the whole point of the project.
 
 ## 2026-01-20 — Day one: the project begins
 

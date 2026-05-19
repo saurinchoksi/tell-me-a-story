@@ -6,7 +6,7 @@ The TMAS pipeline currently runs: audio → Whisper transcription → LLM normal
 
 Through manual validation, confirmed failure patterns include:
 - **Hallucinations clustering near speaker transitions** — fabricated segments where Whisper generates plausible-sounding text that wasn't spoken
-- **Quiet/distant speech dropped or garbled** — particularly Arti's voice at distance
+- **Quiet/distant speech dropped or garbled** — particularly my daughter's voice at distance
 - **Speaker attribution errors** — pyannote misassigning segments near transitions
 - **Name confusion** — uncommon Sanskrit names and child voice at distance
 
@@ -115,7 +115,7 @@ Send segments where Whisper got Sanskrit names wrong. Ask: "What name is being s
 Send segments spanning speaker transitions. Ask: "How many speakers are in this clip? When does the speaker change?" Compare against pyannote output.
 
 **4c — Quiet Speech Recovery:**
-Send segments where Arti was speaking quietly and Whisper dropped content. Ask: "Is there any speech in this audio that might be hard to hear? Transcribe everything you can detect."
+Send segments where my daughter was speaking quietly and Whisper dropped content. Ask: "Is there any speech in this audio that might be hard to hear? Transcribe everything you can detect."
 
 **4d — Confidence Calibration:**
 For the verification task (Experiment 2), ask the model to rate its confidence per segment. Cross-reference with validation notes. Does the model know when it's uncertain?

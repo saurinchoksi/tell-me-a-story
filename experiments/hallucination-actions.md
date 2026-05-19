@@ -66,7 +66,7 @@ Based on `experiments/hallucination_analysis_report_1.md` (2026-02-03), mapped a
 
 ## Item 4: Missing quiet speech
 
-**The problem:** Arti's quiet questions aren't captured. Three instances in the report. Timestamps show gaps where speech occurred but wasn't transcribed.
+**The problem:** My daughter's quiet questions aren't captured. Three instances in the report. Timestamps show gaps where speech occurred but wasn't transcribed.
 
 **Current handling:** Nothing possible in software — audio simply doesn't contain the speech.
 

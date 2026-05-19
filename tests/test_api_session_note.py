@@ -31,17 +31,17 @@ def test_save_note(client, sessions_dir):
     """Save a note and verify it persists to session-metadata.json."""
     resp = client.put(
         "/api/sessions/20260101-120000/note",
-        json={"note": "Mahabharata story, Arti + me"},
+        json={"note": "Mahabharata story, my daughter + me"},
     )
     assert resp.status_code == 200
     data = resp.get_json()
-    assert data["note"] == "Mahabharata story, Arti + me"
+    assert data["note"] == "Mahabharata story, my daughter + me"
     assert "updatedAt" in data
 
     metadata_path = sessions_dir / "20260101-120000" / "session-metadata.json"
     assert metadata_path.exists()
     saved = json.loads(metadata_path.read_text())
-    assert saved["note"] == "Mahabharata story, Arti + me"
+    assert saved["note"] == "Mahabharata story, my daughter + me"
     assert "updatedAt" in saved
 
 

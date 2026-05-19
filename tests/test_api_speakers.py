@@ -135,7 +135,7 @@ def test_create_action(env):
     resp = env.client.post(
         f"/api/sessions/{env.session_id}/confirm-speakers",
         json={"decisions": [
-            {"speaker_key": "SPEAKER_01", "action": "create", "new_name": "Arti", "new_role": "child"},
+            {"speaker_key": "SPEAKER_01", "action": "create", "new_name": "Robin", "new_role": "child"},
         ]},
     )
     assert resp.status_code == 200
@@ -147,7 +147,7 @@ def test_create_action(env):
     # Verify profile exists with embedding enrolled
     profiles = json.loads(Path(env.profiles_path).read_text())
     new_profile = next(p for p in profiles["profiles"] if p["id"] == new_id)
-    assert new_profile["name"] == "Arti"
+    assert new_profile["name"] == "Robin"
     assert new_profile["role"] == "child"
     assert len(new_profile["embeddings"]) == 1
     assert new_profile["centroid"] is not None
@@ -190,7 +190,7 @@ def test_mixed_batch(env):
         f"/api/sessions/{env.session_id}/confirm-speakers",
         json={"decisions": [
             {"speaker_key": "SPEAKER_00", "action": "confirm", "profile_id": "spk_aaa111"},
-            {"speaker_key": "SPEAKER_01", "action": "create", "new_name": "Arti", "new_role": "child"},
+            {"speaker_key": "SPEAKER_01", "action": "create", "new_name": "Robin", "new_role": "child"},
         ]},
     )
     assert resp.status_code == 200
@@ -380,7 +380,7 @@ def test_create_sets_confirmed_profile_id(env):
     resp = env.client.post(
         f"/api/sessions/{env.session_id}/confirm-speakers",
         json={"decisions": [
-            {"speaker_key": "SPEAKER_01", "action": "create", "new_name": "Arti", "new_role": "child"},
+            {"speaker_key": "SPEAKER_01", "action": "create", "new_name": "Robin", "new_role": "child"},
         ]},
     )
     data = resp.get_json()

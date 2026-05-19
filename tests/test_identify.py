@@ -211,7 +211,7 @@ class TestIdentifySpeakers:
 
             prof_path = Path(tmp) / "profiles.json"
             _write_json(prof_path, _profiles_with_centroids([
-                ("spk_bbb", "Arti", base),
+                ("spk_bbb", "Robin", base),
             ]))
 
             result = identify_speakers(str(emb_path), str(prof_path))
