@@ -1,652 +1,166 @@
 # Changelog
 
-Structured record of what changed, what was decided, and what was learned. Newest entries at top. Source material for public build log entries.
-
-Format: **What** (what changed), **Result** (concrete outcome with numbers when available), **Decided** (decisions made and why), **Learned** (insights, principles, surprises). Not all fields required every entry.
+Newest entries at top. Each entry is a few plain sentences — what changed, and what it taught when there's a real lesson. Exact diffs live in git history; decision context lives in Linear. Source material for public build log entries.
 
 ## 2026-05-18 — Sessions page: pipeline-health warning indicator
 
-**What:** Added a ⚠ marker to the Pipeline cell on the Sessions list, shown only when a session has a failed pipeline stage. `GET /api/sessions` now returns `failed_stages` — the stage names with `status: "error"` in `transcript-rich.json._processing`. Hovering the ⚠ shows an instant CSS tooltip naming the stage(s).
-**Result:** Two existing sessions that had silently carried an `llm_normalization` error are now flagged. `_read_duration_seconds()` consolidated into `_read_transcript_facts()` (one transcript parse yields both duration and failed-stages). 346 fast tests pass (1 new), lint + typecheck clean.
-**Decided:** Errors-only display — healthy rows unchanged (Calm Tech). Only `status: "error"` flags; `skipped` (e.g. dictionary normalization, by design) and `success` do not. The `_processing` stage set varies across pipeline versions, so the code iterates it rather than hardcoding a stage list. The tooltip reuses the existing `data-label`/`::after` CSS mechanism (shared with the pipeline dots), not the native `title` attribute.
-**Learned:** The pipeline records per-stage `status` in `transcript-rich.json._processing`, but the Sessions page showed only artifact-existence dots — so a non-fatal enrichment failure (LLM normalization looping on a proper noun) was completely invisible. Existence ≠ success.
+Added a warning marker to the Sessions list that appears only when a session has a failed pipeline stage; hovering it names the stage. The pipeline had been recording each stage's success or failure all along, but the page only showed whether output files existed — and a file existing doesn't mean the stage that wrote it succeeded. Turning the marker on immediately surfaced two old sessions that had been quietly carrying a broken stage.
 
 ## 2026-05-15 — Sessions page: column headers + length, notes-count, validation-status
 
-**What:** Added a labeled column-header row to the Sessions list page, then three new per-row columns — recording **Length**, a **Notes** count (number of timestamped validation notes), and a 3-state **Validation** status (not started / in progress / done) cycled by clicking a per-row indicator. New `PUT /api/sessions/<id>/validation-status` endpoint; `GET /api/sessions` now also returns `duration_seconds`, `note_count`, and `validation_status`.
-**Result:** Sessions row/header grid rebuilt as 7 aligned columns (page widened 720→800px; mobile collapses to a wrapping flex row). New `ValidationStatus` React component with optimistic update + revert-on-error. 345 fast tests pass (13 new API tests), lint + typecheck clean.
-**Decided:** Validation status is new persistent state — none existed in the app, where validation was open-ended note-taking. Stored in `session-metadata.json` via read-merge-write alongside the existing note, behind a sibling `PUT` endpoint rather than a generalized metadata endpoint, to keep enum validation explicit. A manually-set flag, not inferred — completion is a human judgment. Compact icon (○ ◐ ●) over a text label: coherent with the existing pipeline-dot visual language, and keeps the dense 7-column row calm.
-**Learned:** The column-header row and each data row are independent CSS grids — they only stay aligned if every column but the last is fixed-width; a mid-row `auto` column makes everything after it drift. Also: `.badge` in `SegmentCard.css` is component-scoped (Vite doesn't scope plain CSS imports), so it is globally available only while a `SegmentCard` is mounted — reusing it elsewhere would be a latent bug.
+Gave the Sessions list a proper header row and three new columns: how long each recording is, how many validation notes it has, and a validation status you cycle through by clicking — not started, in progress, done. The status is something you set by hand, not something inferred, because whether a session has truly been reviewed is a human judgment the system can't make for you.
 
 ## 2026-03-12 — Gemma 3n discovered, experiment plan expanded
 
-**What:** Deep dive into Hugging Face ecosystem led to discovering Gemma 3n (Google) as a strong candidate for audio-native model experiments. Updated Audio-Native Model Evaluation doc in Linear — Gemma 3n added as "try first" model, VibeVoice ASR and Audio Flamingo 3 added to tracking section.
-**Result:** Experiment plan expanded from 3 to 4 models. Gemma 3n is the only candidate with MLX ports (`mlx-vlm`), meaning it runs on Apple Silicon alongside existing TMAS stack (MLX Whisper, MLX-LM Qwen) without a PyTorch detour. 1.6M+ Hub downloads, 879 likes. 30s audio limit (vs Phi-4's 40s).
-**Decided:** Gemma 3n first for Experiment 0 — lowest setup cost, same runtime as existing pipeline. If it only transcribes (doesn't reason about audio), that's a useful finding, move to Phi-4 next. New model evaluation filter: "does an MLX port exist?" before considering PyTorch-only models.
-**Learned:** HF MCP's current value for TMAS is search/discovery, not remote execution. Spaces running target audio-native models are immature (community forks, zero likes, runtime errors). The MCP earned its keep by surfacing Gemma 3n and letting us compare adoption metrics across models in minutes. Also: TMAS stack is MLX-native, not transformers/PyTorch — that's a more sophisticated position than the default HF ecosystem assumes.
+Digging through Hugging Face turned up Gemma 3n, Google's audio-capable model, as a strong candidate for the upcoming experiments — and the only one of the four that runs natively on Apple Silicon without dragging in a separate framework. Added it to the plan as the model to try first, since it has the lowest setup cost. A model only earns a look now if it can run on this stack as-is.
 
 ## 2026-03-10 — Pipeline processing statistics (TMAS-13)
 
-**What:** Added per-stage timing (`started_at` + `duration_seconds`) to all 7 pipeline stages in `_processing`, plus a new `_stats` block with pipeline totals, word/segment/speaker counts, and output file sizes. Covers transcription, diarization (ML inference), 4 enrichment passes, and embedding extraction. Both full pipeline and `--re-enrich` paths instrumented. `process_inbox.py` also records file sizes.
-**Result:** 319 tests passing. Every `_processing` entry now has `started_at` and `duration_seconds`. New `_stats` key in transcript-rich.json with `pipeline_started_at`, `pipeline_duration_seconds`, `segments`, `words`, `speakers`, `file_sizes`. Pipeline prints timing summary at completion.
-**Decided:** `time.monotonic()` for durations (immune to clock adjustments), `datetime.now(timezone.utc).isoformat()` for wall-clock `started_at`. Timing wraps stages externally in pipeline.py — no stage function signature changes. Error entries get `started_at` but not `duration_seconds` (stage didn't complete). File sizes recorded after save, then transcript-rich.json re-saved with sizes (~100 byte difference, acceptable).
+Added timing to every pipeline stage, plus a summary block recording how long the whole run took, how many words, segments, and speakers came out, and how big the output files are. The pipeline now prints a timing summary when it finishes.
 
 ## 2026-03-10 — Tracker migration: SYNC files out, Linear in
 
-**What:** Replaced Notion database + SYNC.md handoff system with Linear as single source of truth for all project tasks. Retired SYNC.md, SYNC-LOG.md. Rewrote CURRENT.md to contain only project state (no tasks). Created skills for both Chat and Code to interact with Linear. Seeded backlog with 8 tickets from surfaced issues and deferred work.
-**Result:** 8 open tickets in Linear (1 Done, 8 Todo). Two clean skills: `tmas-tracker` (Chat project skill) and `linear-tmas-tracker` (Code skill at `~/.claude/skills/`). CURRENT.md cut by ~40%. Zero task-related content in local files.
-**Decided:** Linear over Notion — purpose-built issue tracker with proper query/filter tools, one-call ticket listing vs 12-20 calls in Notion. Linear over GitHub Issues — richer schema, better mobile app, native Claude connector. SYNC.md retired — the tracker replaces both directions. CURRENT.md stays as project state only. Ticket body template: Context / Problem / Goal / Intent / Desired Result / References. Status lifecycle: Todo (idea) → Backlog (scoped) → In Progress → In Review → Done.
-**Learned:** Notion's MCP connector has no database query tool on Free/Plus plans — only semantic search. This meant multiple broad queries + individual fetches for every ticket. Linear's MCP gives filtered, property-rich results in a single call. The right tool for the job matters more than the sunk cost of the wrong one.
+Moved all project task-tracking into Linear and retired the old setup — a Notion database plus handoff files passed between Claude instances. Linear is now the single source of truth, with skills built for both Claude Desktop and Claude Code to work against it. The old system needed a dozen-plus calls just to list tickets; Linear does it in one — the right tool mattered more than the effort already sunk into the wrong one.
 
 ## 2026-03-03 — Cross-session identification works
 
-**What:** Auto-identification added to pipeline (runs after embedding extraction). All three test sessions reprocessed. Speaker decision persistence bug fixed — confirmed/variant choices now survive page reload via overlay fields in identifications.json.
-**Result:** Saurin identified at 96%, Arti at 94% on a completely different recording session with only one prior embedding each. Voice variants (distant mic, silly voice) correctly land in suggested tier (~54%). 295 tests passing.
-**Decided:** Identification runs automatically at end of pipeline when profiles exist (added to both pipeline.py and process_inbox.py). Reprocessing existing sessions from scratch is safe — save_computed only writes its own artifacts, validation-notes.json untouched.
-**Learned:** Profiles generalize across recording sessions with just one enrollment. The suggested tier (0.45–0.75) is doing its job — acoustically different fragments from the same person don't clear the identified threshold but aren't strangers either. Variant is the right concept for these.
+Speaker identification now runs automatically at the end of the pipeline. On a completely different recording, it matched Saurin at 96% and Arti at 94% from just one earlier voice sample each — proof that a voice profile generalizes across sessions from a single enrollment. Odd variants, like a silly voice or a distant mic, correctly land in the lower "suggested" tier rather than being forced into a confident match.
 
 ## 2026-03-02 — Speaker identification: from experiment to working UI
 
-**What:** Completed the full speaker identification feature in one day — 7 tasks from profile storage through React UI. Backend: profiles.py, embeddings.py, identify.py. Frontend: Flask API (13 endpoints), React/TypeScript app with session speaker review and profile gallery views.
-**Result:** 289 fast tests. System works end to end: pipeline extracts embeddings → identification proposes matches → human confirms in session review → profiles build up over time. One command runs everything (`cd ui && npm run dev`).
-**Decided:** Dropped num_speakers hint (Task 4) — hardcoding speaker counts trades visible fragmentation for invisible collapsed speakers. Audio strategy: serve full file with frontend seeking, no ffmpeg dependency. Identification is on-demand (UI-triggered), not automatic. Batch confirm endpoint saves all speaker decisions at once.
-**Learned:** The experiment data (0.85/0.79 same-person, 0.55-0.59 uncertain zone) held up through implementation. Three confidence zones (0.75/0.45 thresholds) feel right. Cold start — no profiles, everything unknown — needs to feel like a starting point, not an error.
+Built the whole speaker-identification feature in a day, from voice-profile storage through to the web interface. The system now works end to end: the pipeline extracts a voice fingerprint, identification proposes matches, a person confirms them in a review screen, and profiles build up over time. A cold start — no profiles yet, everything unknown — was designed to feel like a starting point, not an error.
 
 ## 2026-02-26 — Session Reviewer enters the page
 
-**What:** Added Session Reviewer section to portfolio with screenshot. Updated System UI card (Planned → Building). Changed Pipeline card tagline. Refined principle cards with quotes, accent borders, decorative marks. Renamed "On the Horizon" → "Pipeline Roadmap."
-**Decided:** Session Reviewer lives after Pipeline Output — "the pipeline produces a transcript, but how do I know it's right?" Screenshot speaks for itself, deleted feature list paragraph. Arti's quote gets same styling as Victor/Papert/Weiser — deadpan consistency is the joke.
-**Learned:** The page showed pipeline but no tools and no human in the loop. The reviewer is where the human enters the story.
+Added a Session Reviewer section to the portfolio page, with a screenshot. Until now the page showed the pipeline but no tools and no person in the loop — the reviewer is where the human enters the story.
 
 ## 2026-02-22 — Messy audio in, structured transcript out
 
-**What:** Designed interactive pipeline visualization (snake layout, 8 stages, 4 color-coded zones, artifact overlays, future roadmap). Reviewed at full size in browser. Wrote SYNC task for Code to integrate on `pipeline-visualization` branch.
-**Result:** Draft at `website/portfolio/pipeline-viz-draft.html`. Copy decisions locked. Integration task queued.
-**Decided:** New framing: "messy audio in, structured transcript out" — replaces generic "session audio" and underselling "speaker-labeled." Visualization goes at top of pipeline expandable as the map; detailed walkthrough below is the territory. Artifacts shown at origin cards, not at a redundant output stage. Card hover lift and "On the Horizon" content — decide after seeing in context.
-**Learned:** The live page shows the wrong stage order (old architecture). Reordering the narrative walkthrough is the bigger task — diarization before normalization tells a better story anyway (meet the speakers, then fix what they said). "Recording" sounds like surveillance; "structured" covers more than "speaker-labeled" without listing everything.
+Designed an interactive visualization of the pipeline for the portfolio page, and landed on a sharper framing for what it does: messy audio in, structured transcript out. Putting speaker detection before name correction in the walkthrough also tells a better story — meet the speakers first, then fix what they said.
 
 ## 2026-02-20 — Deep code review: 14 findings, 8 fixes shipped
 
-**What:** Code reviewed every source file, test file, validator, config, and reference data end-to-end. Found 14 items (4 fix, 4 consider, 6 note). All 8 actionable fixes shipped in one commit.
-**Result:** Explicit GPU memory cleanup in diarize.py, hard-coded `.m4a` replaced with `glob("audio.*")`, `to_utterances` accepts enriched format directly, dictionary.py owns its processing entry, 5 tests properly marked slow, init_session error handling. 147 fast tests pass.
-**Decided:** Ship fixes 1-4 and consider-items 6-8 together as clean well-defined work. Defer #5 (diarize.py triple responsibility extraction) — it's architectural and connects to Mahabharata separation. Needs design conversation before code.
-**Learned:** `glob("audio.*")` after ingestion is smarter than importing `SUPPORTED_FORMATS` — format list guards at the gate, discovery is permissive after. The enrichment extraction (#5) is the same seam as Mahabharata separation — two items, one cut.
+Reviewed every source and test file end to end, turning up 14 items — and shipped all 8 of the actionable fixes in a single commit. The one big item deferred is architectural: splitting the Mahabharata-specific logic out of the core pipeline, which needs a design conversation before any code.
 
 ## 2026-02-20 — README, test coverage, and removing friction
 
-**What:**
-- README got sample output (before/after showing raw Whisper → enriched transcript), Python version, MIT license, portfolio link
-- Entry points (`init_session.py`, `process_inbox.py`) got 28 tests
-- Validator note saves went from sluggish to instant via event delegation
-- `inbox/` moved to project root (separate from `sessions/` output)
-- Changelog page converted to dynamic shell fetching from GitHub
-- SYNC workflow simplified to intent/context/result format
-
-**Result:**
-- 150 fast tests passing
-- Validator re-renders no longer reattach handlers
-- Changelog page: 626→270 lines, single source of truth
-- README now shows the pipeline's value in six lines of before/after
-
-**Decided:**
-- No framework for the validator — event delegation solves the perf problem without adding a build toolchain
-- Python version states what we know (3.14) rather than claiming untested compatibility
-- SYNC tasks communicate what and why; Code decides how
-
-**Learned:**
-- The most compelling README content isn't architecture descriptions — it's showing "fondos" becoming "Pandavas" with speaker labels
-- Infrastructure for problems you don't have yet (React, file watchers) costs more than the friction it would remove
+Rewrote the README around a before-and-after sample — raw Whisper output becoming a clean, speaker-labeled transcript — which sells the project far better than any architecture description. Also added tests to the entry-point scripts and made the validator's note-saving instant. The lesson that kept recurring: building infrastructure for problems you don't have yet costs more than the friction it would remove.
 
 ## 2026-02-19 — Second real session and what it revealed
 
-**What:**
-- Processed session 20260218-185123 — an original moon story (not Mahabharata), ~10 min, multiple people in the room
-- First real-world session through the full pipeline
-
-**Result:**
-- 190 segments, 4 speakers detected (should be 2), 37 NONE segments, 0 LLM/dictionary corrections (no Sanskrit content)
-- Hallucinated text found over clean audio — a new category the current filters don't catch
-
-**Decided:**
-- Benchmark against cloud services (AssemblyAI, Deepgram, OpenAI Whisper API) — two files, three services, one experiment
-- Kill the build log; replace with a visual portfolio page that shows the system working, not describes the journey
-- Changelog stays as the "go deeper" link
-
-**Learned:**
-- Controlled test sessions don't predict real-world behavior
-- Household audio with overlapping voices, interruptions, and multiple speakers is a fundamentally harder problem
-- The pipeline captured a family moment faithfully — messy parts are solvable engineering, the captured moment isn't reproducible
+Ran the first genuinely real-world session through the pipeline — a ten-minute original moon story with several people in the room. It surfaced a new failure the filters don't catch: hallucinated text sitting on top of perfectly clean audio. Controlled test recordings, it turns out, don't predict how the pipeline behaves on messy household audio.
 
 ## 2026-02-18 — Gaps, inbox, and the pipeline running end to end
 
-**What:**
-- Unintelligible speech gap detection finds moments where diarization sees a speaker but Whisper produces nothing
-- Validator renders them as `[unintelligible]` cards
-- `process_inbox.py` is the single entry point — drop audio, run one command
-- Hit GPU OOM (pyannote + MLX-LM competing for Metal memory), fixed by spawning MLX-LM in a subprocess
-
-**Result:**
-- 3 gaps detected in session 000 at correct timestamps
-- Session 20260207-172315 processed via inbox — identical output to manual run (zero text differences, same corrections, same gaps)
-- 122 tests passing, 9 src files
-
-**Decided:**
-- Hallucination marking goes in `transcript-rich.json` as enrichment, not in validation-notes.json
-- Pipeline needs Mahabharata layer separated from core — dictionary normalization and LLM prompt are content-specific, pipeline should be content-agnostic
-- Process more diverse sessions before building editing mechanisms
-
-**Learned:**
-- Speaker-transition filter for gaps was 6/6 accurate — gaps matching neighbors are pauses, gaps differing from neighbors are interjections
-- VAD is redundant (diarization runs it internally)
-- Pyannote's MPS allocations survive `gc.collect()` + `torch.mps.empty_cache()` in the same process — subprocess isolation is the real fix
-- Pipeline is fully deterministic given same hardware: greedy decoding at every stage means identical input → identical output
+The pipeline now runs start to finish from a single command: drop audio in an inbox folder, run one script. It also detects gaps — moments where speaker detection hears someone but transcription produces nothing — and marks them honestly as unintelligible rather than guessing. Two AI models had been fighting over the Mac's GPU memory and crashing; running one of them in a separate process fixed it.
 
 ## 2026-02-18 — Diarization becomes visible: speaker indicators in validator
 
-**What:**
-- Added speaker visualization to transcript validator (Code delivered core, Desktop fixed bugs + added always-visible filter badges and badge layout)
-- Decoupled filter badge display from filter toggle state
-
-**Result:**
-- Segment cards show speaker-colored left borders (blue/berry), speaker badges, wavy underlines on word-level mismatches, and extended tooltips with speaker + coverage
-- Filter badges (silence gap, near-zero, duplicate) now always visible — toggles only control dimming
-
-**Decided:**
-- Full-opacity speaker colors on default border state — 15% opacity invisible on 3px
-- Always-visible filter badges — you should see what a segment *is* before deciding to filter it
-- Two-row badge layout — speaker always rightmost top, filter badges right-aligned underneath
-
-**Learned:**
-- CSS cascade from parent card class drives wavy underline color with zero per-word JS — elegant and extensible
-- Code's `getSpeakerClass()` returning `speaker-00` meant badge class `badge-speaker-${speakerClass}` doubled the prefix
-- Visual verification caught 3 bugs that unit tests wouldn't — border opacity, class naming, badge visibility are all rendering concerns
+Made speaker information visible in the transcript validator — each segment now carries a speaker-colored border and badge, and word-level mismatches get a wavy underline. Checking it by eye caught three bugs that unit tests never would have, because border opacity, class names, and badge visibility are all things you can only really verify by looking.
 
 ## 2026-02-18 — Pipeline becomes fully self-contained: Ollama out, MLX-LM in
 
-**What:**
-- Replaced Ollama (external inference server) with mlx-lm (Python library) for LLM normalization
-- Evaluated 4 model variants × 2 sessions in `experiments/mlx_lm_eval/`, then swapped production code
-
-**Result:**
-- `mlx-community/Qwen3-8B-8bit` with `/no_think` — same 5 corrections per session as Ollama, 15-24s inference, 8300MB load → 0MB unload
-- All 95 tests pass
-- Every pipeline stage is now a Python library: import, call, done
-
-**Decided:**
-- 8-bit over 4-bit — comparable quality but slightly better on ambiguous Sanskrit phonetics, memory fits fine running sequentially on M1 16GB
-- No-think over thinking mode — thinking caused a 186s infinite loop on session 000003 ("Wait, the user says 'Dhrashtra'... Wait..."), zero output. Chain-of-thought adds nothing to mechanical name correction
-- Eval before swap — experiments folder, no production code touched until data confirmed the decision
-
-**Learned:**
-- Ollama's client-server architecture was solving a problem the pipeline doesn't have (multi-user inference). The mismatch showed up as a silent failure mode — the kind of thing calm technology can't tolerate
-- MLX-LM treats the model the same way the pipeline treats Whisper and pyannote: load, use, unload
-- Qwen3 emits empty `<think></think>` tags even when told not to think
-- Raw prompt injection made the model continue the bedtime story instead of analyzing it — chat template is mandatory
+Swapped Ollama — a separate inference server the pipeline had to reach over the network — for a model library that loads straight into Python. Now every stage works the same way: load the model, use it, unload it. Ollama had really been solving a problem this project doesn't have — serving many users at once — and that mismatch kept showing up as silent failures.
 
 ## 2026-02-17 — 12 files become 8, and modules own their identity
 
-**What:**
-- Wave 4 completed: file consolidation (12 → 8 src files) + targeted fixes
-- README rewritten
-
-**Result:**
-- `enrichment.py` folded into `diarize.py`, `enrich.py` into `pipeline.py`, `inspect_audio.py` and `query.py` inlined
-- Each module now owns its model constant and returns its own processing entry
-- Ollama switched from subprocess to REST API
-- `_schema_version` killed
-- LLM response parsing hardened, session ID validation added
-- 95 tests
-
-**Decided:**
-- Module that calls the model owns the identifier — no model strings cross boundaries
-- Kill `_schema_version` entirely — `_processing` already describes what's in the file, no backwards compatibility contract exists. Code initially kept it; pushed back
-- README separates Mahabharata as content domain from pipeline mechanics
-
-**Learned:**
-- "Where should this constant live?" → follow it to its only real consumer
-- If the consumer has to rename your export to understand it, the name isn't working
-- If an orchestrator is importing model strings just to stamp metadata, the responsibility is in the wrong place
+Consolidated the source code from twelve files down to eight, and made each module responsible for its own identity instead of having the orchestrator stamp it in. The guiding question when something felt misplaced: follow it to the one piece of code that actually uses it, and put it there.
 
 ## 2026-02-17 — Three artifacts, not five: session folder redesign
 
-**What:**
-- Completed Waves 2-3 of codebase cleanup (renames + small refactors)
-- Worked through all four design questions from the architecture walkthrough — three decided, one deferred
-
-**Result:**
-- Session folder simplified from 5 files to 3 artifacts + audio
-- Tests: 116 → 85 across all waves
-- `transcript-raw.json` (immutable Whisper output), `diarization.json` (unchanged), `transcript-rich.json` (enriched with corrections, speakers, audio info)
-- `manifest.json`, `audio-info.json` eliminated
-- `strip_enrichments()`, `create_manifest()`, enrich.py CLI all deleted
-- `--re-enrich` flag added to pipeline.py
-- SYNC fully processed
-
-**Decided:**
-- Save raw transcript separately — never destroy the honest Whisper record
-- Kill manifest — fold audio hash into `_processing`, one provenance location
-- Kill enrich.py CLI — one entry point via pipeline.py
-- Content separation deferred — Mahabharata defaults are overridable params, extract when second domain appears
-
-**Learned:**
-- "Rich transcript" is actual speech processing terminology (NIST Rich Transcription evaluations) — exactly describes combining ASR + diarization + metadata into one artifact
+Simplified what each session folder holds from five files down to three: the raw transcript exactly as Whisper produced it, the speaker data, and an enriched transcript that layers corrections on top. The raw version is kept separate and never overwritten — the honest record of what the machine actually heard has to survive.
 
 ## 2026-02-10 — Sub-agent removal and codebase hygiene
 
-**What:**
-- Full codebase review flagged sub-agent architecture (code-reviewer, coder-agent, go.md orchestrator) as solving a problem the project doesn't have
-- Deleted agent files and orchestration commands
-- Removed "Use subagents liberally" from SYNC.md
-- Removed dead code from `inspect_audio.py`, updated CLAUDE.md, rebuilt contaminated venv
-
-**Result:**
-- 116 tests passing on clean venv
-- CLAUDE.md now accurately documents enrichment pipeline, query layer, filters
-- `requirements-lock.txt` created
-
-**Decided:**
-- Sub-agents don't fit a 14-file project — code review in the same session that wrote the code has full context
-- Experiments get their own venv to prevent dependency contamination
-- Before adopting any new practice, ask "does my project actually have this problem?"
-
-**Learned:**
-- Experiment dependencies (clearvoice, opencv) silently upgraded torchaudio to 2.9.1, breaking speechbrain's `list_audio_backends()`
-- Unpinned `requirements.txt` allowed it
-- Perfectionism tendency: if a practice sounds smart and aligns with mental model, default is to implement at full fidelity regardless of fit
-
----
+Removed a multi-agent setup — separate reviewer and coder agents with an orchestrator — after a review found it was solving a problem a fourteen-file project simply doesn't have. The takeaway worth keeping: before adopting any practice that sounds smart, ask whether this project actually has the problem it solves.
 
 ## 2026-02-09 — Workflow Revision for Opus 4.6
 
-**What:**
-- Audited entire workflow against new Opus 4.6 capabilities (adaptive thinking, compaction, project memory, past chats search)
-- Migrated 29 journal files to single changelog
-- Rewrote project instructions — identity sections aligned with website, operational sections stripped to essentials
+Reworked the whole project workflow around Claude's newer capabilities, and folded 29 separate journal files into this single changelog — 103KB of scattered notes down to 19KB in one place. Journals are dead now; the changelog is the single historical record. Settled on a clear division of labor: instructions for guaranteed behavior, memory for accumulated knowledge, files on disk for anything that must be read explicitly.
 
-**Result:**
-- 103KB journals → 19KB changelog
-- 14 reference files → 9
-- Project instructions ~40% shorter
-- Triggers removed except !CLOSE
+## 2026-02-08 — Autonomous Code Exploration for Quiet Speech
 
-**Decided:**
-- Journals are dead — changelog is the single historical record
-- Project instructions are the contract for guaranteed behavior; memory handles accumulated knowledge; CURRENT.md tracks live state
-- Voice/Visual Bibles dropped from project scope (personal references, not project-specific)
+Three attempts to recover Arti's quietest speech all failed, so the work shifted to letting Claude Code experiment autonomously instead of running each idea by hand. The finding was firm: the voice is genuinely quiet — not masked by noise, just faint — and Whisper has a hard floor, not a soft edge it can be nudged past. The quality of the handoff turned out to decide the quality of the autonomous work: tight context, loose approach.
 
-**Learned:**
-- Three-layer model for Claude reliability: instructions (guaranteed, loaded every time) → memory (synthesized, approximate) → files on disk (must be explicitly read)
-- Encoding specific behaviors in memory is unreliable; encode them in instructions
+## 2026-02-08 — Quiet Speech Recovery: Gain + initial_prompt Trap
 
----
-
-## 2026-02-08c — Autonomous Code Exploration for Quiet Speech
-
-**What:**
-- Three Desktop-driven experiments failed to recover quiet child speech (gain boost, spectral subtraction, Whisper parameter sweep)
-- Pivoted to giving Claude Code full autonomy for open-ended experimentation
-
-**Result:**
-- Baseline SNR is 30.3dB — the voice is genuinely quiet, not noise-masked
-- Spectral subtraction actually decreased SNR (Δ-0.6dB)
-- Whisper parameter sweep was completely flat — identical results across every variant
-- The model isn't on a decision boundary; it confidently detects no speech regardless of decode parameters
-
-**Decided:**
-- New SYNC task template for autonomous work: tight context + loose approach + "when to stop" = idea exhaustion, not step counts
-- Branch isolation mandatory
-- Opus for creative tasks, Sonnet for well-specified execution
-
-**Learned:**
-- Whisper has a hard floor, not a soft boundary
-- The quality of the handoff determines the quality of the autonomy — tight context + loose approach = good autonomous work
-
-## 2026-02-08b — Quiet Speech Recovery: Gain + initial_prompt Trap
-
-**What:**
-- Built experiment to recover Arti's speech at 241.68–242.83s where diarization detected her but Whisper produced nothing
-- Tested 7 audio variants × 2 prompt strategies
-
-**Result:**
-- None recovered the speech
-- Gain/filtering can't create information that isn't there
-- Discovered that narrative text in `initial_prompt` causes Whisper to skip matching audio — a different failure mode than the earlier spelling issue
-
-**Decided:**
-- Vocabulary-only for initial_prompt, never narrative text
-- Accept unrecoverable speech — mark honestly rather than pretend it doesn't exist
-
-**Learned:**
-- Diarization detection ≠ transcription recovery
-- Pyannote's task (detect voice activity) is fundamentally easier than Whisper's (decode words)
-- Mic placement matters more than post-processing
+Tried fourteen combinations of audio processing and prompting to recover a moment where speaker detection heard Arti but transcription produced nothing. None worked — boosting volume can't create information that was never captured. It also exposed a trap: feeding Whisper narrative context as a hint makes it skip over matching audio entirely, so a hint should only ever be a plain list of vocabulary.
 
 ## 2026-02-08 — Re-enrich Script + Architecture Refactor
 
-**What:**
-- Built `src/enrich.py` to run enrichment stages on existing sessions without re-transcribing from audio
-- Refactored enrichment logic into shared function used by both pipeline.py (new sessions) and enrich.py (existing sessions)
+Built a way to re-run the correction and speaker-labeling steps on an existing session without redoing the expensive transcription and speaker detection from scratch. The shared logic lives in one function used by both fresh runs and re-runs, rather than being copied.
 
-**Result:**
-- Session 000001 enriched: 18 LLM corrections, 16 dictionary corrections, speaker data on every word, schema 1.2.0
-- 116 tests passing
+## 2026-02-07 — Hallucination Filters: Three Patterns, Zero False Positives
 
-**Decided:**
-- Don't redo expensive compute (transcription, diarization) when artifacts already exist
-- Shared function, not duplicated code
-- Caller assembles metadata — different callers have different needs for `_processing`
+Replaced a blunt confidence threshold for catching hallucinated words with three targeted filters, which caught every known case with no false positives. The key discovery: a hallucination is almost always a one-word segment sitting alone — the shape of the segment, not the confidence number, is what gives it away.
 
-## 2026-02-07f — Hallucination Filters: Three Patterns, Zero False Positives
+## 2026-02-07 — Hallucination Ground Truth + Diarization Enrichment
 
-**What:**
-- Analyzed all low-probability words across both sessions with diarization coverage data
-- Built three targeted filters replacing the blunt min_probability approach
+Went through every low-confidence word in a session by hand, with Choksi confirming what was actually said. Only four were real hallucinations, and three of them sat in spots where speaker detection had heard silence — two independent systems disagreeing turned out to be a far better hallucination signal than low confidence alone.
 
-**Result:**
-- Silence gap filter (null speaker + zero coverage + single-word segment): 3 caught, 0 false positives
-- Near-zero probability (prob < 0.01 + single-word segment): catches edge cases silence gap misses
-- Duplicate segments: review aid for seek-boundary artifacts
+## 2026-02-07 — Full Pipeline Validation Run
 
-**Decided:**
-- Single-word segment is the critical structural discriminator, not probability thresholds
-- Silence gap and near-zero are eventual production defaults
-- Duplicates for human review only
+Ran the complete pipeline, every correction stage included, against the real recording for the first time. It made 33 name corrections with no false positives.
 
-**Learned:**
-- The insight came from noticing seg 2 "Why" (null speaker, 0.0 coverage) differs from hallucinations because it lives in an 11-word segment where 10/11 are above 0.99
+## 2026-02-06 — Normalization on Real Audio: Punctuation Bug
 
-## 2026-02-07d — Hallucination Ground Truth + Diarization Enrichment
+Ran the name-correction stages against the real Mahabharata recording for the first time and hit a small but blocking bug: Whisper attaches trailing punctuation to words, so a name with a comma stuck to it never matched the reference list. Fixing it on the spot beat noting it for later — seeing the real correction counts was worth more.
 
-**What:**
-- Walked through every word below probability 0.5 in session 000001 — 24 words flagged, Choksi provided ground truth for each
-- Merged diarization into the transcript as an enrichment stage
+## 2026-02-06 — Inline Corrections Architecture
 
-**Result:**
-- 4 confirmed hallucinations, 20 real words with low probability
-- No probability threshold cleanly separates them
-- 3/4 hallucinations fall in diarization silence gaps — two independent systems disagreeing is the real signal
-
-**Decided:**
-- Diarization coverage is the primary hallucination signal, not word probability alone
-- Word-level speaker enrichment, not segment-level — a single Whisper segment can contain two speakers
-- diarization.json stays as raw artifact; transcript becomes the single read point
-
-**Learned:**
-- Two consecutive "Well."s — real (prob 0.993) then hallucinated (prob 0.133) — confirm coverage alone can't catch everything either
-- Need low prob + coverage context combined
-
-## 2026-02-07b — Full Pipeline Validation Run
-
-**What:**
-- First full end-to-end pipeline run with all normalization stages on real audio
-- Created session 000001 to preserve pre-normalization session for comparison
-
-**Result:**
-- LLM: 18 corrections. Dictionary: 15 corrections (up from 12 — possessives fix working)
-- Zero false positives
-- Schema 1.1.0 with `_processing` metadata
-
-## 2026-02-06d — Normalization on Real Audio: Punctuation Bug
-
-**What:**
-- Ran LLM + dictionary normalization against the actual Mahabharata recording for the first time
-- Built step-through validation script
-
-**Result:**
-- LLM: 18 corrections (fondos→Pandavas ×7, goros→Kauravas ×4, Yudister→Yudhishthira ×3, Fondo→Pandu ×3, Dhrashtra→Dhritarashtra ×1)
-- Dictionary: 12 corrections (Duryodhan→Duryodhana ×8, Yudhisthir→Yudhishthira ×4)
-- Two passes split perfectly with zero overlap
-- Zero false positives
-
-**Decided:**
-- Fix punctuation stripping before continuing validation — the fix was straightforward and seeing real correction counts was more valuable than noting it for later
-
-**Learned:**
-- Whisper attaches trailing punctuation to words (`"Dhrashtra,"`) which blocks dictionary lookup
-- `_corrections` chain tracks bare names, not punctuated forms
-
-## 2026-02-06c — Inline Corrections Architecture
-
-**What:**
-- Designed full normalization pipeline architecture through iterative dialogue
-- Started with separate normalization.json artifact, ended with inline corrections on the transcript itself
-
-**Result:**
-- Built Mahabharata reference library (56 entries), dictionary module, pipeline integration with inline `_corrections` chain and `_processing` metadata
-- 86 tests passing
-
-**Decided:**
-- Transcript is a living document enriched through pipeline stages — each stage adds information, never destroys
-- `_original` = Whisper output, always
-- Both LLM and dictionary corrections applied inline
-- Key distinction: variants (misspellings → correct) vs aliases (legitimate alternate names → keep)
-
-**Learned:**
-- The architecture conversation was the most valuable part of the session
-- Each "what if?" question revealed something the original design didn't handle
-- "What if I want human corrections?" → same pattern, different `_corrected_by`
-- The final architecture is simpler and more extensible than what we started with
+Designed how name corrections get recorded, working it out through conversation rather than up front. The transcript became a living document that each stage adds to and never destroys — the original Whisper text is always preserved underneath any correction. The architecture conversation, with its stream of "but what if?" questions, was the most valuable part of the work.
 
 ## 2026-02-06 — Full Transcript LLM Beats Segment-by-Segment
 
-**What:**
-- Compared segment-by-segment vs full-transcript LLM normalization for Sanskrit name correction
-
-**Result:**
-- Full transcript: 5/5 recall, 0 false positives, single LLM call
-- Segment-by-segment: 4/5 recall, 3 false positives (hallucinated English→Sanskrit mappings like "dad"→"Pandu", "best"→"Bhishma")
-
-**Decided:**
-- Full transcript wins definitively — no hybrid approach needed
-- Two-pass architecture: LLM for phonetic mishearings (context-dependent), dictionary for variant spellings (universal)
-
-**Learned:**
-- Third category of Whisper output beyond "fabricated" and "unintelligible": "partially decoded but wrong" — real speech where Whisper produced something but got the word wrong
-- This is what normalization is for
+Compared correcting Sanskrit names one segment at a time versus handing the model the whole transcript at once. The whole-transcript approach won cleanly — it caught everything with no mistakes, while the piecemeal version invented wrong corrections like turning "dad" into a Sanskrit name, because it lacked the surrounding context to know better.
 
 ## 2026-02-05 — Segment-Level Filtering + Sanskrit Name Experiment
 
-**What:**
-- Wired probability filter into validator
-- First attempt used word-level filtering which stripped valid low-confidence words from good segments — fixed to segment-level inclusion
-- Ran initial_prompt experiment for Sanskrit names
-
-**Result:**
-- The unit of filtering matters — hallucinations are segment-shaped problems, not word-shaped problems
-- Initial_prompt vocab list gave phonetic accuracy ("Pandus"), natural sentence biased toward canonical forms ("Pandava")
-- Both "lie" about what was spoken
-
-**Decided:**
-- Post-processing normalization, not prompt engineering
-- Preserve honest transcripts, add canonical field
-- Aligns with project principle: honest transcripts matter more than clean ones
+Wired hallucination filtering into the validator. The first attempt filtered word by word and wrongly stripped valid quiet words out of good sentences — the fix was to treat filtering as a whole-segment decision, because hallucinations are segment-shaped problems, not word-shaped ones.
 
 ## 2026-02-04 — Hallucination Filters Are Useless, Then Reverted
 
-**What:**
-- Cross-referenced validation notes against segment metadata
-- Temperature and compression_ratio catch 0/5 hallucinations. Word probability catches 3/5
-- Built `_min_word_prob` enrichment, then reverted it same day
-
-**Result:**
-- temperature filter: 0% catch rate
-- compression_ratio: 0%
-- min_word_prob < 0.5: 60%
-- But the existing word-level min_probability() filter in filters.py already handles the same cases at query time
-
-**Decided:**
-- Reverted `_min_word_prob` enrichment — when word-level filtering already solves the problem, segment-level enrichment is unnecessary
-- Removed temp/compression analysis from deferred tasks — dead end
-
-**Learned:**
-- Check if existing tools solve the problem before building new infrastructure
+Tested whether Whisper's own quality signals could flag hallucinations — temperature and compression caught none of them. Built a confidence-based filter, then reverted it the same day after realizing an existing query-time filter already handled exactly those cases. Worth checking whether the tools you already have solve the problem before building new ones.
 
 ## 2026-02-03 — Architecture Clarification: Artifacts vs Queries
 
-**What:**
-- Deep dive with "seasoned pipeline architect" framing
-- Stripped pipeline to three artifacts (audio-info.json, transcript.json, diarization.json)
-- Removed intermediate files
-
-**Result:**
-- Removed 04-words.json, 05-words-labeled.json, 06-utterances.json — all derivable at query time
-- `extract_words()` was unnecessary — reshaping data to fit code instead of writing code that traverses data as-is
-- File naming simplified to `audio.m4a`, `transcript.json`, `diarization.json`
-
-**Decided:**
-- Filters are query-time predicates, not pipeline stages
-- Exception: zero-duration words (provably useless, bake into transcribe)
-- Expert advice: "You're asking the right question at the wrong time. Validate transcription first."
-
-**Learned:**
-- "Raw artifacts, filtered queries" — preserve complete data at pipeline stages, apply filters at query time
-- Enables experimentation without losing source material
+Stripped the pipeline down to three saved files, deleting several intermediate ones that could just as easily be computed on demand. The principle that emerged: pipeline stages should preserve complete raw data, and filtering should happen later at query time — which keeps the source material intact for experimentation.
 
 ## 2026-02-01 — Course Correction: Wrong Whisper Model
 
-**What:**
-- Previous journal entries contained conclusions based on testing with wrong Whisper model
-- The 189.21s threshold finding is invalid
-
-**Result:**
-- With correct large model: no speech dropping at any audio length
-- Hallucination quality varies with clip length, but the hard threshold doesn't exist
-
-**Learned:**
-- Always verify which model is running
-- Conclusions from wrong model testing are worse than no conclusions — they create false confidence
+Discovered that a stretch of earlier findings had been measured against the wrong Whisper model, which invalidated them — most notably a supposed audio-length threshold that doesn't actually exist. Conclusions drawn from a misconfigured setup are worse than no conclusions, because they create false confidence.
 
 ## 2026-01-31 — Whisper Audio Length Threshold (Later Invalidated)
 
-**What:**
-- Binary searched exact audio length threshold where Whisper's transcription changes
-- Found 189.21s (3:09.21), validated with 12 trials at 100% determinism
-
-**Result:**
-- ⚠️ Partially invalidated (Feb 1 — wrong model)
-- Core insight survived: Whisper needs ~3+ minutes of context not to avoid dropping speech, but to get words right for quiet speakers
-- Short clips produce worse quality than full recordings
-
-**Learned:**
-- The investigation methodology was sound (binary search, automated script, validation trials)
-- The model configuration was not
+Pinned down what looked like a precise audio-length threshold where Whisper's behavior changes, narrowed in through repeated trials. The exact number was later thrown out — wrong model — but one piece survived: Whisper needs a few minutes of context to get quiet speakers' words right, and short clips produce worse results than full recordings.
 
 ## 2026-01-29 — Heuristics Dead End, Pivot to LLM
 
-**What:**
-- Built gap-filling heuristics for speaker assignment
-- Raised threshold from 0.5s to 1.25s to catch more gaps
-- Smelled wrong — reverted everything
-
-**Result:**
-- Time thresholds can't distinguish "uh-huh" (listener backchannel → different speaker) from "and the Pandavas" (sentence continuation → same speaker)
-- Only semantic context can
-
-**Decided:**
-- Revert all gap-filling code
-- Pivot to LLM post-processing
-- Reference: DiarizationLM (Google, 2024) achieved 55% WDER reduction using semantic context
-
-**Learned:**
-- "Use intelligence, not heuristics." The temptation with ML pipelines is to stack heuristics. Each one feels like progress. But they're brittle, arbitrary, and don't generalize.
+Built a set of timing rules to guess which speaker an ambiguous gap belongs to, then reverted all of it — a time threshold simply can't tell a listener's "uh-huh" apart from a sentence continuing, only the meaning of the words can. The work pivoted to using a language model instead. Use intelligence, not heuristics: stacking brittle rules feels like progress but doesn't generalize.
 
 ## 2026-01-27 — Validation Player Spec + Orchestration Research
 
-**What:**
-- Designed validation player tool
-- Researched Claude Code orchestration patterns (sub-agents, Ralph Wiggum pattern, custom agents)
-
-**Result:**
-- Full spec with Flask server, wavesurfer.js waveform, word-level highlighting, keyboard shortcuts, notes persistence
-- Recommendation: minimal orchestration for this tool, save custom sub-agents for bigger systems
+Designed the validation player — a way to listen back to a recording with the transcript synced — and researched how much agent orchestration the project actually needs. The answer was: very little, save the elaborate setups for bigger systems.
 
 ## 2026-01-26 — Pipeline Testing on Real Recordings
 
-**What:**
-- Tested pipeline on two new real recordings (5.6 min + 4.8 min bedtime story conversations)
-
-**Result:**
-- Speaker separation worked well
-- Arti's quiet voice captured in many places
-- [unintelligible] markers appeared where speech faded
-- Sanskrit name problems confirmed across multiple recordings: Pandavas→"Fondos"/"Bondos"/"Pondos", Kauravas→"Goros"/"Koros", Dhritarashtra→"The Trasht"
+Ran the pipeline on two more real bedtime-story recordings. Speaker separation held up and Arti's quiet voice came through in many places, but the Sanskrit name problem showed up consistently — Pandavas heard as "Fondos," "Bondos," or "Pondos" depending on the moment.
 
 ## 2026-01-25 — JSON Output Complete: Audio In → Structured JSON Out
 
-**What:**
-- Built `save_session()` with schema v0.1.0
-- Session now persists to structured JSON with word-level timestamps
-
-**Result:**
-- 43 tests passing
-- Pipeline complete: audio file in → structured JSON out with speaker-labeled utterances and word-level data
-
-**Decided:**
-- `stories` array (future multi-story splitting), `moments` placeholder (non-story fragments), `processing` placeholder (stats)
-- "Capture generously, build features sparingly"
-- Replay-ability, cost of retrieval, regret heuristic
-
-**Learned:**
-- Schema design principles — core (stories, utterances, words), forensics (processing stats, versions), future (extracted elements, speaker names)
-- Word-level timestamps enable future caption sync (audio plays, words highlight like Apple Music lyrics)
+The pipeline is now complete in its basic form: an audio file goes in, and a structured file comes out with speaker-labeled conversation and a timestamp on every word. The design saved generously — keeping room for things like splitting out individual stories later — while building only what's needed now. Those per-word timestamps leave the door open for caption-style playback, words highlighting as the audio plays.
 
 ## 2026-01-24 — Hallucination Filtering: Two Layers, Different Purposes
 
-**What:**
-- Deep dive into hallucination detection
-- Word-level signals insufficient (some hallucinations have probability 0.85+)
-- Moved to segment-level signals
-
-**Result:**
-- Two-layer system: segment filter (temperature == 1.0 OR compression_ratio > 2.5 → replace with [unintelligible]) and word filters (zero-duration, low-probability → remove entirely)
-
-**Decided:**
-- [unintelligible] = real speech we can't decode → preserve
-- Filtered words = fabricated content → delete
-- "Honest transcripts, not clean transcripts"
-- Post-filtering over VAD prevention (Silero VAD only 61% accurate, risks losing Arti's quiet moments)
-
-**Learned:**
-- Build vs buy reflection — wrote custom rather than using WhisperX/faster-whisper
-- First time: build yourself, learn the domain. Second time: use the library
-- The value isn't the code, it's the judgment
+Worked out a two-layer approach to hallucinations that turns on one distinction: speech that was real but couldn't be decoded gets marked unintelligible and kept, while text the model fabricated outright gets deleted. Honest transcripts, not clean ones. There was also a build-versus-buy lesson here — the value of writing this yourself the first time isn't the code, it's the judgment you gain about the problem.
 
 ## 2026-01-23 — Leading Fragments + Model Clarity
 
-**What:**
-- Investigated 7 remaining UNKNOWNs
-- Found pattern: 5 are turn-starts where diarization missed the boundary — fragments right before the next speaker's utterance
-
-**Result:**
-- `assign_leading_fragments` reduces UNKNOWNs from 75 → 1 (down from 75 → 7 after merge)
-- Time-based threshold (≤0.5s gap to next utterance)
-- Last remaining UNKNOWN is a contextual hallucination — Whisper heard quiet speech and invented plausible words
-
-**Decided:**
-- Two types of hallucinations: random repetition ("He knows. He knows.") and contextual (quiet speech → model guesses)
-- The second is sneakier because it sounds right
-
-**Learned:**
-- Pyannote = speaker diarization (voice characteristics)
-- Whisper = speech recognition (words)
-- Embeddings = voice as a point in mathematical space, similar voices cluster together
+Tracked down the last handful of unlabeled speech fragments and found most were turn-starts — a few words right before the next speaker, where speaker detection missed the boundary. Assigning those to the upcoming speaker cut unidentified fragments from 75 down to 1. The single stubborn one was a hallucination of the trickier kind: the model heard quiet speech and invented plausible words, which is far harder to spot than obvious repetition.
 
 ## 2026-01-22 — Alignment Pipeline: First Speaker-Labeled Transcript
 
-**What:**
-- Built alignment pipeline combining transcription with diarization
-- Word midpoint matching for speaker assignment
-- Handled diarization gaps and utterance fragmentation
-
-**Result:**
-- From 75 UNKNOWNs to 7
-- From 159 fragmented utterances to 23 consolidated ones
-- Output reads as actual conversation
-
-**Learned:**
-- "Arti remembering Duryodhana and Yudhishthira. This is what the project is for."
-- The 2026 builder skill is knowing when to go deep and when to let the machine run
-- Understanding trade-offs matters more than typing speed
+Built the step that combines transcription with speaker detection, producing the first transcript that actually reads as a conversation — unlabeled fragments dropped from 75 to 7, and 159 scattered pieces consolidated into 23 real turns. Arti remembering Duryodhana and Yudhishthira, in print: this is what the project is for.
 
 > SPEAKER_01: Dad, why do the Fondos and the Goros want to be king?
 > SPEAKER_00: Uh-huh. Well, so the oldest brother of the Goros, his name was, do you remember?
@@ -654,42 +168,8 @@ Format: **What** (what changed), **Result** (concrete outcome with numbers when 
 
 ## 2026-01-21 — Diarization Working + Model Size Matters for Child Speech
 
-**What:**
-- Got pyannote.audio speaker diarization running
-- Compared Whisper tiny vs large model on the same audio window (5-25 seconds)
-
-**Result:**
-- Tiny model: absolute silence where Arti speaks (0 words)
-- Large model: "Dad, why do the Fondos and the Goros want to be king?" (12 words)
-- Ten seconds of a child's voice, gone with the wrong model
-- Large model also captured Arti answering questions throughout: "Durioden", "Yudhishthira", "The which father?", "I forgot."
-
-**Decided:**
-- Use large model (whisper-large-v3-turbo) as baseline
-- Explore smaller models + preprocessing later
-
-**Learned:**
-- The whole point of this project is capturing stories told to Arti
-- If the transcription can't hear her voice, we lose half the conversation — the half that matters most
+Got speaker detection running, and compared Whisper's small and large models on the same stretch of audio. The small model produced absolute silence where Arti speaks; the large model caught her full sentence. With the wrong model, ten seconds of a child's voice simply vanish — and her voice is the whole point of the project.
 
 ## 2026-01-20 — Day 1: Project Started
 
-**What:**
-- Created project structure, first script (inspect_audio.py), first transcription (MLX Whisper on 5.6 min Mahabharata bedtime story)
-- Established build principles, testing approach, progression plan for Claude collaboration
-
-**Result:**
-- First transcript saved
-- 7 tests passing
-- Whisper phonetically guesses Sanskrit names: "Yudhishthira" → "you this there", "Duryodhana" → "D'You're older", "Pandavas" → "fondos/bondos"
-- The story bible has begun
-
-**Decided:**
-- Backend first (if can't process audio, nothing else matters)
-- Small steps
-- Write code with Claude Desktop guiding — understanding before automation
-- The arc: from writing code myself to orchestrating a team of AI agents
-
-**Learned:**
-- Separate concerns early
-- A function that returns data is testable. A function that prints is not.
+Set up the project and ran the first transcription: a 5.6-minute Mahabharata bedtime story through Whisper. It worked, but mangled every Sanskrit name — "Yudhishthira" became "you this there," "Pandavas" became "fondos." Fixing that mangling became the project's first real problem.

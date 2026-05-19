@@ -184,7 +184,7 @@ def client(tmp_path):
 
 **Fail Loud.** No silent fallbacks. Use `utt["words"]` not `utt.get("words", [])`. If assumptions break, fail immediately — don't hide bugs behind default values. (See `docs/principles.md` for full list.)
 
-**Changelog entries** (`changelog.md`): **What** (what changed), **Result** (outcome with numbers), **Decided** (decisions + why), **Learned** (insights). Not all fields required. Newest entries at top.
+**Changelog entries** (`changelog.md`): A `## YYYY-MM-DD — Title` heading, then one short plain-English paragraph — two or three sentences on what changed, with the lesson folded in when there's a real one (don't force it). No field headers, no file/function names, minimal jargon. An entry should be readable in about 15 seconds. Newest entries at top. Exact diffs live in git history; decision context lives in Linear.
 
 ## Linear Handoff Protocol
 
