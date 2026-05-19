@@ -178,13 +178,19 @@ def client(tmp_path):
 - Test audio: `sessions/00000000-000000/audio.m4a`
 - Private data in `sessions/` is gitignored
 - Reference library: `data/mahabharata.json` (56 entries, variants vs. aliases distinction). Opt-in via `library_path` — not loaded by default.
+- **Inbox:** unprocessed sessions wait in `inbox/` at the **project root** — i.e. `tell-me-a-story/inbox/` (e.g. `inbox/New Recording 60.m4a`). `init_session.py` and `process_inbox.py` read from here. This is the only TMAS inbox — **not** the workspace-level `dev/inbox/`.
 - Supported audio formats: `.m4a`, `.mp3`, `.wav` (defined in `init_session.py`)
 
 ## Coding Conventions
 
 **Fail Loud.** No silent fallbacks. Use `utt["words"]` not `utt.get("words", [])`. If assumptions break, fail immediately — don't hide bugs behind default values. (See `docs/principles.md` for full list.)
 
-**Changelog entries** (`changelog.md`): A `## YYYY-MM-DD — Title` heading, then one short plain-English paragraph — two or three sentences on what changed, with the lesson folded in when there's a real one (don't force it). No field headers, no file/function names, minimal jargon. An entry should be readable in about 15 seconds. Newest entries at top. Exact diffs live in git history; decision context lives in Linear.
+**Changelog entries** (`changelog.md`): One entry is a `## YYYY-MM-DD — Title` heading and one short plain-English paragraph. Newest first. An entry should be readable in about 15 seconds.
+
+- *Title* — state what happened, not what area was touched ("Per-stage timing added to the pipeline", not "Pipeline statistics"). Sentence case. Plain words: no jargon, no file/function names, no ticket IDs. One headline per title — no "X + Y" pile-ups.
+- *Body* — two or three sentences, one idea each. Lead with the change; add why it was needed and what it turned up only when they earn their place. Don't repeat a domain noun more than twice — vary it or restructure. Keep a real lesson, but as one plain sentence; don't force one if there isn't one.
+
+Exact diffs live in git history; decision context lives in Linear.
 
 ## Linear Handoff Protocol
 
