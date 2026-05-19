@@ -1,6 +1,8 @@
 # Changelog
 
-Newest entries at top. Each entry is a few plain sentences — what changed, and what it taught when there's a real lesson. Exact diffs live in git history; decision context lives in Linear. Source material for public build log entries.
+Newest entries at top. Each entry is a few plain sentences — what changed, and what it taught when there's a real lesson. Exact diffs live in git history; decision context lives in Linear.
+
+*Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
 ## 2026-05-18 — Sessions page: pipeline-health warning indicator
 
