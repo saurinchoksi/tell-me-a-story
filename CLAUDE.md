@@ -194,7 +194,9 @@ Exact diffs live in git history; decision context lives in Linear.
 
 ## Linear Handoff Protocol
 
-All tasks live in Linear (team: Tell Me A Story).
+Linear handles task tracking for most TMAS work. **The EMP (Evals Mini Project) is an exception: it is doc-canonical via `/Users/choksi/dev/reference/career-build/emp.md`** — no parallel Linear maintenance during in-progress work. Create a Linear ticket for EMP work only at ship-time, when the write-up is ready for Desktop review.
+
+For all other TMAS work:
 
 **Status flow:** Backlog → In Progress → In Review → Done
 
