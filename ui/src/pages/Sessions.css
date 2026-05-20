@@ -47,6 +47,38 @@
   justify-self: end;
 }
 
+/* Sortable column headers — buttons styled to match the surrounding labels */
+
+.session-sort-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.session-sort-header:hover {
+  color: var(--color-text);
+}
+
+.session-sort-header--active {
+  color: var(--color-text);
+}
+
+.session-sort-arrow {
+  font-size: 0.65rem;
+  line-height: 1;
+  width: 0.7em;
+  display: inline-block;
+}
+
 /* Row — CSS grid for rigid column alignment */
 
 .session-row {

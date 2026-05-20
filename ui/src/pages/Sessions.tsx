@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listSessions } from '../api/client';
 import { formatSessionDate, formatTime } from '../utils/time';
-import type { SessionSummary } from '../types';
+import type { SessionSummary, ValidationStatus as VStatus } from '../types';
 import SessionNote from '../components/SessionNote';
 import ValidationStatus from '../components/ValidationStatus';
 import './Sessions.css';
@@ -30,10 +30,44 @@ function stageLabel(key: string): string {
   return STAGE_LABELS[key] ?? key.replace(/_/g, ' ');
 }
 
+/** Sortable column keys. Time isn't listed — it sorts with Date via session id. */
+type SortKey = 'date' | 'length' | 'validation' | 'notes';
+type SortDir = 'asc' | 'desc';
+
+/** Validation progress order — not_started (0) sorts first ascending. */
+const VALIDATION_ORDER: Record<VStatus, number> = {
+  not_started: 0,
+  in_progress: 1,
+  done: 2,
+};
+
+/**
+ * Returns a comparator value for two sessions on the given key.
+ * Nulls in `duration_seconds` are treated as smallest so they cluster together
+ * (top in asc, bottom in desc) rather than scattering.
+ */
+function compareSessions(a: SessionSummary, b: SessionSummary, key: SortKey): number {
+  switch (key) {
+    case 'date':
+      return a.id.localeCompare(b.id);
+    case 'length': {
+      const av = a.duration_seconds ?? -1;
+      const bv = b.duration_seconds ?? -1;
+      return av - bv;
+    }
+    case 'validation':
+      return VALIDATION_ORDER[a.validation_status] - VALIDATION_ORDER[b.validation_status];
+    case 'notes':
+      return a.note_count - b.note_count;
+  }
+}
+
 export default function Sessions() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sortKey, setSortKey] = useState<SortKey>('date');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   useEffect(() => {
     listSessions()
@@ -41,6 +75,24 @@ export default function Sessions() {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
+
+  const sortedSessions = useMemo(() => {
+    const copy = [...sessions];
+    copy.sort((a, b) => {
+      const cmp = compareSessions(a, b, sortKey);
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return copy;
+  }, [sessions, sortKey, sortDir]);
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  }
 
   if (loading) return <p>Loading sessions...</p>;
   if (error) return <p className="error">Error: {error}</p>;
@@ -65,17 +117,17 @@ export default function Sessions() {
       </div>
 
       <div className="session-list-header">
-        <span>Date</span>
+        <SortHeader label="Date" sortKey="date" active={sortKey} dir={sortDir} onSort={handleSort} />
         <span>Time</span>
-        <span>Length</span>
+        <SortHeader label="Length" sortKey="length" active={sortKey} dir={sortDir} onSort={handleSort} />
         <span>Pipeline</span>
-        <span>Validation</span>
-        <span>Notes</span>
+        <SortHeader label="Validation" sortKey="validation" active={sortKey} dir={sortDir} onSort={handleSort} />
+        <SortHeader label="Notes" sortKey="notes" active={sortKey} dir={sortDir} onSort={handleSort} />
         <span className="session-list-header-actions">Actions</span>
       </div>
 
       <div className="sessions-list">
-        {sessions.map((s) => {
+        {sortedSessions.map((s) => {
           const { date, time } = formatSessionDate(s.id);
           const failedLabel = s.failed_stages.map(stageLabel).join(', ');
 
@@ -144,5 +196,29 @@ export default function Sessions() {
         })}
       </div>
     </div>
+  );
+}
+
+interface SortHeaderProps {
+  label: string;
+  sortKey: SortKey;
+  active: SortKey;
+  dir: SortDir;
+  onSort: (key: SortKey) => void;
+}
+
+function SortHeader({ label, sortKey, active, dir, onSort }: SortHeaderProps) {
+  const isActive = active === sortKey;
+  const arrow = isActive ? (dir === 'asc' ? '▲' : '▼') : '';
+  return (
+    <button
+      type="button"
+      className={`session-sort-header${isActive ? ' session-sort-header--active' : ''}`}
+      aria-sort={isActive ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+      onClick={() => onSort(sortKey)}
+    >
+      {label}
+      <span className="session-sort-arrow" aria-hidden="true">{arrow}</span>
+    </button>
   );
 }

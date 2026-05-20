@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-05-20 — The Sessions list can be sorted by column
+
+Click a column header on the Sessions list — Date, Length, Validation, or Notes — to sort by that column; click again to flip the direction. The point is finding unvalidated recordings quickly: sorting by validation pushes those to the top. Untranscribed entries have no length, so they cluster at one end rather than scattering through the list.
+
 ## 2026-05-18 — The Sessions list flags failed pipeline stages
 
 The Sessions list now shows a warning when part of a session's processing failed — hover it to see which step. Until now the page only checked that the output files existed, which isn't the same as the work behind them succeeding. The warning caught two old sessions that had been failing without a trace.
