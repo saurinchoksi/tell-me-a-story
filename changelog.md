@@ -4,7 +4,7 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
-## 2026-05-21 — The validator turned into a counting tool for the eval project
+## 2026-05-21 — The validator got friendlier for axial coding
 
 To make axial coding transcript failures more friendly, the validator tool received the following upgrades:
 - Segment cards now show a strip of easily selectable failure modes.
