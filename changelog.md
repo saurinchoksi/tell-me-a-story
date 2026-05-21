@@ -4,21 +4,9 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
-## 2026-05-21 — Segments in the validator can now carry more than one failure code
+## 2026-05-21 — The validator turned into a counting tool for the eval project
 
-The chip row switched from radio semantics to multi-select: clicking a chip toggles that code on or off, several can be selected at once, and N/A stays mutually exclusive with the others. Existing single-code label files migrate transparently — they read normally in the new UI, and the first write under the new shape stashes a one-time backup beside the live file in case anything went wrong with the conversion. The shift gives the pivot table a more honest picture: real segments often exhibit two or three failures, and forcing a single choice was rounding the truth.
-
-## 2026-05-21 — The validator gained a ninth failure-mode chip
-
-A ninth chip (and a `9` keyboard shortcut) joined the per-segment row: Mode 9 — Name mistranscription. The name-error failure was carved out of the broader wrong-words category mid-counting because its treatment is qualitatively different — a dictionary normalization problem, not an ASR one — and the analysis needed a separate cell to track it.
-
-## 2026-05-21 — Hovering a segment or word lights up its range on the wave player
-
-Move the mouse over a segment header, or any word inside one, and the matching stretch of audio glows on the waveform. The segment-header timestamps also switched to the m:ss format the wave player already uses, since the old decimal-seconds version required mental math to correlate a card with its position in the audio.
-
-## 2026-05-21 — The validator can now mark every segment with a failure code
-
-Each segment card has a row of code chips — the eight failure modes from axial coding plus a no-match option. Clicking a chip or pressing the matching digit saves the code to the session, so listening through a recording becomes a fast labeling pass: hear, click, advance. The chips also live on gap segments, since the silence-marked-as-unintelligible failure can only be counted there.
+Every segment in the validator now shows a chip strip of nine failure modes from axial coding (plus a no-match option); clicking a chip or pressing the matching digit toggles a code on or off, and several codes can apply to the same segment since real recordings often exhibit two or three failures at once. Existing single-code label files migrate transparently with a one-time backup of the previous shape kept beside the live file in case the conversion ever needs to be undone. Hovering a card or any word inside it also lights up the matching audio range on the wave player, and the header timestamps switched to m:ss to stop forcing mental math against the player's format.
 
 ## 2026-05-20 — The Sessions list can be sorted by column
 
