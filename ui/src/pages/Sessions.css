@@ -43,9 +43,6 @@
   color: var(--color-text-muted);
 }
 
-.session-list-header-actions {
-  justify-self: end;
-}
 
 /* Sortable column headers — buttons styled to match the surrounding labels */
 
@@ -104,6 +101,18 @@
 .session-row-day {
   font-size: 0.95rem;
   font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.session-row-day--link {
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.session-row-day--link:hover {
+  text-decoration: underline;
 }
 
 /* Time column */
@@ -227,38 +236,6 @@
 .session-row-notes {
   font-size: 0.8rem;
   color: var(--color-text-muted);
-}
-
-/* Action links — right-aligned */
-
-.session-row-actions {
-  display: flex;
-  gap: var(--space-6);
-  justify-self: end;
-  flex-shrink: 0;
-}
-
-.session-row-actions a {
-  font-size: 0.9rem;
-  text-decoration: none;
-  transition: color 0.15s;
-}
-
-.session-action-primary {
-  color: var(--color-accent);
-  font-weight: 600;
-}
-
-.session-action-primary:hover {
-  text-decoration: underline;
-}
-
-.session-action-secondary {
-  color: var(--color-text-muted);
-}
-
-.session-action-secondary:hover {
-  color: var(--color-accent);
 }
 
 /* Session-level note — full-width second line of the row */
@@ -403,10 +380,6 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-1) var(--space-3);
-  }
-
-  .session-row-actions {
-    margin-left: auto;
   }
 
   .session-note {

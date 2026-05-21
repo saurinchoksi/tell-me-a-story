@@ -123,7 +123,6 @@ export default function Sessions() {
         <span>Pipeline</span>
         <SortHeader label="Validation" sortKey="validation" active={sortKey} dir={sortDir} onSort={handleSort} />
         <SortHeader label="Notes" sortKey="notes" active={sortKey} dir={sortDir} onSort={handleSort} />
-        <span className="session-list-header-actions">Actions</span>
       </div>
 
       <div className="sessions-list">
@@ -133,7 +132,17 @@ export default function Sessions() {
 
           return (
             <div key={s.id} className="session-row">
-              <span className="session-row-day">{date}</span>
+              {s.has_transcript ? (
+                <Link
+                  to={`/sessions/${s.id}/validate`}
+                  className="session-row-day session-row-day--link"
+                  title="Open in validator"
+                >
+                  {date}
+                </Link>
+              ) : (
+                <span className="session-row-day">{date}</span>
+              )}
               <span className="session-row-time">{time}</span>
               <span className="session-row-length">
                 {s.duration_seconds != null ? formatTime(s.duration_seconds) : '—'}
@@ -172,23 +181,6 @@ export default function Sessions() {
               >
                 {s.note_count}
               </span>
-
-              <div className="session-row-actions">
-                <Link
-                  to={`/sessions/${s.id}/speakers`}
-                  className="session-action-primary"
-                >
-                  Speakers
-                </Link>
-                {s.has_transcript && (
-                  <Link
-                    to={`/sessions/${s.id}/validate`}
-                    className="session-action-secondary"
-                  >
-                    Validate
-                  </Link>
-                )}
-              </div>
 
               <SessionNote sessionId={s.id} initialNote={s.note} />
             </div>
