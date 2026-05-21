@@ -6,7 +6,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 ## 2026-05-21 — The validator turned into a counting tool for the eval project
 
-Every segment in the validator now shows a chip strip of nine failure modes from axial coding (plus a no-match option); clicking a chip or pressing the matching digit toggles a code on or off, and several codes can apply to the same segment since real recordings often exhibit two or three failures at once. Existing single-code label files migrate transparently with a one-time backup of the previous shape kept beside the live file in case the conversion ever needs to be undone. Hovering a card or any word inside it also lights up the matching audio range on the wave player, and the header timestamps switched to m:ss to stop forcing mental math against the player's format.
+To make axial coding transcript failures more friendly, the validator tool received the following upgrades:
+- Segment cards now show a strip of easily selectable failure modes.
+- Hovering a card or any word inside it lights up the matching audio range on the wave player.
+- Segment header timestamps switched to m:ss to stop forcing mental math against the player's format.
 
 ## 2026-05-20 — The Sessions list can be sorted by column
 
