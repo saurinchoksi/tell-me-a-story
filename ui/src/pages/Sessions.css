@@ -238,6 +238,21 @@
   color: var(--color-text-muted);
 }
 
+/* Speakers icon — small, right-aligned link to the speakers identification page */
+
+.session-row-speakers {
+  justify-self: end;
+  font-size: 0.95rem;
+  text-decoration: none;
+  opacity: 0.55;
+  transition: opacity 0.15s;
+  line-height: 1;
+}
+
+.session-row-speakers:hover {
+  opacity: 1;
+}
+
 /* Session-level note — full-width second line of the row */
 
 .session-note {

@@ -182,6 +182,15 @@ export default function Sessions() {
                 {s.note_count}
               </span>
 
+              <Link
+                to={`/sessions/${s.id}/speakers`}
+                className="session-row-speakers"
+                title="Open speakers identification"
+                aria-label="Open speakers identification"
+              >
+                👥
+              </Link>
+
               <SessionNote sessionId={s.id} initialNote={s.note} />
             </div>
           );
