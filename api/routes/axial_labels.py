@@ -42,6 +42,11 @@ def _backup_if_legacy_shape(labels_path) -> None:
         with open(labels_path) as f:
             data = json.load(f)
     except json.JSONDecodeError:
+        # Don't lose a corrupt file silently — copy it aside before the POST
+        # overwrites it. Idempotent like the legacy backup.
+        corrupt_path = labels_path.parent / "axial-labels.corrupt.json"
+        if not corrupt_path.exists():
+            shutil.copy2(labels_path, corrupt_path)
         return
     if _has_legacy_entry(data):
         shutil.copy2(labels_path, backup_path)
