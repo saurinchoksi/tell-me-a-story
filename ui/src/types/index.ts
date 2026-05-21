@@ -207,7 +207,7 @@ export interface Note {
 }
 
 /** Per-segment axial code for EMP step 5 counting. One code per segment. */
-export type AxialCode = 'M1' | 'M2' | 'M3' | 'M4' | 'M5' | 'M6' | 'M7' | 'M8' | 'NotA';
+export type AxialCode = 'M1' | 'M2' | 'M3' | 'M4' | 'M5' | 'M6' | 'M7' | 'M8' | 'M9' | 'NotA';
 
 export interface AxialLabel {
   segmentId: SegmentId;

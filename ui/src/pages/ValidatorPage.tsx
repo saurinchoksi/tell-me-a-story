@@ -560,7 +560,7 @@ export default function ValidatorPage() {
         <span><kbd>Space</kbd> play/pause</span>
         <span><kbd>&larr;</kbd><kbd>&rarr;</kbd> seek</span>
         <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> segments</span>
-        <span><kbd>1</kbd>&hellip;<kbd>8</kbd> code</span>
+        <span><kbd>1</kbd>&hellip;<kbd>9</kbd> code</span>
         <span><kbd>0</kbd> N/A</span>
         <span><kbd>N</kbd> note</span>
         <span><kbd>Shift+N</kbd> drawer</span>

@@ -39,6 +39,7 @@ interface KeyboardConfig {
 const DIGIT_TO_CODE: Record<string, AxialCode> = {
   '1': 'M1', '2': 'M2', '3': 'M3', '4': 'M4',
   '5': 'M5', '6': 'M6', '7': 'M7', '8': 'M8',
+  '9': 'M9',
   '0': 'NotA',
 };
 

@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-05-21 — The validator gained a ninth failure-mode chip
+
+A ninth chip (and a `9` keyboard shortcut) joined the per-segment chip row: Mode 9 — Name mistranscription. The name-error failure was carved out of the broader wrong-words mode mid-counting because its treatment is qualitatively different — a dictionary normalization problem, not an ASR one — and the counting pass needed a separate cell.
+
 ## 2026-05-21 — Hovering a segment or word lights up its range on the wave player
 
 Move the mouse over a segment header, or any word inside one, and the matching stretch of audio glows on the waveform. The segment-header timestamps also switched to the m:ss format the wave player already uses, since the old decimal-seconds version required mental math to correlate a card with its position in the audio.

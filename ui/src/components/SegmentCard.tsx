@@ -26,6 +26,7 @@ const AXIAL_CHIPS: Array<{ code: AxialCode; label: string; title: string }> = [
   { code: 'M6', label: '6', title: 'M6 — Wrong segment boundaries' },
   { code: 'M7', label: '7', title: 'M7 — Word at the wrong timestamp' },
   { code: 'M8', label: '8', title: 'M8 — Silence marked as unintelligible' },
+  { code: 'M9', label: '9', title: 'M9 — Name mistranscription' },
   { code: 'NotA', label: 'N/A', title: 'None of the above (clean segment or unmapped failure)' },
 ];
 
