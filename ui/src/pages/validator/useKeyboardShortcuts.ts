@@ -12,6 +12,7 @@
  *   ArrowDown    — next segment (skip filtered)
  *   N            — add note for current segment
  *   Shift+N      — toggle notes drawer
+ *   1-9, 0       — set axial code on focused segment (0 = N/A)
  *   G            — toggle silence gap filter
  *   Z            — toggle near-zero filter
  *   D            — toggle duplicates filter

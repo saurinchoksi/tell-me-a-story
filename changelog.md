@@ -6,7 +6,7 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 ## 2026-05-21 — The validator gained a ninth failure-mode chip
 
-A ninth chip (and a `9` keyboard shortcut) joined the per-segment chip row: Mode 9 — Name mistranscription. The name-error failure was carved out of the broader wrong-words mode mid-counting because its treatment is qualitatively different — a dictionary normalization problem, not an ASR one — and the counting pass needed a separate cell.
+A ninth chip (and a `9` keyboard shortcut) joined the per-segment row: Mode 9 — Name mistranscription. The name-error failure was carved out of the broader wrong-words category mid-counting because its treatment is qualitatively different — a dictionary normalization problem, not an ASR one — and the analysis needed a separate cell to track it.
 
 ## 2026-05-21 — Hovering a segment or word lights up its range on the wave player
 
