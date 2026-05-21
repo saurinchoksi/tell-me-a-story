@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-05-21 — Segments in the validator can now carry more than one failure code
+
+The chip row switched from radio semantics to multi-select: clicking a chip toggles that code on or off, several can be selected at once, and N/A stays mutually exclusive with the others. Existing single-code label files migrate transparently — they read normally in the new UI, and the first write under the new shape stashes a one-time backup beside the live file in case anything went wrong with the conversion. The shift gives the pivot table a more honest picture: real segments often exhibit two or three failures, and forcing a single choice was rounding the truth.
+
 ## 2026-05-21 — The validator gained a ninth failure-mode chip
 
 A ninth chip (and a `9` keyboard shortcut) joined the per-segment row: Mode 9 — Name mistranscription. The name-error failure was carved out of the broader wrong-words category mid-counting because its treatment is qualitatively different — a dictionary normalization problem, not an ASR one — and the analysis needed a separate cell to track it.

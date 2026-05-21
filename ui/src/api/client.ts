@@ -157,11 +157,48 @@ export async function saveNotes(sessionId: string, notes: Note[]): Promise<{ sav
 
 // --- Axial labels ---
 
+/**
+ * Server returns labels in one of two shapes (legacy single-code or current
+ * multi-code). This shape captures both for the normalizer below.
+ */
+type RawAxialLabel = {
+  segmentId: AxialLabel['segmentId'];
+  createdAt: string;
+  updatedAt: string;
+} & ({ code: AxialLabel['codes'][number]; codes?: never } | { codes: AxialLabel['codes']; code?: never });
+
+/**
+ * Normalize a label entry into the multi-code shape. Single-code legacy entries
+ * (`code: 'M3'`) become `codes: ['M3']`. Entries with neither field are corrupt
+ * and we fail loud — silently dropping a label would lose data.
+ */
+function normalizeAxialLabel(raw: RawAxialLabel): AxialLabel {
+  if ('codes' in raw && Array.isArray(raw.codes)) {
+    return {
+      segmentId: raw.segmentId,
+      codes: raw.codes,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+    };
+  }
+  if ('code' in raw && typeof raw.code === 'string') {
+    return {
+      segmentId: raw.segmentId,
+      codes: [raw.code],
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+    };
+  }
+  throw new Error(
+    `Corrupt axial label entry: missing both 'code' and 'codes' (segmentId=${raw.segmentId})`,
+  );
+}
+
 export async function getAxialLabels(sessionId: string): Promise<AxialLabel[]> {
-  const data = await fetchJSON<{ labels: AxialLabel[] }>(
+  const data = await fetchJSON<{ labels: RawAxialLabel[] }>(
     `/api/sessions/${sessionId}/axial-labels`,
   );
-  return data.labels;
+  return data.labels.map(normalizeAxialLabel);
 }
 
 export async function saveAxialLabels(

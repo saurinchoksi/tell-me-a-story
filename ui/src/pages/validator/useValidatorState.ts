@@ -47,7 +47,7 @@ export type ValidatorAction =
   | { type: 'SHOW_NOTE_MODAL'; modal: NoteModalState }
   | { type: 'HIDE_NOTE_MODAL' }
   | { type: 'SET_NOTES'; notes: Note[] }
-  | { type: 'SET_AXIAL_LABEL'; segmentId: SegmentId; code: AxialCode | null }
+  | { type: 'TOGGLE_AXIAL_LABEL'; segmentId: SegmentId; code: AxialCode }
   | { type: 'SET_ERROR'; error: string }
   | { type: 'SET_LOADING'; loading: boolean }
   | { type: 'SET_SESSIONS'; sessions: SessionSummary[] };
@@ -140,35 +140,54 @@ function reducer(state: ValidatorState, action: ValidatorAction): ValidatorState
     case 'SET_NOTES':
       return { ...state, notes: action.notes };
 
-    case 'SET_AXIAL_LABEL': {
+    case 'TOGGLE_AXIAL_LABEL': {
       const now = new Date().toISOString();
       const existingIdx = state.axialLabels.findIndex((l) => l.segmentId === action.segmentId);
+      const existing = existingIdx >= 0 ? state.axialLabels[existingIdx] : null;
 
-      // null code = clear the label for this segment
-      if (action.code === null) {
+      // Compute the next codes array per the toggle rules.
+      let nextCodes: AxialCode[];
+      if (!existing) {
+        // No label yet — start with just this code.
+        nextCodes = [action.code];
+      } else if (action.code === 'NotA') {
+        // NotA toggles itself; selecting NotA always wipes M codes.
+        nextCodes = existing.codes.includes('NotA') ? [] : ['NotA'];
+      } else {
+        // Any M code clears NotA first, then toggles itself.
+        const without = existing.codes.filter((c) => c !== 'NotA');
+        nextCodes = without.includes(action.code)
+          ? without.filter((c) => c !== action.code)
+          : [...without, action.code];
+      }
+
+      // Empty codes → remove the row (segment becomes unlabeled).
+      if (nextCodes.length === 0) {
         if (existingIdx < 0) return state;
         const next = [...state.axialLabels];
         next.splice(existingIdx, 1);
         return { ...state, axialLabels: next };
       }
 
+      // Update existing row.
       if (existingIdx >= 0) {
         const next = [...state.axialLabels];
         next[existingIdx] = {
           ...next[existingIdx],
-          code: action.code,
+          codes: nextCodes,
           updatedAt: now,
         };
         return { ...state, axialLabels: next };
       }
 
+      // New row.
       return {
         ...state,
         axialLabels: [
           ...state.axialLabels,
           {
             segmentId: action.segmentId,
-            code: action.code,
+            codes: nextCodes,
             createdAt: now,
             updatedAt: now,
           },

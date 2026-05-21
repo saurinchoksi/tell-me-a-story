@@ -37,8 +37,8 @@ interface SegmentCardProps {
   filterReasons: string[];
   allFilterReasons: string[];
   hasNotes: boolean;
-  axialCode: AxialCode | null;
-  onSetAxialLabel: (segmentId: SegmentId, code: AxialCode | null) => void;
+  axialCodes: AxialCode[];
+  onToggleAxialLabel: (segmentId: SegmentId, code: AxialCode) => void;
   speakerNames: Map<string, string>;
   speakerColorMap: Map<string, string>;
   onSeek: (time: number) => void;
@@ -55,8 +55,8 @@ function SegmentCardInner({
   filterReasons,
   allFilterReasons,
   hasNotes,
-  axialCode,
-  onSetAxialLabel,
+  axialCodes,
+  onToggleAxialLabel,
   speakerNames,
   speakerColorMap,
   onSeek,
@@ -79,7 +79,7 @@ function SegmentCardInner({
         'segment-card',
         isGap ? 'segment-gap' : '',
         isFiltered ? 'filtered' : '',
-        axialCode ? 'segment-labeled' : 'segment-unlabeled',
+        axialCodes.length > 0 ? 'segment-labeled' : 'segment-unlabeled',
         speakerClass,
       ].filter(Boolean).join(' ')}
       data-segment-index={index}
@@ -135,19 +135,18 @@ function SegmentCardInner({
         ))}
       </div>
 
-      {/* Axial-code chip row — one selection per segment */}
-      <div className="segment-axial-chips" role="radiogroup" aria-label="Axial code">
+      {/* Axial-code chip row — multi-select; NotA is mutually exclusive with M codes (enforced in reducer) */}
+      <div className="segment-axial-chips" aria-label="Axial codes">
         {AXIAL_CHIPS.map(({ code, label, title }) => {
-          const selected = axialCode === code;
+          const selected = axialCodes.includes(code);
           return (
             <button
               key={code}
               type="button"
-              role="radio"
-              aria-checked={selected}
+              aria-pressed={selected}
               className={`axial-chip ${selected ? 'axial-chip-selected' : ''} axial-chip-${code.toLowerCase()}`}
               title={title}
-              onClick={() => onSetAxialLabel(segment.id, selected ? null : code)}
+              onClick={() => onToggleAxialLabel(segment.id, code)}
             >
               {label}
             </button>
@@ -187,8 +186,9 @@ function areEqual(prev: SegmentCardProps, next: SegmentCardProps): boolean {
     prev.segment.id === next.segment.id &&
     prev.isFiltered === next.isFiltered &&
     prev.hasNotes === next.hasNotes &&
-    prev.axialCode === next.axialCode &&
-    prev.onSetAxialLabel === next.onSetAxialLabel &&
+    prev.axialCodes.length === next.axialCodes.length &&
+    prev.axialCodes.every((c, i) => c === next.axialCodes[i]) &&
+    prev.onToggleAxialLabel === next.onToggleAxialLabel &&
     prev.onHoverRange === next.onHoverRange &&
     prev.onHoverEnd === next.onHoverEnd &&
     prev.filterReasons.length === next.filterReasons.length &&

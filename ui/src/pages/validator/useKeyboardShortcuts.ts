@@ -12,7 +12,7 @@
  *   ArrowDown    — next segment (skip filtered)
  *   N            — add note for current segment
  *   Shift+N      — toggle notes drawer
- *   1-9, 0       — set axial code on focused segment (0 = N/A)
+ *   1-9, 0       — toggle axial code on focused segment (0 = N/A; multi-select, NotA exclusive)
  *   G            — toggle silence gap filter
  *   Z            — toggle near-zero filter
  *   D            — toggle duplicates filter
@@ -33,7 +33,7 @@ interface KeyboardConfig {
   modalOpen: boolean;
   dispatch: React.Dispatch<ValidatorAction>;
   onSeek: (time: number) => void;
-  onSetAxialLabel: (segmentId: SegmentId, code: AxialCode | null) => void;
+  onToggleAxialLabel: (segmentId: SegmentId, code: AxialCode) => void;
 }
 
 /** Map digit keys to axial codes. '0' is N/A (none-of-the-above). */
@@ -53,7 +53,7 @@ export function useKeyboardShortcuts({
   modalOpen,
   dispatch,
   onSeek,
-  onSetAxialLabel,
+  onToggleAxialLabel,
 }: KeyboardConfig) {
   const isFiltered = useCallback(
     (seg: ValidatorSegment): boolean => {
@@ -173,11 +173,11 @@ export function useKeyboardShortcuts({
           break;
 
         default:
-          // Axial-code digit shortcuts: 1-8 select the matching mode, 0 selects N/A
+          // Axial-code digit shortcuts: 1-9 toggle the matching mode, 0 toggles N/A
           if (DIGIT_TO_CODE[e.key] && activeSegmentIndex >= 0) {
             e.preventDefault();
             const seg = segments[activeSegmentIndex];
-            onSetAxialLabel(seg.id, DIGIT_TO_CODE[e.key]);
+            onToggleAxialLabel(seg.id, DIGIT_TO_CODE[e.key]);
           }
           break;
       }
@@ -185,5 +185,5 @@ export function useKeyboardShortcuts({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [waveformRef, segments, activeSegmentIndex, filters, duplicateIds, modalOpen, dispatch, onSeek, onSetAxialLabel, isFiltered]);
+  }, [waveformRef, segments, activeSegmentIndex, filters, duplicateIds, modalOpen, dispatch, onSeek, onToggleAxialLabel, isFiltered]);
 }

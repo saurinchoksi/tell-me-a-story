@@ -205,9 +205,9 @@ export default function ValidatorPage() {
     waveformRef.current?.clearHighlight();
   }, []);
 
-  const handleSetAxialLabel = useCallback(
-    (segmentId: SegmentId, code: AxialCode | null) => {
-      dispatch({ type: 'SET_AXIAL_LABEL', segmentId, code });
+  const handleToggleAxialLabel = useCallback(
+    (segmentId: SegmentId, code: AxialCode) => {
+      dispatch({ type: 'TOGGLE_AXIAL_LABEL', segmentId, code });
     },
     [dispatch],
   );
@@ -222,7 +222,7 @@ export default function ValidatorPage() {
     modalOpen: state.noteModal.visible,
     dispatch,
     onSeek: handleSeek,
-    onSetAxialLabel: handleSetAxialLabel,
+    onToggleAxialLabel: handleToggleAxialLabel,
   });
 
   const handleContextMenu = useCallback(
@@ -513,8 +513,8 @@ export default function ValidatorPage() {
               filterReasons={activeReasons}
               allFilterReasons={allReasons}
               hasNotes={derived.notesBySegment.has(seg.id)}
-              axialCode={label?.code ?? null}
-              onSetAxialLabel={handleSetAxialLabel}
+              axialCodes={label?.codes ?? []}
+              onToggleAxialLabel={handleToggleAxialLabel}
               speakerNames={state.speakerNames}
               speakerColorMap={state.speakerColorMap}
               onSeek={handleSeek}

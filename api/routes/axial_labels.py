@@ -1,17 +1,50 @@
 """Axial label endpoints — read and write per-segment axial codes for a session.
 
-A label is a categorical code chosen from the 8 EMP failure modes (M1..M8) or
-NotA (none-of-the-above). One label per segment. Used to count failure-mode
-frequencies for EMP step 5.
+A label carries one or more categorical codes from the EMP failure modes
+(M1..M9) or NotA (none-of-the-above). Used to count failure-mode frequencies
+for EMP step 5. Multi-code per label as of 2026-05-21; legacy single-code
+files (one `code: str` field) are auto-backed-up on first write under the
+new shape — see `_backup_if_legacy_shape`.
 """
 
 import json
+import shutil
 
 from flask import Blueprint, current_app, jsonify, request
 
 from api.helpers import get_session_dir
 
 bp = Blueprint("axial_labels", __name__)
+
+LEGACY_BACKUP_FILENAME = "axial-labels.legacy-pre-multicode.json"
+
+
+def _has_legacy_entry(data: dict) -> bool:
+    """True if any label in `data` has a `code` (str) field and no `codes` (list)."""
+    labels = data.get("labels", [])
+    for entry in labels:
+        if isinstance(entry, dict) and "code" in entry and "codes" not in entry:
+            return True
+    return False
+
+
+def _backup_if_legacy_shape(labels_path) -> None:
+    """One-time-per-session backup: if the existing axial-labels.json is in the
+    legacy single-code shape, copy it to LEGACY_BACKUP_FILENAME before any write.
+    Idempotent — never overwrites an existing backup.
+    """
+    if not labels_path.exists():
+        return
+    backup_path = labels_path.parent / LEGACY_BACKUP_FILENAME
+    if backup_path.exists():
+        return
+    try:
+        with open(labels_path) as f:
+            data = json.load(f)
+    except json.JSONDecodeError:
+        return
+    if _has_legacy_entry(data):
+        shutil.copy2(labels_path, backup_path)
 
 
 @bp.route("/sessions/<session_id>/axial-labels")
@@ -58,6 +91,7 @@ def save_axial_labels(session_id: str):
         return jsonify({"error": "'labels' must be an array"}), 400
 
     labels_path = session_dir / "axial-labels.json"
+    _backup_if_legacy_shape(labels_path)
     with open(labels_path, "w") as f:
         json.dump({"labels": body["labels"]}, f, indent=2)
 
