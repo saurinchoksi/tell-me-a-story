@@ -18,7 +18,7 @@ import './SegmentCard.css';
  * Tooltip text mirrors the mode names defined in emp.md.
  */
 const AXIAL_CHIPS: Array<{ code: AxialCode; label: string; title: string }> = [
-  { code: 'M1', label: '1', title: 'M1 — Wrong words on real speech (excluding name mistranscription — that\'s M9)' },
+  { code: 'M1', label: '1', title: 'M1 — Wrong words on real speech' },
   { code: 'M2', label: '2', title: 'M2 — Words on silence or noise' },
   { code: 'M3', label: '3', title: 'M3 — Missed real speech' },
   { code: 'M4', label: '4', title: 'M4 — Wrong speaker' },
