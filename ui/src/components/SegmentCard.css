@@ -139,6 +139,51 @@
   border-color: var(--color-error);
 }
 
+/* Axial-code chip row — one selection per segment for EMP step 5 counting */
+.segment-axial-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.axial-chip {
+  min-width: 26px;
+  padding: 2px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.axial-chip:hover {
+  background: var(--color-accent-bg);
+  color: var(--color-text);
+}
+
+.axial-chip-selected {
+  background: var(--color-gold, #BFA265);
+  border-color: var(--color-gold, #BFA265);
+  color: white;
+}
+
+.axial-chip-nota.axial-chip-selected {
+  background: var(--color-text-muted);
+  border-color: var(--color-text-muted);
+}
+
+/* Visual cue for unlabeled segments — subtle dotted bottom border on the chip row */
+.segment-card.segment-unlabeled .segment-axial-chips {
+  border-bottom: 1px dotted var(--color-border);
+  padding-bottom: 4px;
+}
+
 /* Gap body */
 .segment-gap-body {
   display: flex;

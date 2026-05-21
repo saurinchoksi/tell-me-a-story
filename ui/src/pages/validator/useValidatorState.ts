@@ -7,13 +7,14 @@
  */
 
 import { useReducer, useMemo } from 'react';
-import type { ValidatorSegment, Note, FilterState, ContextMenuState, NoteModalState, SessionSummary, SegmentId } from '../../types';
+import type { ValidatorSegment, Note, FilterState, ContextMenuState, NoteModalState, SessionSummary, SegmentId, AxialLabel, AxialCode } from '../../types';
 import { findDuplicateSegmentIds, getFilterReasons, getAllFilterReasons } from '../../utils/filters';
 
 export interface ValidatorState {
   sessions: SessionSummary[];
   segments: ValidatorSegment[];
   notes: Note[];
+  axialLabels: AxialLabel[];
   currentTime: number;
   activeSegmentIndex: number;
   duration: number;
@@ -32,7 +33,7 @@ export interface ValidatorState {
 }
 
 export type ValidatorAction =
-  | { type: 'LOAD_SESSION'; segments: ValidatorSegment[]; notes: Note[]; speakerNames: Map<string, string>; speakerColorMap: Map<string, string> }
+  | { type: 'LOAD_SESSION'; segments: ValidatorSegment[]; notes: Note[]; axialLabels: AxialLabel[]; speakerNames: Map<string, string>; speakerColorMap: Map<string, string> }
   | { type: 'SET_TIME'; time: number }
   | { type: 'SET_ACTIVE_SEGMENT'; index: number }
   | { type: 'SET_DURATION'; duration: number }
@@ -46,6 +47,7 @@ export type ValidatorAction =
   | { type: 'SHOW_NOTE_MODAL'; modal: NoteModalState }
   | { type: 'HIDE_NOTE_MODAL' }
   | { type: 'SET_NOTES'; notes: Note[] }
+  | { type: 'SET_AXIAL_LABEL'; segmentId: SegmentId; code: AxialCode | null }
   | { type: 'SET_ERROR'; error: string }
   | { type: 'SET_LOADING'; loading: boolean }
   | { type: 'SET_SESSIONS'; sessions: SessionSummary[] };
@@ -54,6 +56,7 @@ const initialState: ValidatorState = {
   sessions: [],
   segments: [],
   notes: [],
+  axialLabels: [],
   currentTime: 0,
   activeSegmentIndex: -1,
   duration: 0,
@@ -78,6 +81,7 @@ function reducer(state: ValidatorState, action: ValidatorAction): ValidatorState
         ...state,
         segments: action.segments,
         notes: action.notes,
+        axialLabels: action.axialLabels,
         speakerNames: action.speakerNames,
         speakerColorMap: action.speakerColorMap,
         duplicateIds: findDuplicateSegmentIds(action.segments),
@@ -136,6 +140,42 @@ function reducer(state: ValidatorState, action: ValidatorAction): ValidatorState
     case 'SET_NOTES':
       return { ...state, notes: action.notes };
 
+    case 'SET_AXIAL_LABEL': {
+      const now = new Date().toISOString();
+      const existingIdx = state.axialLabels.findIndex((l) => l.segmentId === action.segmentId);
+
+      // null code = clear the label for this segment
+      if (action.code === null) {
+        if (existingIdx < 0) return state;
+        const next = [...state.axialLabels];
+        next.splice(existingIdx, 1);
+        return { ...state, axialLabels: next };
+      }
+
+      if (existingIdx >= 0) {
+        const next = [...state.axialLabels];
+        next[existingIdx] = {
+          ...next[existingIdx],
+          code: action.code,
+          updatedAt: now,
+        };
+        return { ...state, axialLabels: next };
+      }
+
+      return {
+        ...state,
+        axialLabels: [
+          ...state.axialLabels,
+          {
+            segmentId: action.segmentId,
+            code: action.code,
+            createdAt: now,
+            updatedAt: now,
+          },
+        ],
+      };
+    }
+
     case 'SET_ERROR':
       return { ...state, error: action.error, loading: false };
 
@@ -155,6 +195,8 @@ export interface DerivedState {
   segmentFilterReasons: Map<SegmentId, string[]>;
   segmentAllFilterReasons: Map<SegmentId, string[]>;
   notesBySegment: Map<SegmentId, Note[]>;
+  labelsBySegment: Map<SegmentId, AxialLabel>;
+  labeledCount: number;
 }
 
 export function useValidatorState() {
@@ -188,8 +230,20 @@ export function useValidatorState() {
       }
     }
 
-    return { filterCounts, segmentFilterReasons, segmentAllFilterReasons, notesBySegment };
-  }, [state.segments, state.duplicateIds, state.filters, state.notes]);
+    const labelsBySegment = new Map<SegmentId, AxialLabel>();
+    for (const label of state.axialLabels) {
+      labelsBySegment.set(label.segmentId, label);
+    }
+
+    return {
+      filterCounts,
+      segmentFilterReasons,
+      segmentAllFilterReasons,
+      notesBySegment,
+      labelsBySegment,
+      labeledCount: state.axialLabels.length,
+    };
+  }, [state.segments, state.duplicateIds, state.filters, state.notes, state.axialLabels]);
 
   return { state, dispatch, derived };
 }

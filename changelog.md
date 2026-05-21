@@ -4,6 +4,14 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-05-21 — Hovering a segment or word lights up its range on the wave player
+
+Move the mouse over a segment header, or any word inside one, and the matching stretch of audio glows on the waveform. The segment-header timestamps also switched to the m:ss format the wave player already uses, since the old decimal-seconds version required mental math to correlate a card with its position in the audio.
+
+## 2026-05-21 — The validator can now mark every segment with a failure code
+
+Each segment card has a row of code chips — the eight failure modes from axial coding plus a no-match option. Clicking a chip or pressing the matching digit saves the code to the session, so listening through a recording becomes a fast labeling pass: hear, click, advance. The chips also live on gap segments, since the silence-marked-as-unintelligible failure can only be counted there.
+
 ## 2026-05-20 — The Sessions list can be sorted by column
 
 Click a column header on the Sessions list — Date, Length, Validation, or Notes — to sort by that column; click again to flip the direction. The point is finding unvalidated recordings quickly: sorting by validation pushes those to the top. Untranscribed entries have no length, so they cluster at one end rather than scattering through the list.

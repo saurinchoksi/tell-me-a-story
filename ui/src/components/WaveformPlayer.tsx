@@ -8,6 +8,7 @@
 import { useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import Minimap from 'wavesurfer.js/dist/plugins/minimap.esm.js';
+import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import './WaveformPlayer.css';
 
 export interface WaveformPlayerHandle {
@@ -18,6 +19,8 @@ export interface WaveformPlayerHandle {
   getCurrentTime(): number;
   setPlaybackRate(rate: number): void;
   isPlaying(): boolean;
+  highlightRange(start: number, end: number): void;
+  clearHighlight(): void;
 }
 
 interface WaveformPlayerProps {
@@ -38,6 +41,7 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const minimapRef = useRef<HTMLDivElement>(null);
     const wsRef = useRef<WaveSurfer | null>(null);
+    const regionsRef = useRef<ReturnType<typeof RegionsPlugin.create> | null>(null);
     const rafRef = useRef<number>(0);
     const savedTimeRef = useRef(0);
     const savedRateRef = useRef(playbackRate);
@@ -83,6 +87,9 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
       const progressColor = getCSSColor('--waveform-progress', '#BFA265');
       const cursorColor = getCSSColor('--waveform-cursor', '#6A3843');
 
+      const regions = RegionsPlugin.create();
+      regionsRef.current = regions;
+
       const ws = WaveSurfer.create({
         container: containerRef.current,
         url: audioUrl,
@@ -103,6 +110,7 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
             cursorColor,
             normalize: true,
           }),
+          regions,
         ],
       });
 
@@ -136,6 +144,7 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
         stopRAF();
         ws.destroy();
         wsRef.current = null;
+        regionsRef.current = null;
       };
     }, [audioUrl, startRAF, stopRAF]);
 
@@ -160,6 +169,23 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
       getCurrentTime() { return wsRef.current?.getCurrentTime() ?? 0; },
       setPlaybackRate(rate: number) { wsRef.current?.setPlaybackRate(rate); },
       isPlaying() { return wsRef.current?.isPlaying() ?? false; },
+      highlightRange(start: number, end: number) {
+        const regions = regionsRef.current;
+        if (!regions) return;
+        regions.clearRegions();
+        // Tiny gaps would render as zero-width; show at least 1px-worth of audio
+        const safeEnd = end > start ? end : start + 0.01;
+        regions.addRegion({
+          start,
+          end: safeEnd,
+          color: 'rgba(191, 162, 101, 0.35)',
+          drag: false,
+          resize: false,
+        });
+      },
+      clearHighlight() {
+        regionsRef.current?.clearRegions();
+      },
     }));
 
     return (

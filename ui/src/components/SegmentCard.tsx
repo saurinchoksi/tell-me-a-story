@@ -7,10 +7,27 @@
  */
 
 import { memo, type RefCallback } from 'react';
-import type { ValidatorSegment } from '../types';
+import type { ValidatorSegment, AxialCode, SegmentId } from '../types';
 import { getDominantSpeaker, getSpeakerClass } from '../utils/filters';
+import { formatTime } from '../utils/time';
 import WordSpan from './WordSpan';
 import './SegmentCard.css';
+
+/**
+ * The 8 EMP failure modes + NotA. Order matches the chip-row layout (1..8, N/A).
+ * Tooltip text mirrors the mode names defined in emp.md.
+ */
+const AXIAL_CHIPS: Array<{ code: AxialCode; label: string; title: string }> = [
+  { code: 'M1', label: '1', title: 'M1 — Wrong words on real speech' },
+  { code: 'M2', label: '2', title: 'M2 — Words on silence or noise' },
+  { code: 'M3', label: '3', title: 'M3 — Missed real speech' },
+  { code: 'M4', label: '4', title: 'M4 — Wrong speaker' },
+  { code: 'M5', label: '5', title: 'M5 — Overlapping speech' },
+  { code: 'M6', label: '6', title: 'M6 — Wrong segment boundaries' },
+  { code: 'M7', label: '7', title: 'M7 — Word at the wrong timestamp' },
+  { code: 'M8', label: '8', title: 'M8 — Silence marked as unintelligible' },
+  { code: 'NotA', label: 'N/A', title: 'None of the above (clean segment or unmapped failure)' },
+];
 
 interface SegmentCardProps {
   segment: ValidatorSegment;
@@ -19,10 +36,14 @@ interface SegmentCardProps {
   filterReasons: string[];
   allFilterReasons: string[];
   hasNotes: boolean;
+  axialCode: AxialCode | null;
+  onSetAxialLabel: (segmentId: SegmentId, code: AxialCode | null) => void;
   speakerNames: Map<string, string>;
   speakerColorMap: Map<string, string>;
   onSeek: (time: number) => void;
   onContextMenu: (e: React.MouseEvent, segmentIndex: number, wordIndex: number) => void;
+  onHoverRange?: (start: number, end: number) => void;
+  onHoverEnd?: () => void;
   cardRef: RefCallback<HTMLDivElement>;
 }
 
@@ -33,10 +54,14 @@ function SegmentCardInner({
   filterReasons,
   allFilterReasons,
   hasNotes,
+  axialCode,
+  onSetAxialLabel,
   speakerNames,
   speakerColorMap,
   onSeek,
   onContextMenu,
+  onHoverRange,
+  onHoverEnd,
   cardRef,
 }: SegmentCardProps) {
   const isGap = segment._source === 'diarization_gap';
@@ -53,6 +78,7 @@ function SegmentCardInner({
         'segment-card',
         isGap ? 'segment-gap' : '',
         isFiltered ? 'filtered' : '',
+        axialCode ? 'segment-labeled' : 'segment-unlabeled',
         speakerClass,
       ].filter(Boolean).join(' ')}
       data-segment-index={index}
@@ -68,17 +94,19 @@ function SegmentCardInner({
         </div>
       )}
 
-      {/* Header row — clickable to seek */}
+      {/* Header row — clickable to seek, hoverable to highlight on waveform */}
       <div
         className="segment-header"
         onClick={() => onSeek(segment.start)}
         onContextMenu={(e) => onContextMenu(e, index, -1)}
+        onMouseEnter={() => onHoverRange?.(segment.start, segment.end)}
+        onMouseLeave={() => onHoverEnd?.()}
       >
         <span className="segment-id">
           {isGap ? `Gap ${segment.id}` : `Segment ${segment.id}`}
         </span>
         <span className="segment-time">
-          {segment.start.toFixed(2)}s — {segment.end.toFixed(2)}s ({duration}s)
+          {formatTime(segment.start)} — {formatTime(segment.end)} ({duration}s)
         </span>
       </div>
 
@@ -106,6 +134,26 @@ function SegmentCardInner({
         ))}
       </div>
 
+      {/* Axial-code chip row — one selection per segment */}
+      <div className="segment-axial-chips" role="radiogroup" aria-label="Axial code">
+        {AXIAL_CHIPS.map(({ code, label, title }) => {
+          const selected = axialCode === code;
+          return (
+            <button
+              key={code}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              className={`axial-chip ${selected ? 'axial-chip-selected' : ''} axial-chip-${code.toLowerCase()}`}
+              title={title}
+              onClick={() => onSetAxialLabel(segment.id, selected ? null : code)}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Content */}
       {isGap ? (
         <div className="segment-gap-body">
@@ -123,6 +171,8 @@ function SegmentCardInner({
               dominantSpeaker={dominant}
               onSeek={onSeek}
               onContextMenu={onContextMenu}
+              onHoverRange={onHoverRange}
+              onHoverEnd={onHoverEnd}
             />
           ))}
         </div>
@@ -136,6 +186,10 @@ function areEqual(prev: SegmentCardProps, next: SegmentCardProps): boolean {
     prev.segment.id === next.segment.id &&
     prev.isFiltered === next.isFiltered &&
     prev.hasNotes === next.hasNotes &&
+    prev.axialCode === next.axialCode &&
+    prev.onSetAxialLabel === next.onSetAxialLabel &&
+    prev.onHoverRange === next.onHoverRange &&
+    prev.onHoverEnd === next.onHoverEnd &&
     prev.filterReasons.length === next.filterReasons.length &&
     prev.filterReasons.every((r, i) => r === next.filterReasons[i]) &&
     prev.allFilterReasons.length === next.allFilterReasons.length &&

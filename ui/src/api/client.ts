@@ -15,6 +15,7 @@ import type {
   Decision,
   ConfirmSpeakersResponse,
   Note,
+  AxialLabel,
 } from '../types';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -151,5 +152,25 @@ export async function saveNotes(sessionId: string, notes: Note[]): Promise<{ sav
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ notes }),
+  });
+}
+
+// --- Axial labels ---
+
+export async function getAxialLabels(sessionId: string): Promise<AxialLabel[]> {
+  const data = await fetchJSON<{ labels: AxialLabel[] }>(
+    `/api/sessions/${sessionId}/axial-labels`,
+  );
+  return data.labels;
+}
+
+export async function saveAxialLabels(
+  sessionId: string,
+  labels: AxialLabel[],
+): Promise<{ saved: number }> {
+  return fetchJSON<{ saved: number }>(`/api/sessions/${sessionId}/axial-labels`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ labels }),
   });
 }

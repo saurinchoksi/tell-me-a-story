@@ -20,7 +20,7 @@
 
 import { useEffect, useCallback } from 'react';
 import type { WaveformPlayerHandle } from '../../components/WaveformPlayer';
-import type { ValidatorSegment, FilterState, SegmentId } from '../../types';
+import type { ValidatorSegment, FilterState, SegmentId, AxialCode } from '../../types';
 import type { ValidatorAction } from './useValidatorState';
 
 interface KeyboardConfig {
@@ -32,7 +32,15 @@ interface KeyboardConfig {
   modalOpen: boolean;
   dispatch: React.Dispatch<ValidatorAction>;
   onSeek: (time: number) => void;
+  onSetAxialLabel: (segmentId: SegmentId, code: AxialCode | null) => void;
 }
+
+/** Map digit keys to axial codes. '0' is N/A (none-of-the-above). */
+const DIGIT_TO_CODE: Record<string, AxialCode> = {
+  '1': 'M1', '2': 'M2', '3': 'M3', '4': 'M4',
+  '5': 'M5', '6': 'M6', '7': 'M7', '8': 'M8',
+  '0': 'NotA',
+};
 
 export function useKeyboardShortcuts({
   waveformRef,
@@ -43,6 +51,7 @@ export function useKeyboardShortcuts({
   modalOpen,
   dispatch,
   onSeek,
+  onSetAxialLabel,
 }: KeyboardConfig) {
   const isFiltered = useCallback(
     (seg: ValidatorSegment): boolean => {
@@ -160,10 +169,19 @@ export function useKeyboardShortcuts({
           e.preventDefault();
           dispatch({ type: 'TOGGLE_FILTER', filter: 'duplicates' });
           break;
+
+        default:
+          // Axial-code digit shortcuts: 1-8 select the matching mode, 0 selects N/A
+          if (DIGIT_TO_CODE[e.key] && activeSegmentIndex >= 0) {
+            e.preventDefault();
+            const seg = segments[activeSegmentIndex];
+            onSetAxialLabel(seg.id, DIGIT_TO_CODE[e.key]);
+          }
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [waveformRef, segments, activeSegmentIndex, filters, duplicateIds, modalOpen, dispatch, onSeek, isFiltered]);
+  }, [waveformRef, segments, activeSegmentIndex, filters, duplicateIds, modalOpen, dispatch, onSeek, onSetAxialLabel, isFiltered]);
 }

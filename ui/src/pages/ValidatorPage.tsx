@@ -9,8 +9,8 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getSession, getNotes, saveNotes, audioURL, listSessions } from '../api/client';
-import type { ValidatorSegment, Note, ContextTarget, SegmentId } from '../types';
+import { getSession, getNotes, saveNotes, getAxialLabels, saveAxialLabels, audioURL, listSessions } from '../api/client';
+import type { ValidatorSegment, Note, ContextTarget, SegmentId, AxialCode } from '../types';
 import { formatTime } from '../utils/time';
 import { buildSpeakerColorMap } from '../utils/filters';
 import WaveformPlayer, { type WaveformPlayerHandle } from '../components/WaveformPlayer';
@@ -74,6 +74,10 @@ export default function ValidatorPage() {
   // Throttle SET_TIME dispatches (~4fps for display only)
   const lastDispatchRef = useRef(0);
 
+  // Guards the debounced axial-labels save from echoing the load.
+  // Reset to true on every session change.
+  const initialLabelsRef = useRef(true);
+
   // Auto-scroll: scrolls active segment into view, pauses on user scroll
   const { scrollToSegment } = useAutoScroll(segmentsContainerRef);
 
@@ -84,8 +88,14 @@ export default function ValidatorPage() {
   useEffect(() => {
     if (!id) return;
 
-    Promise.all([getSession(id), getNotes(id)])
-      .then(([session, notes]) => {
+    // Reset save-guard so the new session's LOAD_SESSION doesn't trigger an
+    // echo POST, and so any chip-click that happens during the fetch window
+    // doesn't get saved under the wrong session id.
+    initialLabelsRef.current = true;
+    dispatch({ type: 'SET_LOADING', loading: true });
+
+    Promise.all([getSession(id), getNotes(id), getAxialLabels(id)])
+      .then(([session, notes, axialLabels]) => {
         const segments = (session.transcript?.segments ?? []) as ValidatorSegment[];
         const speakerNames = new Map<string, string>();
         const identifications = session.identifications?.identifications ?? [];
@@ -95,7 +105,7 @@ export default function ValidatorPage() {
           }
         }
         const speakerColorMap = buildSpeakerColorMap(identifications);
-        dispatch({ type: 'LOAD_SESSION', segments, notes, speakerNames, speakerColorMap });
+        dispatch({ type: 'LOAD_SESSION', segments, notes, axialLabels, speakerNames, speakerColorMap });
       })
       .catch((e) => dispatch({ type: 'SET_ERROR', error: e.message }));
   }, [id, dispatch]);
@@ -184,6 +194,24 @@ export default function ValidatorPage() {
     [],
   );
 
+  const handleHoverRange = useCallback(
+    (start: number, end: number) => {
+      waveformRef.current?.highlightRange(start, end);
+    },
+    [],
+  );
+
+  const handleHoverEnd = useCallback(() => {
+    waveformRef.current?.clearHighlight();
+  }, []);
+
+  const handleSetAxialLabel = useCallback(
+    (segmentId: SegmentId, code: AxialCode | null) => {
+      dispatch({ type: 'SET_AXIAL_LABEL', segmentId, code });
+    },
+    [dispatch],
+  );
+
   // Keyboard shortcuts (modal-aware) — placed after handleSeek is defined
   useKeyboardShortcuts({
     waveformRef,
@@ -194,6 +222,7 @@ export default function ValidatorPage() {
     modalOpen: state.noteModal.visible,
     dispatch,
     onSeek: handleSeek,
+    onSetAxialLabel: handleSetAxialLabel,
   });
 
   const handleContextMenu = useCallback(
@@ -334,6 +363,22 @@ export default function ValidatorPage() {
     [dispatch],
   );
 
+  // --- Axial labels ---
+  // Debounce label saves. The initial LOAD_SESSION dispatch sets axialLabels;
+  // skip saving on that pass to avoid round-tripping a no-op.
+  useEffect(() => {
+    if (state.loading) return;
+    if (initialLabelsRef.current) {
+      initialLabelsRef.current = false;
+      return;
+    }
+    if (!id) return;
+    const handle = setTimeout(() => {
+      saveAxialLabels(id, state.axialLabels).catch(console.error);
+    }, 400);
+    return () => clearTimeout(handle);
+  }, [id, state.axialLabels, state.loading]);
+
   // Stable dismiss/cancel callbacks for ContextMenu + NoteModal portals
   const handleDismissMenu = useCallback(() => dispatch({ type: 'HIDE_CONTEXT_MENU' }), [dispatch]);
   const handleCancelModal = useCallback(() => dispatch({ type: 'HIDE_NOTE_MODAL' }), [dispatch]);
@@ -377,6 +422,9 @@ export default function ValidatorPage() {
         )}
         <span className="validator-time">
           {formatTime(state.currentTime)} / {formatTime(state.duration)}
+        </span>
+        <span className="validator-label-progress" title="Segments with an axial-code label">
+          {derived.labeledCount} / {state.segments.length} labeled
         </span>
       </header>
 
@@ -455,6 +503,7 @@ export default function ValidatorPage() {
         {state.segments.map((seg, i) => {
           const activeReasons = derived.segmentFilterReasons.get(seg.id) ?? [];
           const allReasons = derived.segmentAllFilterReasons.get(seg.id) ?? [];
+          const label = derived.labelsBySegment.get(seg.id);
           return (
             <SegmentCard
               key={seg.id}
@@ -464,10 +513,14 @@ export default function ValidatorPage() {
               filterReasons={activeReasons}
               allFilterReasons={allReasons}
               hasNotes={derived.notesBySegment.has(seg.id)}
+              axialCode={label?.code ?? null}
+              onSetAxialLabel={handleSetAxialLabel}
               speakerNames={state.speakerNames}
               speakerColorMap={state.speakerColorMap}
               onSeek={handleSeek}
               onContextMenu={handleContextMenu}
+              onHoverRange={handleHoverRange}
+              onHoverEnd={handleHoverEnd}
               cardRef={getCardRef(seg.id)}
             />
           );
@@ -507,6 +560,8 @@ export default function ValidatorPage() {
         <span><kbd>Space</kbd> play/pause</span>
         <span><kbd>&larr;</kbd><kbd>&rarr;</kbd> seek</span>
         <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> segments</span>
+        <span><kbd>1</kbd>&hellip;<kbd>8</kbd> code</span>
+        <span><kbd>0</kbd> N/A</span>
         <span><kbd>N</kbd> note</span>
         <span><kbd>Shift+N</kbd> drawer</span>
         <span><kbd>G</kbd><kbd>Z</kbd><kbd>D</kbd> filters</span>

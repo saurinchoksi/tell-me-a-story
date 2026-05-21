@@ -16,6 +16,8 @@ interface WordSpanProps {
   dominantSpeaker: string | null;
   onSeek: (time: number) => void;
   onContextMenu: (e: React.MouseEvent, segmentIndex: number, wordIndex: number) => void;
+  onHoverRange?: (start: number, end: number) => void;
+  onHoverEnd?: () => void;
 }
 
 export default function WordSpan({
@@ -25,6 +27,8 @@ export default function WordSpan({
   dominantSpeaker,
   onSeek,
   onContextMenu,
+  onHoverRange,
+  onHoverEnd,
 }: WordSpanProps) {
   const probClass = getWordProbabilityClass(word.probability);
   const speakerLabel = word._speaker?.label ?? null;
@@ -56,6 +60,8 @@ export default function WordSpan({
       data-tooltip={tooltip}
       onClick={() => onSeek(word.start)}
       onContextMenu={(e) => onContextMenu(e, segmentIndex, wordIndex)}
+      onMouseEnter={() => onHoverRange?.(word.start, word.end)}
+      onMouseLeave={() => onHoverEnd?.()}
     >
       {word.word}
     </span>
