@@ -63,9 +63,9 @@ def test_mmss():
 
 
 def test_unintelligible_counts_as_coverage():
-    # A #13 gap is speech with NO segment at all. A region covered only by an
-    # [unintelligible] placeholder must NOT be flagged — that's a visible,
-    # reviewable trace (TMAS-46's problem), not a #13 miss.
+    # A missed-speech gap is speech with NO segment at all. A region covered only
+    # by an [unintelligible] placeholder must NOT be flagged — that's a visible,
+    # reviewable trace (TMAS-46's problem), not a miss here.
     transcript = {"segments": [
         {"id": 1, "start": 0.0, "end": 1.0, "text": "hi"},                  # real words
         {"id": "gap_1", "start": 1.0, "end": 2.0, "text": "[unintelligible]",
