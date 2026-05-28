@@ -12,7 +12,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from gap_analysis import merge_intervals, subtract_intervals, mmss  # noqa: E402
+from gap_analysis import (  # noqa: E402
+    merge_intervals,
+    subtract_intervals,
+    mmss,
+    find_gaps,
+    covering_segments,
+    real_segments,
+    unintelligible_segments,
+)
 
 
 def test_merge_intervals():
@@ -52,3 +60,28 @@ def test_mmss():
     assert mmss(0) == "0:00.00"
     assert mmss(394.14) == "6:34.14"
     assert mmss(9.7) == "0:09.70"
+
+
+def test_unintelligible_counts_as_coverage():
+    # A #13 gap is speech with NO segment at all. A region covered only by an
+    # [unintelligible] placeholder must NOT be flagged — that's a visible,
+    # reviewable trace (TMAS-46's problem), not a #13 miss.
+    transcript = {"segments": [
+        {"id": 1, "start": 0.0, "end": 1.0, "text": "hi"},                  # real words
+        {"id": "gap_1", "start": 1.0, "end": 2.0, "text": "[unintelligible]",
+         "_source": "diarization_gap"},                                     # placeholder
+        {"id": 2, "start": 4.0, "end": 5.0, "text": "bye"},                 # real words
+    ]}
+    diar = {"segments": [{"start": 0.0, "end": 5.0, "speaker": "SPEAKER_00"}]}
+
+    # Segment partitioning
+    assert len(covering_segments(transcript)) == 3   # all three count as coverage
+    assert len(real_segments(transcript)) == 2       # context/strip excludes placeholder
+    assert len(unintelligible_segments(transcript)) == 1
+
+    gaps = find_gaps(diar, transcript, 0.3)
+    # Only the truly-empty 2.0–4.0 stretch is a gap; the [unintelligible] 1.0–2.0
+    # region is coverage, so it is not flagged.
+    assert len(gaps) == 1
+    assert round(gaps[0]["start"], 2) == 2.0
+    assert round(gaps[0]["end"], 2) == 4.0

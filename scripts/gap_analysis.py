@@ -6,14 +6,21 @@ it. This read-only sweep surfaces those moments: for every diarization segment
 (who was talking) it subtracts the transcript-segment spans (what got
 transcribed) and reports the leftover slivers as "#13 gaps".
 
-Coverage is computed at SEGMENT granularity (a whole transcript segment's
-[start, end] counts as covered), and pipeline-injected "[unintelligible]" gap
-segments (_source == "diarization_gap") are excluded from coverage so the sweep
-re-surfaces them as no-trace candidates. This matches the original one-off
-Moon Story analysis (sessions/20251207-195607/gap-analysis.html), which this
-script reconstructs and generalizes. It deliberately does NOT use
-speaker.py:detect_unintelligible_gaps — that filters out monologue pauses,
-which would under-count the floor.
+Coverage is computed at SEGMENT granularity (a whole segment's [start, end]
+counts as covered) and includes BOTH transcribed-word segments AND pipeline-
+injected "[unintelligible]" placeholders (_source == "diarization_gap"). That
+is the heart of failure-mode #13: it is speech with NO trace at all — no
+transcribed line, and not even an [unintelligible] marker. An [unintelligible]
+segment is a visible, reviewable trace (a clickable line in the validator), so
+a region the pipeline already flagged that way is NOT a #13 miss; sorting those
+segments into real-speech-vs-not is a separate job (TMAS-46).
+
+This reconstructs and generalizes the original one-off Moon Story analysis
+(sessions/20251207-195607/gap-analysis.html) — and refines it: the original
+EXCLUDED [unintelligible] segments from coverage, so it re-flagged those
+already-visible regions as gaps; counting them as coverage scopes the result to
+true #13. It deliberately does NOT use speaker.py:detect_unintelligible_gaps —
+that filters out monologue pauses, which would under-count the floor.
 
 For each session it writes sessions/<id>/gap-analysis.html (three aligned
 strips — transcript / diarization / gaps — plus a per-gap table). It also
@@ -49,6 +56,7 @@ GRID_SEC = 30             # gridline spacing
 SPEAKER_COLORS = ["#2196f3", "#ff9800", "#9c27b0", "#00bcd4",
                   "#8bc34a", "#e91e63", "#ffc107", "#795548"]
 TRANSCRIPT_COLOR = "#4caf50"
+UNINTEL_COLOR = "#9e9e9e"   # [unintelligible] placeholders — count as coverage
 GAP_COLOR = "#f44336"
 
 DEFAULT_MIN_GAP = 0.3
@@ -58,15 +66,18 @@ DEFAULT_HC = 1.0
 # in-scope (story) segment; the wind-down after it is out of scope. is_baseline
 # marks Moon Story, which is computed for validation but NOT re-written.
 SESSIONS = [
-    # Baseline expectations are pinned to the CURRENT transcript-rich.json, not
-    # the published hand-made HTML. The original HTML showed 65 gaps / 38.8s at
-    # >=0.3s; current data yields 66 / 39.2s because seg 51's start drifted
-    # 2:48.88 -> 2:49.08 in a later re-enrichment, pushing one 0.42s sliver over
-    # the 0.3s line. Fidelity is confirmed regardless: all 90 original-HTML gaps
-    # reproduce exactly and the >=1.0s floor matches to the decimal (4 / 9.7s).
+    # Baseline expectations are pinned to the CURRENT transcript-rich.json under
+    # the strict-#13 rule ([unintelligible] counts as coverage). The >=1.0s
+    # floor (4 / 9.7s) is the stable anchor — unchanged across the published
+    # hand-made file, the broad reconstruction, and strict #13 (no
+    # [unintelligible] overlap lands above 1.0s in Moon Story). At >=0.3s strict
+    # gives 65 / 38.4s; the original hand-made HTML showed 65 / 38.8s (broad:
+    # it counted one 0.78s [unintelligible] region, but missed a 0.42s sliver
+    # that a later seg-51 re-enrichment drift later exposed — the two offsets
+    # happen to land on the same gap count).
     {"name": "Moon Story", "id": "20251207-195607", "story_end_seg": 152,
      "is_baseline": True,
-     "expected": {"story_gaps_03": 66, "story_sec_03": 39.2,
+     "expected": {"story_gaps_03": 65, "story_sec_03": 38.4,
                   "story_gaps_10": 4, "story_sec_10": 9.7}},
     {"name": "Cruel Baby", "id": "20251207-202105", "story_end_seg": 278},
     {"name": "Rubber Ducky", "id": "20251210-203654", "story_end_seg": 236},
@@ -146,13 +157,35 @@ def load_session(session_id):
 
 
 def real_segments(transcript):
-    """Transcript segments that represent actual transcribed speech.
+    """Segments with actual transcribed words (excludes [unintelligible]).
 
-    Excludes pipeline-injected [unintelligible] gap segments so the sweep can
-    re-surface them as no-trace candidates.
+    Used for the readable before/after context and the green transcript strip —
+    NOT for coverage. See covering_segments for the coverage rule.
     """
     return [s for s in transcript["segments"]
             if s.get("_source") != "diarization_gap" and s["end"] > s["start"]]
+
+
+def unintelligible_segments(transcript):
+    """Pipeline-injected [unintelligible] placeholder segments."""
+    return [s for s in transcript["segments"]
+            if s.get("_source") == "diarization_gap" and s["end"] > s["start"]]
+
+
+def covering_segments(transcript):
+    """Every segment that means 'a trace exists here' — both transcribed-word
+    segments AND [unintelligible] placeholders.
+
+    This is the coverage rule for failure-mode #13. A #13 gap is speech with NO
+    segment at all: not a transcribed line, and not even an [unintelligible]
+    marker. The reason [unintelligible] counts as coverage: it is a *visible,
+    reviewable* trace — a clickable line in the validator that says "someone
+    spoke here, couldn't decode it." #13 is specifically the failure that is
+    invisible to review, so a region the pipeline already flagged
+    [unintelligible] is NOT a #13 miss. Deciding whether those [unintelligible]
+    segments hold real speech (vs noise) is a separate job — TMAS-46.
+    """
+    return [s for s in transcript["segments"] if s["end"] > s["start"]]
 
 
 def seg_end_time(transcript, seg_id):
@@ -164,15 +197,20 @@ def seg_end_time(transcript, seg_id):
 
 # --- gap detection -----------------------------------------------------------
 def find_gaps(diarization, transcript, min_gap):
-    """Diarization-active minus transcript coverage; gaps >= min_gap seconds.
+    """Find #13 gaps: where the detector heard a voice but NO segment exists.
 
-    One gap per uncovered sliver of each diarization segment, tagged with that
-    segment's speaker. Faithful to the original: overlapping diarization
-    segments are processed independently (a rare same-instant overlap from two
-    speakers would be listed twice).
+    Coverage = every segment (transcribed words AND [unintelligible] markers),
+    per covering_segments. A gap is an uncovered sliver of a diarization
+    segment, >= min_gap seconds, tagged with that segment's speaker. So a gap
+    means speech with no trace at all — not a transcribed line, not even an
+    [unintelligible] placeholder; that is exactly failure-mode #13.
+
+    Faithful to the original sweep in every other respect: per-diarization-
+    segment subtraction, so a rare same-instant overlap from two speakers would
+    be listed twice.
     """
     covered = merge_intervals(
-        [(s["start"], s["end"]) for s in real_segments(transcript)]
+        [(s["start"], s["end"]) for s in covering_segments(transcript)]
     )
     segs_by_start = sorted(real_segments(transcript), key=lambda s: s["start"])
 
@@ -231,6 +269,7 @@ def _bar(t_start, t_end):
 
 def render_html(session, transcript, diarization, gaps, story_end, min_gap):
     segs = real_segments(transcript)
+    unintel = unintelligible_segments(transcript)
     diar = diarization.get("segments", [])
     total_dur = max(
         [s["end"] for s in transcript["segments"]]
@@ -266,7 +305,8 @@ def render_html(session, transcript, diarization, gaps, story_end, min_gap):
             f'<div style="color:#999;font-size:12px">Session {e(session["id"])} · '
             f'<b style="color:#fa0">NO wind-down boundary marked</b> — whole-session counts '
             f'(may include a lullaby tail) · min gap {min_gap}s · '
-            f'<b style="color:#f55">{len(counted)} gaps, {counted_s:.1f}s missed</b></div>'
+            f'<b style="color:#f55">{len(counted)} gaps, {counted_s:.1f}s missed</b> · '
+            f'{len(unintel)} [unintelligible] placeholders (coverage, not #13 — TMAS-46)</div>'
         )
     else:
         tail = [g for g in gaps if g["start"] >= story_end]
@@ -275,12 +315,25 @@ def render_html(session, transcript, diarization, gaps, story_end, min_gap):
             f'<div style="color:#999;font-size:12px">Session {e(session["id"])} · '
             f'story 0–{mmss(story_end)} · min gap {min_gap}s · '
             f'<b style="color:#f55">{len(counted)} in-story gaps, {counted_s:.1f}s missed</b> · '
-            f'{len(tail)} tail gaps, {tail_s:.1f}s (out of scope)</div>'
+            f'{len(tail)} tail gaps, {tail_s:.1f}s (out of scope) · '
+            f'{len(unintel)} [unintelligible] placeholders (coverage, not #13 — TMAS-46)</div>'
         )
+
+    # logic note — what a gap means, in plain terms
+    out.append(
+        '<div style="color:#888;font-size:12px;margin-top:8px;max-width:900px">'
+        'A <b style="color:#f77">#13 GAP</b> is where the speaker detector heard a voice but '
+        '<b>no segment of any kind exists</b> — no transcribed line, and not even an '
+        '[unintelligible] marker. The green (transcript) and gray ([unintelligible]) bars below '
+        '<b>both count as coverage</b>; gaps fall only in the bare spots between them. An '
+        '[unintelligible] segment is a visible, reviewable line, so it is not a #13 miss — '
+        'classifying those is a separate task (TMAS-46).</div>'
+    )
 
     # legend
     out.append('<div class="legend" style="margin-top:14px">')
     out.append(f'<span style="background:{TRANSCRIPT_COLOR};color:#000">transcript</span>')
+    out.append(f'<span style="background:{UNINTEL_COLOR};color:#000">[unintelligible]</span>')
     for spk in speakers:
         out.append(f'<span style="background:{color[spk]};color:#fff">{e(spk)}</span>')
     out.append(f'<span style="background:{GAP_COLOR};color:#fff">#13 GAP</span>')
@@ -302,7 +355,7 @@ def render_html(session, transcript, diarization, gaps, story_end, min_gap):
         out.append(f'<line x1="{sx:.3f}" y1="18" x2="{sx:.3f}" y2="200" '
                    f'stroke="#fff" stroke-dasharray="3,3" opacity="0.6"/>')
 
-    # strip 1: transcript
+    # strip 1: transcript coverage — green (transcribed words) + gray ([unintelligible])
     out.append('<text x="6" y="43.0" fill="#bbb" font-size="11">transcript</text>')
     for s in segs:
         x, w = _bar(s["start"], s["end"])
@@ -311,6 +364,13 @@ def render_html(session, transcript, diarization, gaps, story_end, min_gap):
             f'<rect x="{x:.1f}" y="24" width="{w:.1f}" height="30" fill="{TRANSCRIPT_COLOR}" '
             f'opacity="0.75"><title>seg {e(str(s.get("id")))}: '
             f'{mmss(s["start"])}-{mmss(s["end"])} · {txt}</title></rect>'
+        )
+    for s in unintel:
+        x, w = _bar(s["start"], s["end"])
+        out.append(
+            f'<rect x="{x:.1f}" y="24" width="{w:.1f}" height="30" fill="{UNINTEL_COLOR}" '
+            f'opacity="0.85"><title>{mmss(s["start"])}-{mmss(s["end"])} · [unintelligible] '
+            f'(counts as coverage, not a #13 gap)</title></rect>'
         )
 
     # strip 2: diarization
@@ -408,8 +468,11 @@ def render_simple_html(session, transcript, gaps, story_end, hc):
                "transcriber writes nothing — the words just vanish, and because there's no line "
                "in the transcript, you'd never catch it by reading. This page finds those moments "
                "by comparing <b>who was talking</b> (the speaker detector) against <b>what got "
-               "written down</b>. Each card below is a stretch where a voice was detected but the "
-               "transcript is blank.<br><br><b>How to check one.</b> Click <b>▶ Play</b> — it "
+               "written down</b>. Each card below is a stretch where a voice was detected but "
+               "<b>no segment of any kind exists</b> — no transcribed line, and not even an "
+               "[unintelligible] marker. (Spots the pipeline already flagged [unintelligible] are "
+               "left out: those are visible, clickable lines in the transcript, so they're a "
+               "separate question.)<br><br><b>How to check one.</b> Click <b>▶ Play</b> — it "
                "starts a second early and plays the gap. You should hear a voice, often quiet, "
                "that isn't written anywhere. If you only hear silence or noise, that one's a "
                "false alarm.</div>")
@@ -473,7 +536,8 @@ def process(session, min_gap, hc, write_html, regenerate_baseline):
 
     return {"session": session, "story_end": story_end,
             "t03": t03, "t10": t10, "written": written,
-            "simple": str(simple_path.relative_to(ROOT))}
+            "simple": str(simple_path.relative_to(ROOT)),
+            "unintel_n": len(unintelligible_segments(transcript))}
 
 
 def validate_baseline(result):
@@ -495,13 +559,16 @@ def build_summary(results, min_gap, hc):
     lines = []
     lines.append("# Tier 1 missed-speech sweep (Mode 3 #13 floor)")
     lines.append("")
-    lines.append(f"Diarization-active minus transcript-segment coverage. "
-                 f"Candidate threshold ≥{min_gap}s, high-confidence ≥{hc}s. "
-                 f"Story-scope excludes the end-of-session wind-down; whole-session "
-                 f"includes it. Generated by `scripts/gap_analysis.py`.")
+    lines.append(f"Where the speaker detector heard a voice but **no segment of any kind "
+                 f"exists** — neither a transcribed line nor an [unintelligible] marker. That is "
+                 f"failure-mode #13 (missed speech, no trace). [unintelligible] placeholders "
+                 f"count as coverage (they're visible, reviewable lines — classifying them is "
+                 f"TMAS-46), so they are NOT counted as gaps here. Candidate threshold ≥{min_gap}s, "
+                 f"high-confidence ≥{hc}s. Story-scope excludes the end-of-session wind-down. "
+                 f"Generated by `scripts/gap_analysis.py`.")
     lines.append("")
-    lines.append("| Session | #13 floor — story ≥1.0s | story ≥0.3s | whole ≥1.0s | whole ≥0.3s |")
-    lines.append("|---|---|---|---|---|")
+    lines.append("| Session | #13 floor — story ≥1.0s | story ≥0.3s | whole ≥1.0s | whole ≥0.3s | [unintelligible] (→TMAS-46) |")
+    lines.append("|---|---|---|---|---|---|")
     for r in results:
         s = r["session"]
         name = s["name"] + (" *(no boundary — whole-session)*" if s.get("no_boundary") else "")
@@ -510,10 +577,15 @@ def build_summary(results, min_gap, hc):
             f"| **{r['t10']['story_n']} gaps / {r['t10']['story_s']:.1f}s** "
             f"| {r['t03']['story_n']} / {r['t03']['story_s']:.1f}s "
             f"| {r['t10']['whole_n']} / {r['t10']['whole_s']:.1f}s "
-            f"| {r['t03']['whole_n']} / {r['t03']['whole_s']:.1f}s |"
+            f"| {r['t03']['whole_n']} / {r['t03']['whole_s']:.1f}s "
+            f"| {r['unintel_n']} |"
         )
     lines.append("")
     lines.append("Notes:")
+    lines.append("- **A gap = speech with NO segment at all.** [unintelligible] placeholders "
+                 "count as coverage, so a region the pipeline already flagged that way is not a "
+                 "#13 miss — it is visible/reviewable, and classifying it is TMAS-46. The last "
+                 "column counts those placeholders per session (the TMAS-46 universe).")
     lines.append("- The **#13 floor** column (story-scope, ≥1.0s) is the unbiased "
                  "high-confidence count for the EMP pivot table.")
     lines.append("- Counts are mechanical and include monologue pauses (a storyteller "
@@ -575,7 +647,8 @@ def main():
                  "t03": tally(gaps, args.min_gap, story_end),
                  "t10": tally(gaps, args.hc_threshold, story_end),
                  "written": str((sdir / "gap-analysis.html").relative_to(ROOT)),
-                 "simple": str((sdir / "gaps-to-check.html").relative_to(ROOT))}
+                 "simple": str((sdir / "gaps-to-check.html").relative_to(ROOT)),
+                 "unintel_n": len(unintelligible_segments(transcript))}
         else:
             r = process(session, args.min_gap, args.hc_threshold,
                         write_html=True, regenerate_baseline=args.regenerate_baseline)
@@ -590,6 +663,7 @@ def main():
         print(f"  ≥{args.hc_threshold}s: {r['t10']['story_n']:>3} story / "
               f"{r['t10']['whole_n']:>3} whole gaps · "
               f"{r['t10']['story_s']:.1f}s story / {r['t10']['whole_s']:.1f}s whole")
+        print(f"  [unintelligible] placeholders (coverage, not #13): {r.get('unintel_n', '?')}")
         print(f"  html:  {r['written']}")
         print(f"  check: {r.get('simple', '—')}")
 
