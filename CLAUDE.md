@@ -194,7 +194,7 @@ Exact diffs live in git history; decision context lives in Linear.
 
 ## Linear Handoff Protocol
 
-Linear handles task tracking for most TMAS work. **The EMP (Evals Mini Project) is an exception: it is doc-canonical via `/Users/choksi/dev/reference/career-build/emp.md`** — no parallel Linear maintenance during in-progress work. Create a Linear ticket for EMP work only at ship-time, when the write-up is ready for Desktop review.
+Linear handles task tracking for most TMAS work. **The EMP (Evals Mini Project) is an exception: it is doc-canonical via `/Users/choksi/dev/reference/career-build/emp.md`** — no parallel Linear maintenance during in-progress work. Create a Linear ticket for EMP work only at ship-time, when the write-up is ready to ship.
 
 For all other TMAS work:
 
@@ -207,12 +207,10 @@ For all other TMAS work:
 **When implementation is complete — in this order:**
 1. Add a comment to the ticket with:
    - **Outcome:** What was built, what changed, key results
-   - **Surfaced:** Surprises, decisions made, open questions, anything Desktop needs to know
+   - **Surfaced:** Surprises, decisions made, open questions, anything worth flagging in review
 2. Move ticket to **In Review**
 
-The comment is a briefing for Desktop's review — write it first so Desktop can review with full context. A ticket moved to In Review without this comment is incomplete.
-
-**Never** go directly from In Progress to Done. Always go through In Review — Desktop closes tickets after review.
+The comment is the briefing for Choksi's review — write it first so the review has full context. A ticket moved to In Review without this comment is incomplete. **Choksi** reviews and closes the ticket; there is no Desktop hand-off. **Never** move a ticket straight from In Progress to Done — always go through In Review first.
 
 **Ticket description format:**
 ```
