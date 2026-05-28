@@ -126,6 +126,15 @@ def mmss_grid(t):
     return f"{m}:{s:02d}"
 
 
+def speaker_label(spk):
+    """'SPEAKER_03' -> 'Speaker 3' for the plain view; pass through otherwise."""
+    if spk and spk.startswith("SPEAKER_"):
+        tail = spk.split("_", 1)[1]
+        if tail.isdigit():
+            return f"Speaker {int(tail)}"
+    return spk or "?"
+
+
 # --- data loading ------------------------------------------------------------
 def load_session(session_id):
     sdir = get_session_dir(ROOT / "sessions", session_id)
@@ -354,6 +363,89 @@ def render_html(session, transcript, diarization, gaps, story_end, min_gap):
     return "\n".join(out)
 
 
+def render_simple_html(session, transcript, gaps, story_end, hc):
+    """A plain, human-checkable view of the high-confidence gaps.
+
+    One card per gap, each with a Play button that seeks the audio to a second
+    before the gap and plays it — so a reviewer can confirm by ear that a voice
+    really is there. Far simpler than the full timeline view.
+    """
+    e = html.escape
+
+    def lab(t):
+        m, s = divmod(int(t), 60)
+        return f"{m}:{s:02d}"
+
+    in_scope = [g for g in gaps
+                if g["dur"] >= hc and (story_end is None or g["start"] < story_end)]
+    total_s = sum(g["dur"] for g in in_scope)
+
+    out = []
+    out.append('<!doctype html><html><head><meta charset="utf-8">')
+    out.append(f"<title>{e(session['name'])} — gaps to check</title><style>")
+    out.append("body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+               "max-width:760px;margin:40px auto;padding:0 20px;color:#1a1a1a;line-height:1.5}")
+    out.append("h1{font-size:22px;margin:0 0 4px}.sub{color:#666;font-size:14px;margin-bottom:22px}")
+    out.append(".explain{background:#f5f7fa;border:1px solid #e2e8f0;border-radius:10px;"
+               "padding:16px 18px;font-size:15px;margin-bottom:22px}")
+    out.append(".count{font-size:15px;color:#444;margin:0 0 16px}")
+    out.append(".gap{border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-bottom:12px;"
+               "display:flex;gap:14px;align-items:flex-start}")
+    out.append(".play{flex:none;background:#2563eb;color:#fff;border:none;border-radius:8px;"
+               "padding:10px 14px;font-size:15px;cursor:pointer}.play:hover{background:#1d4ed8}")
+    out.append(".meta{font-weight:600;font-size:15px}.ctx{color:#555;font-size:14px;margin-top:6px}")
+    out.append(".lbl{color:#99a;font-size:11px;text-transform:uppercase;letter-spacing:.04em;margin:0 4px}")
+    out.append(".blank{color:#c026d3;font-weight:600}")
+    out.append("audio{width:100%;margin-bottom:6px}.note{color:#888;font-size:13px;margin-top:24px}")
+    out.append("</style></head><body>")
+
+    out.append(f"<h1>{e(session['name'])}: moments to check</h1>")
+    scope_txt = ("whole session — no wind-down boundary marked"
+                 if story_end is None else f"story portion only (up to {lab(story_end)})")
+    out.append(f'<div class="sub">Session {e(session["id"])} · {scope_txt}</div>')
+
+    out.append('<div class="explain"><b>What this is.</b> Sometimes someone talks but the '
+               "transcriber writes nothing — the words just vanish, and because there's no line "
+               "in the transcript, you'd never catch it by reading. This page finds those moments "
+               "by comparing <b>who was talking</b> (the speaker detector) against <b>what got "
+               "written down</b>. Each card below is a stretch where a voice was detected but the "
+               "transcript is blank.<br><br><b>How to check one.</b> Click <b>▶ Play</b> — it "
+               "starts a second early and plays the gap. You should hear a voice, often quiet, "
+               "that isn't written anywhere. If you only hear silence or noise, that one's a "
+               "false alarm.</div>")
+
+    out.append('<audio id="aud" controls src="audio.m4a" preload="none"></audio>')
+    out.append(f'<div class="count">Showing the <b>{len(in_scope)}</b> clearest cases — each is '
+               f"≥1 second of detected talking with nothing transcribed, {total_s:.1f}s in all. "
+               "(Shorter stretches, often breath-pauses, are left out — see the detailed view.)</div>")
+
+    for g in in_scope:
+        prev_t = e((g["prev"].get("text") or "").strip()[:90]) if g["prev"] else "—"
+        next_t = e((g["next"].get("text") or "").strip()[:90]) if g["next"] else "—"
+        out.append('<div class="gap">')
+        out.append(f'<button class="play" onclick="play({g["start"]:.2f},{g["end"]:.2f})">▶ Play</button>')
+        out.append('<div>')
+        out.append(f'<div class="meta">{lab(g["start"])} → {lab(g["end"])} · '
+                   f'{g["dur"]:.1f}s · {e(speaker_label(g["speaker"]))}</div>')
+        out.append(f'<div class="ctx"><span class="lbl">before</span>"{prev_t}"'
+                   f'<span class="blank"> [nothing transcribed] </span>'
+                   f'<span class="lbl">after</span>"{next_t}"</div>')
+        out.append("</div></div>")
+
+    if not in_scope:
+        out.append('<div class="count">No gaps of 1 second or longer in scope for this session.</div>')
+
+    out.append('<div class="note">Audio is the <code>audio.m4a</code> file beside this page. '
+               "The full view — every candidate plus the timeline strips — is "
+               "<code>gap-analysis.html</code>.</div>")
+    out.append('<script>const aud=document.getElementById("aud");let timer=null;'
+               'function play(s,e){if(timer)clearTimeout(timer);'
+               'var from=Math.max(0,s-1.0);aud.currentTime=from;aud.play();'
+               'timer=setTimeout(function(){aud.pause();},(e-from+0.6)*1000);}</script>')
+    out.append("</body></html>")
+    return "\n".join(out)
+
+
 # --- orchestration -----------------------------------------------------------
 def process(session, min_gap, hc, write_html, regenerate_baseline):
     sdir, transcript, diarization = load_session(session["id"])
@@ -374,8 +466,14 @@ def process(session, min_gap, hc, write_html, regenerate_baseline):
     else:
         written = "(not written — baseline preserved)" if session.get("is_baseline") else "(skipped)"
 
+    # The plain, checkable view is a new file — no hand-made baseline to keep,
+    # so write it for every session including Moon Story.
+    simple_path = sdir / "gaps-to-check.html"
+    simple_path.write_text(render_simple_html(session, transcript, gaps, story_end, hc))
+
     return {"session": session, "story_end": story_end,
-            "t03": t03, "t10": t10, "written": written}
+            "t03": t03, "t10": t10, "written": written,
+            "simple": str(simple_path.relative_to(ROOT))}
 
 
 def validate_baseline(result):
@@ -470,10 +568,14 @@ def main():
             (sdir / "gap-analysis.html").write_text(
                 render_html(session, transcript, diarization, gaps, story_end, args.min_gap)
             )
+            (sdir / "gaps-to-check.html").write_text(
+                render_simple_html(session, transcript, gaps, story_end, args.hc_threshold)
+            )
             r = {"session": session, "story_end": story_end,
                  "t03": tally(gaps, args.min_gap, story_end),
                  "t10": tally(gaps, args.hc_threshold, story_end),
-                 "written": str((sdir / "gap-analysis.html").relative_to(ROOT))}
+                 "written": str((sdir / "gap-analysis.html").relative_to(ROOT)),
+                 "simple": str((sdir / "gaps-to-check.html").relative_to(ROOT))}
         else:
             r = process(session, args.min_gap, args.hc_threshold,
                         write_html=True, regenerate_baseline=args.regenerate_baseline)
@@ -488,7 +590,8 @@ def main():
         print(f"  ≥{args.hc_threshold}s: {r['t10']['story_n']:>3} story / "
               f"{r['t10']['whole_n']:>3} whole gaps · "
               f"{r['t10']['story_s']:.1f}s story / {r['t10']['whole_s']:.1f}s whole")
-        print(f"  html: {r['written']}")
+        print(f"  html:  {r['written']}")
+        print(f"  check: {r.get('simple', '—')}")
 
         v = validate_baseline(r)
         if v is not None:
