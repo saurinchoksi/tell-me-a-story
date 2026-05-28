@@ -14,8 +14,9 @@ import WordSpan from './WordSpan';
 import './SegmentCard.css';
 
 /**
- * The 8 EMP failure modes + NotA. Order matches the chip-row layout (1..8, N/A).
- * Tooltip text mirrors the mode names defined in emp.md.
+ * The 10 EMP failure modes + NotA. Order matches the chip-row layout (1..9, M10, N/A).
+ * Tooltip text mirrors the mode names defined in emp.md. M10 is click-only — the
+ * digit keys 1–9 and 0 are already taken (see useKeyboardShortcuts).
  */
 const AXIAL_CHIPS: Array<{ code: AxialCode; label: string; title: string }> = [
   { code: 'M1', label: '1', title: 'M1 — Wrong words on real speech' },
@@ -27,6 +28,7 @@ const AXIAL_CHIPS: Array<{ code: AxialCode; label: string; title: string }> = [
   { code: 'M7', label: '7', title: 'M7 — Word at the wrong timestamp' },
   { code: 'M8', label: '8', title: 'M8 — Non-speech marked as unintelligible' },
   { code: 'M9', label: '9', title: 'M9 — Name mistranscription' },
+  { code: 'M10', label: '10', title: 'M10 — Broken-Whisper stretch (one event per filler-loop region)' },
   { code: 'NotA', label: 'N/A', title: 'None of the above (clean segment or unmapped failure)' },
 ];
 

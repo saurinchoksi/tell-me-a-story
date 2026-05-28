@@ -178,6 +178,12 @@
   border-color: var(--color-text-muted);
 }
 
+/* M10 (broken-Whisper stretch) is high-severity — selected chip uses the error color */
+.axial-chip-m10.axial-chip-selected {
+  background: var(--color-error);
+  border-color: var(--color-error);
+}
+
 /* Visual cue for unlabeled segments — subtle dotted bottom border on the chip row */
 .segment-card.segment-unlabeled .segment-axial-chips {
   border-bottom: 1px dotted var(--color-border);

@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-05-28 — A stuck-transcriber stretch now counts as one failure, not dozens
+
+When the transcriber gets stuck it writes the same little word — "Hmm.", "Right." — over and over across a run of segments, sometimes burying real speech underneath, and tagging each one separately made a single broken moment look like dozens of failures. A new, tenth failure mode now marks the whole stretch once and folds the repeats away, while the real lines caught in the middle are left untouched. Reading the labels closely turned up two more of these loops than we knew about, both hiding in a session that had been reviewed past the end of its story.
+
 ## 2026-05-21 — The validator got friendlier for axial coding
 
 To make axial coding transcript failures more friendly, the validator tool received the following upgrades:
