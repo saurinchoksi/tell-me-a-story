@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-05-28 — Finding the speech that never made it onto the page
+
+When someone speaks but the transcriber writes nothing at all, there's no line for a reviewer to flag, so counting by hand never sees it. A new pass lays who was talking against what got written down across all five reviewed recordings and lists every stretch that fell through, at both a strict and a loose cutoff. The longest, busiest session held far more of these silent drops than the rest — over a minute of speech with no trace at all — which a count built only from what's on the page would have badly understated.
+
 ## 2026-05-28 — A stuck-transcriber stretch now counts as one failure, not dozens
 
 When the transcriber gets stuck it writes the same little word — "Hmm.", "Right." — over and over across a run of segments, sometimes burying real speech underneath, and tagging each one separately made a single broken moment look like dozens of failures. A new, tenth failure mode now marks the whole stretch once and folds the repeats away, while the real lines caught in the middle are left untouched. Reading the labels closely turned up two more of these loops than we knew about, both hiding in a session that had been reviewed past the end of its story.
