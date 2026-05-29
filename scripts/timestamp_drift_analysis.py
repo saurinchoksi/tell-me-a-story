@@ -520,6 +520,10 @@ def render_simple_html(session, analysis, story_end, cap=100):
         m, s = divmod(int(t), 60)
         return f"{m}:{s:02d}"
 
+    def mmss_ms(t):
+        m, s = divmod(float(t), 60)
+        return f"{int(m)}:{s:06.3f}"
+
     cands = [r for r in analysis["records"]
              if r["category"] in CHECK
              and (story_end is None or r["start"] < story_end)]
@@ -544,7 +548,11 @@ def render_simple_html(session, analysis, story_end, cap=100):
     out.append(".reason{font-size:14px;margin-top:4px}.tag{font-size:11px;text-transform:uppercase;"
                "letter-spacing:.04em;padding:2px 7px;border-radius:4px;color:#fff}")
     out.append(".here{background:#fde68a;font-weight:600;padding:0 3px;border-radius:3px}")
-    out.append("audio{width:100%;margin-bottom:6px}.note{color:#888;font-size:13px;margin-top:24px}")
+    out.append(".player{position:sticky;top:0;background:#fff;padding:12px 0 10px;margin-bottom:14px;"
+               "z-index:10;border-bottom:1px solid #e2e8f0}")
+    out.append("audio{width:100%;margin-bottom:4px;display:block}")
+    out.append(".now{font-variant-numeric:tabular-nums;font-size:15px;color:#2563eb;font-weight:700}")
+    out.append(".note{color:#888;font-size:13px;margin-top:24px}")
     out.append("</style></head><body>")
 
     out.append(f"<h1>{e(session['name'])}: timestamps to check</h1>")
@@ -561,7 +569,8 @@ def render_simple_html(session, analysis, story_end, cap=100):
                "plays through the word's claimed time. If you do NOT hear that word right there, the "
                "timestamp drifted. If you DO hear it, it's a false alarm.</div>")
 
-    out.append('<audio id="aud" controls src="audio.m4a" preload="none"></audio>')
+    out.append('<div class="player"><audio id="aud" controls src="audio.m4a" preload="none"></audio>'
+               '<div class="now">▶ playing at <span id="nowt">0:00.000</span></div></div>')
     cap_note = "" if total <= cap else f" (of {total} — showing the {cap} highest-confidence)"
     out.append(f'<div class="count">Showing <b>{len(shown)}</b> words whose timestamp looks '
                f"clearly wrong{cap_note}.</div>")
@@ -584,7 +593,7 @@ def render_simple_html(session, analysis, story_end, cap=100):
         out.append('<div class="card">')
         out.append(f'<button class="play" onclick="play({r["start"]:.2f},{r["end"]:.2f})">▶ Play</button>')
         out.append('<div>')
-        out.append(f'<div class="meta">"{e(word) or "·"}" — claims {mmss(r["start"])} → {mmss(r["end"])} '
+        out.append(f'<div class="meta">"{e(word) or "·"}" — claims {mmss_ms(r["start"])} → {mmss_ms(r["end"])} '
                    f'<span class="tag" style="background:{CAT_COLOR[r["category"]]}">'
                    f'{CAT_LABEL[r["category"]]}</span></div>')
         out.append(f'<div class="reason">{reason}</div>')
@@ -596,10 +605,19 @@ def render_simple_html(session, analysis, story_end, cap=100):
 
     out.append('<div class="note">Audio is the <code>audio.m4a</code> beside this page. The full '
                "view — every word plus the timeline strips — is <code>timestamp-drift.html</code>.</div>")
-    out.append('<script>const aud=document.getElementById("aud");let timer=null;'
+    out.append('<script>'
+               'const aud=document.getElementById("aud"),nowt=document.getElementById("nowt");'
+               'let timer=null,raf=null;'
+               'function fmt(t){var m=Math.floor(t/60),s=t-m*60;return m+":"+(s<10?"0":"")+s.toFixed(3);}'
+               'function tick(){nowt.textContent=fmt(aud.currentTime);raf=requestAnimationFrame(tick);}'
+               'aud.addEventListener("play",function(){if(!raf)tick();});'
+               'aud.addEventListener("pause",function(){if(raf){cancelAnimationFrame(raf);raf=null;}'
+               'nowt.textContent=fmt(aud.currentTime);});'
+               'aud.addEventListener("seeked",function(){nowt.textContent=fmt(aud.currentTime);});'
                'function play(s,e){if(timer)clearTimeout(timer);'
                'var from=Math.max(0,s-1.0);aud.currentTime=from;aud.play();'
-               'timer=setTimeout(function(){aud.pause();},(e-from+0.6)*1000);}</script>')
+               'timer=setTimeout(function(){aud.pause();},(e-from+0.6)*1000);}'
+               '</script>')
     out.append("</body></html>")
     return "\n".join(out)
 
