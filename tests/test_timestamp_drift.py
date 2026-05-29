@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 from timestamp_drift_analysis import (  # noqa: E402
     CHUNK_SEC,
     classify_word,
+    is_filler_word,
     m10_filler_ids,
     session_floor,
     speaker_coverage,
@@ -125,3 +126,13 @@ def test_m10_filler_ids_folds_only_in_range_filler_segments():
 def test_m10_filler_ids_empty_for_session_without_stretches():
     transcript = {"segments": [{"id": 1, "text": "Hmm.", "start": 0, "end": 1}]}
     assert m10_filler_ids(transcript, "00000000-000000") == set()
+
+
+def test_is_filler_word_normalizes_punctuation_and_case():
+    # the residuals Choksi flagged, plus the dash-prefixed "-hmm." an earlier
+    # regex missed — all should read as filler (review aid; never excludes)
+    for w in ["Hmm.", "-hmm.", "Mm", "Huh?", "um,", "Yeah.", "Right.", "Uh", "OH"]:
+        assert is_filler_word(w), w
+    # real content words must not be flagged
+    for w in ["moon", "and", "the", "milk", "ducky", ""]:
+        assert not is_filler_word(w), w

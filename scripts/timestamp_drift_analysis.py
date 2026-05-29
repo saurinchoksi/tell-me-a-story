@@ -65,6 +65,7 @@ Examples:
 
 import argparse
 import html
+import re
 import sys
 from pathlib import Path
 
@@ -131,6 +132,27 @@ CAT_LABEL = {
 
 def _clip(x, lo, hi):
     return max(lo, min(hi, x))
+
+
+# Backchannels / filler vocalizations. A drifted candidate whose word is one of
+# these is *suspect*: more likely a non-speech sound rendered as a word (Mode 2)
+# or an unmarked filler loop than a genuinely mistimed real word. Used ONLY to
+# float these to the top of the check page for an ear pass — never to change the
+# count. The ear decides; a text pattern must not silently drop anything.
+FILLER_WORDS = {
+    "hmm", "hm", "hmmm", "mm", "mmm", "mhm", "mmhm", "mmhmm", "mhmm",
+    "uh", "uhh", "uhhuh", "um", "umm", "er", "err", "oh", "ohh",
+    "ah", "ahh", "huh", "yeah", "yep", "yup", "right", "ok", "okay",
+}
+
+
+def is_filler_word(word):
+    """True if a word is a backchannel/filler vocalization (review aid only).
+
+    Normalizes by lowercasing and dropping non-letters, so "-hmm." -> "hmm" and
+    "Huh?" -> "huh" both match.
+    """
+    return re.sub(r"[^a-z]", "", (word or "").lower()) in FILLER_WORDS
 
 
 # --- audio → loudness --------------------------------------------------------
@@ -533,7 +555,11 @@ def render_simple_html(session, analysis, story_end, cap=100):
                "padding:16px 18px;font-size:15px;margin-bottom:22px}")
     out.append(".count{font-size:15px;color:#444;margin:0 0 16px}")
     out.append(".card{border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-bottom:12px;"
-               "display:flex;gap:14px;align-items:flex-start}")
+               "background:#fff;display:flex;gap:14px;align-items:flex-start}")
+    out.append(".suspect{background:#fff7ed;border:1px solid #fdba74;border-radius:12px;"
+               "padding:16px 18px;margin-bottom:24px}")
+    out.append(".shead{font-size:17px;font-weight:800;color:#c2410c;margin:0 0 6px}")
+    out.append(".snote{font-size:14px;color:#7c2d12;margin-bottom:14px}")
     out.append(".play{flex:none;background:#2563eb;color:#fff;border:none;border-radius:8px;"
                "padding:10px 14px;font-size:15px;cursor:pointer}.play:hover{background:#1d4ed8}")
     out.append(".meta{font-weight:600;font-size:15px}.ctx{color:#555;font-size:14px;margin-top:6px}")
@@ -556,17 +582,20 @@ def render_simple_html(session, analysis, story_end, cap=100):
                "start and end time, but Whisper guesses those times rather than measuring them, so "
                "they drift. This page lists the words whose time looks <b>clearly wrong</b>: the spot "
                "is near-silent while the word's real sound is loud right beside it. "
+               "<b>Filler-shaped words</b> (\"Hmm.\", \"Huh?\") are pulled into a flagged box at the "
+               "top — those are the likeliest false alarms, worth checking first. "
                "<br><br><b>How to check one.</b> Click <b>▶ Play</b> — it starts a second early and "
                "plays through the word's claimed time. If you do NOT hear that word right there, the "
                "timestamp drifted. If you DO hear it, it's a false alarm.</div>")
 
     out.append('<div class="player"><audio id="aud" controls src="audio.m4a" preload="none"></audio>'
                '<div class="now">▶ playing at <span id="nowt">0:00.000</span></div></div>')
-    cap_note = "" if total <= cap else f" (of {total} — showing the {cap} highest-confidence)"
-    out.append(f'<div class="count">Showing <b>{len(shown)}</b> words whose timestamp looks '
-               f"clearly wrong{cap_note}.</div>")
 
-    for r in shown:
+    suspect = [r for r in shown if is_filler_word(r["word"])]
+    rest = [r for r in shown if not is_filler_word(r["word"])]
+    cap_note = "" if total <= cap else f" (of {total} — showing the {cap} highest-confidence)"
+
+    def card(r):
         seg = by_seg.get(r["seg_id"])
         text = (seg.get("text") or "").strip() if seg else ""
         word = r["word"]
@@ -575,15 +604,43 @@ def render_simple_html(session, analysis, story_end, cap=100):
             ctx = e(text[:120]).replace(e(word), f'<span class="here">{e(word)}</span>', 1)
         reason = ("The audio at this timestamp is near-silent, but the word's real sound is "
                   "loud just beside it — the timestamp drifted off the actual word.")
-        out.append('<div class="card">')
-        out.append(f'<button class="play" onclick="play({r["start"]:.2f},{r["end"]:.2f})">▶ Play</button>')
-        out.append('<div>')
-        out.append(f'<div class="meta">"{e(word) or "·"}" — claims {mmss_ms(r["start"])} → {mmss_ms(r["end"])} '
-                   f'<span class="tag" style="background:{CAT_COLOR[r["category"]]}">'
-                   f'{CAT_LABEL[r["category"]]}</span></div>')
-        out.append(f'<div class="reason">{reason}</div>')
-        out.append(f'<div class="ctx">in: "{ctx}"</div>')
-        out.append("</div></div>")
+        rows = ['<div class="card">']
+        rows.append(f'<button class="play" onclick="play({r["start"]:.2f},{r["end"]:.2f})">▶ Play</button>')
+        rows.append('<div>')
+        rows.append(f'<div class="meta">"{e(word) or "·"}" — claims {mmss_ms(r["start"])} → '
+                    f'{mmss_ms(r["end"])} <span class="tag" style="background:{CAT_COLOR[r["category"]]}">'
+                    f'{CAT_LABEL[r["category"]]}</span></div>')
+        rows.append(f'<div class="reason">{reason}</div>')
+        rows.append(f'<div class="ctx">in: "{ctx}"</div>')
+        rows.append("</div></div>")
+        return "\n".join(rows)
+
+    out.append(f'<div class="count">Showing <b>{len(shown)}</b> words whose timestamp looks '
+               f"clearly wrong{cap_note}"
+               + (f" — <b>{len(suspect)}</b> are filler-shaped and pulled to the top to check first."
+                  if suspect else "")
+               + "</div>")
+
+    # Suspect filler-shaped words first — these may not be drift at all.
+    if suspect:
+        out.append('<div class="suspect">')
+        out.append(f'<div class="shead">⚠ Check these first — {len(suspect)} filler-shaped words</div>')
+        out.append('<div class="snote">Each of these flagged words is a backchannel or filler sound '
+                   '("Hmm.", "Huh?", "Yeah."). They may not be timing drift at all — often the '
+                   'transcriber laid a filler word over a non-speech sound (a different problem), or '
+                   "it's a short loop we haven't marked. <b>Listen:</b> if the word isn't actually "
+                   "spoken at that moment, it isn't drift and can come out of the count.</div>")
+        for r in suspect:
+            out.append(card(r))
+        out.append("</div>")
+
+    # The rest — genuine-looking timestamp drift.
+    if rest:
+        if suspect:
+            out.append('<div class="count" style="margin-top:8px"><b>'
+                       f'{len(rest)}</b> more — these look like real timestamp drift.</div>')
+        for r in rest:
+            out.append(card(r))
 
     if not shown:
         out.append('<div class="count">No clearly-wrong timestamps in scope for this session.</div>')
