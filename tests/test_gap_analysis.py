@@ -1,16 +1,16 @@
-"""Unit tests for the pure interval logic in scripts/gap_analysis.py.
+"""Unit tests for the pure interval logic in emp/src/gap_analysis.py.
 
 The Moon Story reproduction (all 90 original gaps; >=1.0s floor of 4 / 9.7s) is
 the integration test, run via the script itself. These cover the interval math
 that underpins it — the part most likely to break under a future edit.
 
-scripts/ isn't on pytest's pythonpath (which is [".", "src"]), so add it here.
+emp/src/ isn't on pytest's pythonpath (which is [".", "src"]), so add it here.
 """
 
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "emp" / "src"))
 
 from gap_analysis import (  # noqa: E402
     merge_intervals,

@@ -17,10 +17,10 @@ Sanity-checks invariants (no M1–M8 count change, no segmentId dropped, M9 and
 entry counts strictly non-decreasing) and aborts if anything looks off.
 
 Examples:
-    python scripts/populate_mode9.py 20260117-202237 \\
+    python emp/src/populate_mode9.py 20260117-202237 \\
         Duryodhan Yudhisthir Pondavas Dhrashtra
 
-    python scripts/populate_mode9.py 20251210-203654 \\
+    python emp/src/populate_mode9.py 20251210-203654 \\
         Artie "Artie's" Arthie "Arthie's"
 """
 
@@ -33,7 +33,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from api.helpers import get_session_dir  # noqa: E402

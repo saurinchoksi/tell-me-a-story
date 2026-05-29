@@ -1,10 +1,10 @@
-"""Unit tests for the pure logic in scripts/timestamp_drift_analysis.py.
+"""Unit tests for the pure logic in emp/src/timestamp_drift_analysis.py.
 
 The acoustic/diarization signals and the category decision tree are the parts
 most likely to break under a future edit; the full per-session run (which loads
 audio) is the integration test, driven by the script itself.
 
-scripts/ isn't on pytest's pythonpath (which is [".", "src"]), so add it here.
+emp/src/ isn't on pytest's pythonpath (which is [".", "src"]), so add it here.
 """
 
 import sys
@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "emp" / "src"))
 
 from timestamp_drift_analysis import (  # noqa: E402
     CHUNK_SEC,

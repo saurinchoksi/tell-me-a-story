@@ -28,8 +28,8 @@ Stretches (surfaced during the count, all verified by ear 2026-05-28):
   New Rec 60  20260129-204404 : Right. 280-334
 
 Usage:
-    python scripts/populate_mode10.py            # dry-run: print the diff
-    python scripts/populate_mode10.py --write     # commit (validator closed)
+    python emp/src/populate_mode10.py            # dry-run: print the diff
+    python emp/src/populate_mode10.py --write     # commit (validator closed)
 """
 
 import argparse
@@ -40,7 +40,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from api.helpers import get_session_dir  # noqa: E402

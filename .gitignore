@@ -36,3 +36,6 @@ data/speaker_profiles.json
 # Experiments (scripts run locally, results are generated output)
 experiments/
 
+
+# EMP per-session HTML visuals (contain transcript text)
+emp/results/visuals/

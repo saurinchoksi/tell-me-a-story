@@ -147,7 +147,7 @@ Word-level timestamps in transcript enable future caption sync (audio plays, wor
 
 ## Data File Schemas
 
-The field names that matter when reading session data (the gotchas below have cost real time — `scripts/emp_count.py` is a worked read of all of these):
+The field names that matter when reading session data (the gotchas below have cost real time — `emp/src/count.py` is a worked read of all of these):
 
 - **`axial-labels.json`** — EMP failure-mode coding; **present only on coded sessions**. Shape: `{"labels": [ {segmentId, codes, createdAt, updatedAt}, ... ]}`.
   - `codes` is a **list** of mode tags (`"M1"`–`"M10"` or `"NotA"`) — *not* a single `mode` string. A segment may carry several (e.g. `["M1","M9"]`); count each.
@@ -159,7 +159,9 @@ The field names that matter when reading session data (the gotchas below have co
 - **`diarization.json`** — pyannote speaker segments (speaker label + start/end).
 - **`data/mahabharata.json`** — proper-noun reference. Shape: `{_version, _description, entries: [...]}`; each entry has a `canonical` spelling plus `variants` / `aliases` lists. Build a name set from canonical + variants + aliases.
 
-**Session IDs are date-stamped (`YYYYMMDD-HHMMSS`)**, not hex — there are no hex-named session dirs. The five EMP-coded sessions are mapped to their story names at the top of `reference/career-build/emp.md`'s "Count result" section.
+**Session IDs are date-stamped (`YYYYMMDD-HHMMSS`)**, not hex — there are no hex-named session dirs. The five EMP-coded sessions are mapped to their story names at the top of `reference/career-build/emp.md`'s "Count result" section. 
+
+**EMP tooling and outputs live under `emp/`:** `emp/src/` holds the analysis scripts (run from the repo root, e.g. `python emp/src/count.py`); `emp/results/` holds the committed outputs (`pivot.html` and the two sweep summaries). Per-session visual HTMLs go to `emp/results/visuals/<id>/` (gitignored — transcript text).
 
 ## Import Convention
 
