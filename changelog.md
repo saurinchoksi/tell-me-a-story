@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-05-28 — Checking whether each word lands where it was actually spoken
+
+Every word in a transcript carries a start and end time, but the transcriber guesses those rather than measuring them, so they drift — and by ear you can only catch the worst few. A new pass weighs each word's claimed moment against the actual sound across all five reviewed recordings and flags the clear misses: a near-silent spot with the real word audible right beside it, or a place where a different person is heard than the rest of the sentence. The longest recording held about a hundred such words against the dozen-or-so a person could catch by ear, confirming the true rate is several times what hand-counting shows — while quiet-but-real speech and isolated noises are held aside as separate problems so the count stays honest.
+
 ## 2026-05-28 — Finding the speech that never made it onto the page
 
 When someone speaks but the transcriber writes nothing at all, there's no line for a reviewer to flag, so counting by hand never sees it. A new pass lays who was talking against what got written down across all five reviewed recordings and lists every stretch that fell through, at both a strict and a loose cutoff. The longest, busiest session held far more of these silent drops than the rest — over a minute of speech with no trace at all — which a count built only from what's on the page would have badly understated.
