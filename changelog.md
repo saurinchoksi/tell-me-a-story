@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-05-29 — Evals project files gathered into one folder
+
+The scattered evals scripts and result files now live under one top-level folder, and the failure-mode counts render as a standalone page; the recordings and coding files stayed where they were.
+
 ## 2026-05-28 — Checking whether each word lands where it was actually spoken
 
 Every word in a transcript carries a start and end time, but the transcriber guesses those rather than measuring them, so they drift — and by ear you can only catch the worst few. A new pass weighs each word's claimed moment against the actual sound across all five reviewed recordings and flags the clear misses: a near-silent spot at the claimed time with the real word audible right beside it. Even after setting aside everything that's really a different problem — filler-word loops, hallucinations, and wrong-speaker or wrong-word lines already marked elsewhere — the longest recording still held dozens of genuine cases against the handful catchable by ear, confirming the true rate is several times what hand-counting shows. The lesson that kept recurring through the build: cross-check the transcript against the sound and against the notes already taken, so each problem is counted once and nothing masquerades as a timing error.
