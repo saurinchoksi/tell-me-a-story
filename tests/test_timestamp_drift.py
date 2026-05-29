@@ -17,7 +17,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 from timestamp_drift_analysis import (  # noqa: E402
     CHUNK_SEC,
     classify_word,
-    segment_speaker,
     session_floor,
     speaker_coverage,
     window_loudness,
@@ -63,18 +62,19 @@ def test_speaker_coverage_fractions():
 
 # threshold for these: loud >= -33 dBFS (floor -45 + margin 12)
 THR = -33.0
-# classify_word(loud_db, threshold_db, total_frac, attributed, context_speaker, loud_nearby)
+# classify_word(loud_db, threshold_db, total_frac, loud_nearby)
 
 
-def test_classify_ok_when_loud_and_consistent_with_sentence():
-    v = classify_word(-15.0, THR, 0.9, "SPEAKER_00", "SPEAKER_00", loud_nearby=True)
+def test_classify_ok_when_loud():
+    # loud enough to hold a word -> it is plainly there
+    v = classify_word(-15.0, THR, 0.9, loud_nearby=True)
     assert v["category"] == "ok"
     assert v["score"] == 0.0
 
 
 def test_classify_drifted_when_quiet_empty_but_real_word_is_next_door():
     # quiet here, nobody here, BUT loud audio just beside it -> the clean drift case
-    v = classify_word(-45.0, THR, 0.0, "SPEAKER_00", "SPEAKER_00", loud_nearby=True)
+    v = classify_word(-45.0, THR, 0.0, loud_nearby=True)
     assert v["category"] == "drifted"
     assert v["score"] >= 0.6
 
@@ -82,56 +82,23 @@ def test_classify_drifted_when_quiet_empty_but_real_word_is_next_door():
 def test_classify_isolated_when_quiet_empty_and_nothing_loud_nearby():
     # quiet, nobody, and no loud neighbour -> no word at all (≈hallucination),
     # held OUT of the headline floor.
-    v = classify_word(-45.0, THR, 0.0, "SPEAKER_00", "SPEAKER_00", loud_nearby=False)
+    v = classify_word(-45.0, THR, 0.0, loud_nearby=False)
     assert v["category"] == "isolated"
     assert 0.4 <= v["score"] <= 0.6
 
 
-def test_classify_wrong_speaker_when_word_disagrees_with_its_sentence():
-    # loud, but attributed to a different speaker than the rest of the sentence
-    v = classify_word(-14.0, THR, 1.0, "SPEAKER_01", "SPEAKER_00", loud_nearby=True)
-    assert v["category"] == "wrong_speaker"
-    assert v["score"] >= 0.6
-
-
 def test_classify_quiet_ambiguous_is_held_out_of_the_floor():
     # quiet BUT a speaker is present -> maybe real quiet speech (#13), ambiguous
-    v = classify_word(-44.0, THR, 0.8, "SPEAKER_00", "SPEAKER_00", loud_nearby=False)
+    v = classify_word(-44.0, THR, 0.8, loud_nearby=False)
     assert v["category"] == "quiet_ambiguous"
     assert 0.3 <= v["score"] <= 0.5
 
 
-def test_classify_loud_consistent_word_is_ok_even_with_no_diarization():
-    # loud, no speaker detected, but it agrees with its sentence (or has no rival):
-    # the word is plainly there -> a diarization gap, not drift.
-    v = classify_word(-12.0, THR, 0.0, "SPEAKER_00", "SPEAKER_00", loud_nearby=True)
+def test_classify_loud_word_is_ok_even_with_no_diarization():
+    # loud but no speaker detected: the word is plainly there -> a diarization
+    # gap, not a drifted timestamp.
+    v = classify_word(-12.0, THR, 0.0, loud_nearby=True)
     assert v["category"] == "ok"
-
-
-def test_classify_unattributed_word_never_called_wrong_speaker():
-    # a word with no attributed speaker can't disagree with its sentence
-    v = classify_word(-14.0, THR, 0.95, None, "SPEAKER_00", loud_nearby=True)
-    assert v["category"] != "wrong_speaker"
-
-
-def test_segment_speaker_is_the_clear_word_majority():
-    words = [
-        {"_speaker": {"label": "SPEAKER_00"}},
-        {"_speaker": {"label": "SPEAKER_00"}},
-        {"_speaker": {"label": "SPEAKER_01"}},  # the lone outlier (2:1 = 67%)
-        {"_speaker": None},                      # unlabelled words don't vote
-        {},
-    ]
-    assert segment_speaker(words) == "SPEAKER_00"
-    assert segment_speaker([{"_speaker": None}, {}]) is None
-    assert segment_speaker([]) is None
-
-
-def test_segment_speaker_none_when_no_clear_majority():
-    # a 1:1 split is real turn-taking Whisper merged, not a sentence with an
-    # owner — so there's nobody to disagree with, and no wrong-speaker flag.
-    balanced = [{"_speaker": {"label": "A"}}, {"_speaker": {"label": "B"}}]
-    assert segment_speaker(balanced) is None
 
 
 def test_session_floor_is_a_margin_above_the_percentile():

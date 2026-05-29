@@ -15,19 +15,12 @@ For each word in transcript-rich.json it asks a few plain questions:
   2. Is *anyone* detected speaking in that window?  (diarization presence)
   3. If the window is quiet and empty, is the word's real audio just *next door*?
      (loud audio within ~0.75s means the stamp drifted off a word that exists.)
-  4. Does the word's attributed speaker match the rest of its *sentence*? A word
-     attributed to a different speaker than its sentence-mates has a stamp that
-     slid into someone else's turn. (Compared against the sentence, not against
-     the word's own diarization overlap — which is what assigned its label, so
-     comparing to it would be circular.)
 
 A word is sorted into one of:
 
   * "drifted"        — quiet and empty here, but loud audio sits right beside the
                        window. The word exists; its timestamp slid off it. The
                        clean Mode 7 case.
-  * "wrong speaker"  — loud, but the speaker here disagrees with the rest of the
-                       word's sentence. The stamp slid into another person's turn.
   * "isolated"       — quiet, empty, AND nothing loud anywhere near. There is no
                        word here at all — more likely a hallucination than a
                        drifted stamp, i.e. a DIFFERENT failure mode, so it is held
@@ -39,15 +32,20 @@ A word is sorted into one of:
                        TMAS-44), NOT timestamp drift, so it is kept OUT of the
                        headline floor — by design, so Mode 7 and #13 don't
                        double-count.
-  * "ok"             — loud and consistent with its sentence (the word is plainly
-                       there; a loud spot the detector didn't label is a
-                       diarization gap, not drift).
+  * "ok"             — loud enough to hold a word (it is plainly there; a loud
+                       spot the detector didn't label is a diarization gap, not
+                       drift).
 
-The headline "Mode 7 floor" is "drifted" alone — the case provable from the
-waveform itself. "wrong speaker" is reported alongside as a related but noisier
-signal (it leans on diarization labels, so it mixes true drift with plain
-diarization mislabels), NOT summed into the floor. The isolated and
-quiet/maybe-real buckets are likewise reported but held out.
+The headline "Mode 7 floor" is "drifted" — the case provable from the waveform
+itself. The isolated and quiet/maybe-real buckets are reported alongside but
+held out, so the floor stays to what the audio alone can prove.
+
+A "wrong-speaker" check (flagging a word whose speaker label disagreed with the
+rest of its sentence) was tried and removed: spot-checking showed it was not
+catching drift at all, but the diarizer splitting ONE storyteller into several
+speaker labels — character voices especially read as different speakers. That
+is a diarization-granularity issue, a different failure mode, so it does not
+belong in a timestamp-drift tool.
 
 Sibling of gap_analysis.py (TMAS-44): same session list, same output trio
 (per-session timeline HTML + a plain "drift-to-check" view + a cross-session
@@ -68,7 +66,6 @@ Examples:
 import argparse
 import html
 import sys
-from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -91,7 +88,6 @@ from gap_analysis import (  # noqa: E402
     mmss_grid,
     real_segments,
     seg_end_time,
-    speaker_label,
 )
 
 # --- tunable thresholds ------------------------------------------------------
@@ -102,30 +98,24 @@ DEFAULT_NOISE_PCT = 20       # the dBFS at this percentile estimates the quiet f
 DEFAULT_QUIET_MARGIN = 12    # dB above the floor a word window must reach to be "loud"
 DEFAULT_EMPTY_FRAC = 0.10    # below this diarization coverage, nobody is talking
 DEFAULT_NEIGHBOR_SEC = 0.75  # how far beside the window to look for the word's real audio
-DEFAULT_MAJORITY_FRAC = 0.65 # one speaker must own this share of a segment to be its "sentence owner"
 QUIET_RANGE_DB = 15.0        # dB past the loud threshold that maps to full confidence
 
 # --- categories --------------------------------------------------------------
 # Drift is judged with signals independent of how Whisper set the timestamp: the
-# raw loudness in and beside the window, and whether the word's speaker matches
-# the rest of its sentence (not its own diarization overlap, which is circular).
+# raw loudness in the claimed window and just beside it.
 FLOOR = ("drifted",)              # the clean, acoustically-provable Mode 7 floor (silence here, real word beside it)
-ADJACENT = ("wrong_speaker",)     # real but noisier (entangles diarization mislabels) — reported, NOT summed into the floor
 ISOLATED = ("isolated",)          # quiet with nothing loud near — likely a DIFFERENT mode (hallucination)
 AMBIGUOUS = ("quiet_ambiguous",)  # quiet but a speaker is present — maybe real soft speech (#13)
-CHECK = FLOOR + ADJACENT          # both are worth verifying by ear in drift-to-check.html
 
 CAT_COLOR = {
     "ok": "#4caf50",
     "drifted": "#f44336",
-    "wrong_speaker": "#ff9800",
     "isolated": "#fdd835",
     "quiet_ambiguous": "#9c27b0",
 }
 CAT_LABEL = {
     "ok": "ok",
     "drifted": "drifted",
-    "wrong_speaker": "wrong speaker",
     "isolated": "isolated silence",
     "quiet_ambiguous": "quiet / maybe real",
 }
@@ -192,34 +182,26 @@ def speaker_coverage(start, end, diar_segments):
 
 
 # --- per-word classification (pure) ------------------------------------------
-def classify_word(loud_db, threshold_db, total_frac, attributed, context_speaker,
-                  loud_nearby, empty_frac=DEFAULT_EMPTY_FRAC, quiet_range=QUIET_RANGE_DB):
+def classify_word(loud_db, threshold_db, total_frac, loud_nearby,
+                  empty_frac=DEFAULT_EMPTY_FRAC, quiet_range=QUIET_RANGE_DB):
     """Sort one word into a drift category with a Mode 7 confidence score.
 
     Signals (all independent of how Whisper set the timestamp):
       loud_db      — is the claimed window loud enough to hold a word?
       total_frac   — is anyone detected speaking in the window?
       loud_nearby  — is there loud audio just outside the window (the real word)?
-      context_speaker — who the rest of this sentence is attributed to.
 
     See the module docstring for what each category means. The score is in
-    [0, 1]; the drifted and wrong-speaker categories carry the highest confidence.
+    [0, 1]; only "drifted" carries high confidence.
     """
     loud = loud_db >= threshold_db
     nobody = total_frac < empty_frac
     quietness = _clip((threshold_db - loud_db) / quiet_range, 0.0, 1.0)
-    loudness_over = _clip((loud_db - threshold_db) / quiet_range, 0.0, 1.0)
 
     if loud:
-        if attributed and context_speaker and attributed != context_speaker:
-            # At this word's time a different person is heard than the rest of
-            # its sentence — the stamp slid into someone else's turn.
-            cat, score = "wrong_speaker", _clip(0.6 + 0.4 * loudness_over, 0.6, 1.0)
-        else:
-            # Loud and consistent with its sentence (or no context to judge):
-            # the word is plainly here. A loud spot the detector didn't label
-            # is a diarization gap, not drift.
-            cat, score = "ok", 0.0
+        # Loud enough to hold a word — it is plainly here. A loud spot the
+        # detector didn't label is a diarization gap, not drift.
+        cat, score = "ok", 0.0
     elif nobody:
         if loud_nearby:
             # Quiet and empty here, but the word's real audio is right next
@@ -240,30 +222,7 @@ def classify_word(loud_db, threshold_db, total_frac, attributed, context_speaker
         "score": round(score, 3),
         "loud_db": round(loud_db, 1),
         "total_frac": round(total_frac, 3),
-        "attributed": attributed,
-        "context_speaker": context_speaker,
     }
-
-
-def segment_speaker(words, min_frac=DEFAULT_MAJORITY_FRAC):
-    """The speaker who clearly OWNS a segment, or None if no one does.
-
-    Used as an independent reference for the wrong-speaker check: a single word
-    attributed to a DIFFERENT speaker than its sentence is a sign its timestamp
-    drifted into another person's turn. Counting words (not seconds) keeps this
-    independent of the very timestamps being audited.
-
-    Requires a clear majority (>= min_frac of labelled words). A balanced segment
-    (e.g. a 1:1 "Except what?") has no owner and returns None — those are real
-    turn-taking that Whisper merged into one segment, not drift, so they must not
-    trigger a wrong-speaker flag.
-    """
-    labels = [(w.get("_speaker") or {}).get("label") for w in words]
-    labels = [lab for lab in labels if lab]
-    if not labels:
-        return None
-    spk, n = Counter(labels).most_common(1)[0]
-    return spk if n / len(labels) >= min_frac else None
 
 
 # --- session analysis --------------------------------------------------------
@@ -282,18 +241,15 @@ def analyze_session(session, noise_pct, margin, empty_frac, neighbor_sec):
     seg_rows = []
     for seg in real_segments(transcript):
         words = seg.get("words", [])
-        context_speaker = segment_speaker(words)
         seg_records = []
         for wi, word in enumerate(words):
             start, end = word["start"], word["end"]
             if end <= start:
                 continue
             _, total = speaker_coverage(start, end, diar)
-            attributed = (word.get("_speaker") or {}).get("label")
             loud_db = window_loudness(db, start, end)
             loud_nearby = window_loudness(db, start - neighbor_sec, end + neighbor_sec) >= threshold
-            verdict = classify_word(loud_db, threshold, total, attributed,
-                                    context_speaker, loud_nearby, empty_frac)
+            verdict = classify_word(loud_db, threshold, total, loud_nearby, empty_frac)
             rec = {"seg_id": seg.get("id"), "wi": wi, "start": start, "end": end,
                    "word": (word.get("word") or "").strip(), **verdict}
             records.append(rec)
@@ -316,7 +272,6 @@ def tally(records, story_end):
     def bucket(rs):
         return {
             "floor": sum(1 for r in rs if r["category"] in FLOOR),
-            "wrong_speaker": sum(1 for r in rs if r["category"] in ADJACENT),
             "isolated": sum(1 for r in rs if r["category"] in ISOLATED),
             "ambiguous": sum(1 for r in rs if r["category"] in AMBIGUOUS),
             "total": len(rs),
@@ -376,7 +331,6 @@ def render_html(session, analysis, story_end):
 
     counted = [r for r in records if story_end is None or r["start"] < story_end]
     n_floor = sum(1 for r in counted if r["category"] in FLOOR)
-    n_wrong = sum(1 for r in counted if r["category"] in ADJACENT)
     n_iso = sum(1 for r in counted if r["category"] in ISOLATED)
     n_amb = sum(1 for r in counted if r["category"] in AMBIGUOUS)
 
@@ -401,7 +355,6 @@ def render_html(session, analysis, story_end):
         f'<div style="color:#999;font-size:12px">Session {e(session["id"])} · {scope_txt} · '
         f'noise floor {noise_floor:.1f} dBFS, loud ≥ {threshold:.1f} dBFS · '
         f'<b style="color:#f55">{n_floor} drifted (Mode 7 floor)</b> · '
-        f'<b style="color:#fb0">{n_wrong} wrong-speaker (adjacent, not in floor)</b> · '
         f'<b style="color:#fd5">{n_iso} isolated (≈hallucination)</b> · '
         f'<b style="color:#c79">{n_amb} quiet / maybe-real (→ #13)</b></div>'
     )
@@ -412,8 +365,6 @@ def render_html(session, analysis, story_end):
         '"a word should be at least this loud" threshold). The middle strip is every word, '
         '<b>tinted by what we found</b>: <span style="color:#f55">red</span> = near-silent here '
         'but the real word is loud right beside it (the time <b>drifted</b> off it); '
-        '<span style="color:#fb0">orange</span> = loud, but a different person is heard than the '
-        'rest of the sentence (slid into someone else\'s turn); '
         '<span style="color:#fd5">yellow</span> = quiet with nothing loud anywhere near (no word '
         'there at all — likely a hallucination, a different problem, so not counted); '
         '<span style="color:#c8f">purple</span> = quiet but someone IS detected — maybe drift, '
@@ -422,7 +373,7 @@ def render_html(session, analysis, story_end):
     )
 
     out.append('<div class="legend" style="margin-top:14px">')
-    for cat in ("drifted", "wrong_speaker", "isolated", "quiet_ambiguous", "ok"):
+    for cat in ("drifted", "isolated", "quiet_ambiguous", "ok"):
         out.append(f'<span style="background:{CAT_COLOR[cat]};color:#000">{CAT_LABEL[cat]}</span>')
     if story_end is not None:
         out.append('<span style="background:#fff;color:#000">story end ↓</span>')
@@ -510,8 +461,7 @@ def render_simple_html(session, analysis, story_end, cap=100):
 
     One card per word, each with a Play button that seeks a second early and
     plays through — so a reviewer can confirm by ear that the word is NOT where
-    its timestamp claims. Shows the drifted and wrong-speaker words (CHECK) — the
-    floor plus its adjacent signal, both worth an ear check.
+    its timestamp claims. Shows the drifted words (the Mode 7 floor).
     """
     e = html.escape
     by_seg = {s.get("id"): s for s in analysis["transcript"]["segments"]}
@@ -525,7 +475,7 @@ def render_simple_html(session, analysis, story_end, cap=100):
         return f"{int(m)}:{s:06.3f}"
 
     cands = [r for r in analysis["records"]
-             if r["category"] in CHECK
+             if r["category"] in FLOOR
              and (story_end is None or r["start"] < story_end)]
     cands.sort(key=lambda r: r["score"], reverse=True)
     total = len(cands)
@@ -562,9 +512,8 @@ def render_simple_html(session, analysis, story_end, cap=100):
 
     out.append('<div class="explain"><b>What this is.</b> Each word in the transcript carries a '
                "start and end time, but Whisper guesses those times rather than measuring them, so "
-               "they drift. This page lists the words whose time looks <b>clearly wrong</b> — either "
-               "the spot is silent while the word's real sound is right beside it, or a different "
-               "person is heard there than the rest of the sentence. "
+               "they drift. This page lists the words whose time looks <b>clearly wrong</b>: the spot "
+               "is near-silent while the word's real sound is loud right beside it. "
                "<br><br><b>How to check one.</b> Click <b>▶ Play</b> — it starts a second early and "
                "plays through the word's claimed time. If you do NOT hear that word right there, the "
                "timestamp drifted. If you DO hear it, it's a false alarm.</div>")
@@ -582,14 +531,8 @@ def render_simple_html(session, analysis, story_end, cap=100):
         ctx = e(text[:120])
         if word and word in text:
             ctx = e(text[:120]).replace(e(word), f'<span class="here">{e(word)}</span>', 1)
-        if r["category"] == "drifted":
-            reason = ("The audio at this timestamp is near-silent, but the word's real sound is "
-                      "loud just beside it — the timestamp drifted off the actual word.")
-        else:
-            reason = (f"The rest of this sentence is {e(speaker_label(r['context_speaker']))}, but "
-                      f"at this word's timestamp the speaker detected is "
-                      f"{e(speaker_label(r['attributed']))} — the time likely slid into another "
-                      "person's speech.")
+        reason = ("The audio at this timestamp is near-silent, but the word's real sound is "
+                  "loud just beside it — the timestamp drifted off the actual word.")
         out.append('<div class="card">')
         out.append(f'<button class="play" onclick="play({r["start"]:.2f},{r["end"]:.2f})">▶ Play</button>')
         out.append('<div>')
@@ -629,23 +572,21 @@ def build_summary(results, noise_pct, margin):
     lines.append("")
     lines.append("Whisper guesses each word's start/end time instead of measuring it, so the times "
                  "drift. This sweep checks every word against the sound. The **Mode 7 floor** is the "
-                 "one case provable from the waveform alone — **drifted**: the word's window is "
+                 "case provable from the waveform alone — **drifted**: the word's window is "
                  "near-silent, but its real audio is loud **right beside it**, so the timestamp slid "
-                 "off a word that exists. Three other signals are reported but held OUT of the floor, "
-                 "on purpose. **wrong-speaker** (a loud word whose speaker disagrees with the rest of "
-                 "its sentence) is real drift mixed with plain diarization mislabels — it leans on the "
-                 "speaker labels, so it is noisier than the floor and shown separately. **isolated** "
-                 "(near-silent with nothing loud anywhere near) is more likely a hallucination than "
-                 "drift, a *different* mode. **quiet / maybe-real** (quiet but a speaker is detected) "
-                 "is possibly genuine soft speech, a missed-speech / #13 question (see the gap sweep). "
-                 "Holding these out keeps the floor to what the audio alone can prove. "
+                 "off a word that exists. Two other signals are reported but held OUT of the floor, on "
+                 "purpose. **isolated** (near-silent with nothing loud anywhere near) is more likely a "
+                 "hallucination than drift, a *different* mode. **quiet / maybe-real** (quiet but a "
+                 "speaker is detected) is possibly genuine soft speech, a missed-speech / #13 question "
+                 "(see the gap sweep). Holding these out keeps the floor to what the audio alone can "
+                 "prove. "
                  f"Loud threshold = the p{noise_pct} noise floor + {margin} dB, per session. "
                  "Story-scope excludes the end-of-session wind-down. Generated by "
                  "`scripts/timestamp_drift_analysis.py`.")
     lines.append("")
-    lines.append("| Session | Mode 7 floor — story (drifted) | wrong-speaker (adjacent) "
+    lines.append("| Session | Mode 7 floor — story (drifted) "
                  "| isolated (≈halluc.) | quiet/maybe-real (→#13) | words checked | whole-session floor |")
-    lines.append("|---|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|")
     for r in results:
         s = r["session"]
         name = s["name"] + (" *(no boundary — whole-session)*" if s.get("no_boundary") else "")
@@ -654,7 +595,7 @@ def build_summary(results, noise_pct, margin):
         pct = (100.0 * st["floor"] / st["total"]) if st["total"] else 0.0
         lines.append(
             f"| {name} | **{st['floor']} words ({pct:.1f}%)** "
-            f"| {st['wrong_speaker']} | {st['isolated']} | {st['ambiguous']} "
+            f"| {st['isolated']} | {st['ambiguous']} "
             f"| {st['total']} | {wh['floor']} |"
         )
     lines.append("")
@@ -674,15 +615,14 @@ def build_summary(results, noise_pct, margin):
     lines.append("- **drifted** is almost always a segment's *first* word: Whisper anchors a word to "
                  "the segment start, which often falls in the pause before anyone speaks, so the "
                  "stamp sits ~0.5s before the real onset.")
-    lines.append("- **wrong-speaker** is shown separately, NOT in the floor. It compares a word to "
-                 "its *sentence's* owner (not its own diarization overlap, which assigned its label — "
-                 "that would be circular), and fires only in clear-majority segments. It is real, but "
-                 "noisier: it mixes true drift with plain diarization mislabels, so it earns its own "
-                 "column rather than the headline. Both it and **drifted** are ear-checkable in "
-                 "`drift-to-check.html`.")
-    lines.append("- **isolated** and **quiet / maybe-real** are held out too: the first is likely a "
+    lines.append("- **isolated** and **quiet / maybe-real** are held out: the first is likely a "
                  "hallucination (a different mode), the second likely genuine soft speech (#13). "
-                 "Keeping all three out stops Mode 7 from absorbing other modes.")
+                 "Keeping both out stops Mode 7 from absorbing other modes.")
+    lines.append("- A **wrong-speaker** check (flagging a word whose speaker label disagreed with its "
+                 "sentence) was tried and removed: ear spot-checks showed it was catching the "
+                 "diarizer splitting one storyteller into several speakers — character voices "
+                 "especially — not timestamp drift. That diarization-granularity issue is a separate "
+                 "failure mode and doesn't belong in this tool.")
     lines.append("- Thresholds are per-session adaptive (each room has its own quiet floor) and are "
                  "tunable on the CLI; the floor moves if they change.")
     lines.append("- Per-session visual breakdowns: `sessions/<id>/timestamp-drift.html` and "
@@ -765,7 +705,6 @@ def main():
         print(f"\n{s['name']} ({s['id']}) · {scope}")
         print(f"  floor {r['noise_floor']:.1f} dBFS · loud ≥ {r['threshold']:.1f} dBFS")
         print(f"  Mode 7 floor (story): {st['floor']:>4} drifted words of {st['total']} checked")
-        print(f"  adjacent — wrong-speaker (not in floor): {st['wrong_speaker']}")
         print(f"  isolated (≈hallucination): {st['isolated']}  ·  "
               f"quiet / maybe-real (→ #13): {st['ambiguous']}")
         print(f"  html:  {r['html']}")
