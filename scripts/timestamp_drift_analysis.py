@@ -65,6 +65,7 @@ Examples:
 
 import argparse
 import html
+import json
 import re
 import sys
 from pathlib import Path
@@ -112,19 +113,31 @@ QUIET_RANGE_DB = 15.0        # dB past the loud threshold that maps to full conf
 # --- categories --------------------------------------------------------------
 # Drift is judged with signals independent of how Whisper set the timestamp: the
 # raw loudness in the claimed window and just beside it.
-FLOOR = ("drifted",)              # the clean, acoustically-provable Mode 7 floor (silence here, real word beside it)
+FLOOR = ("drifted",)              # the clean Mode 7 floor: drift on a segment NOT already coded as another failure
 ISOLATED = ("isolated",)          # quiet with nothing loud near — likely a DIFFERENT mode (hallucination)
 AMBIGUOUS = ("quiet_ambiguous",)  # quiet but a speaker is present — maybe real soft speech (#13)
+CODED = ("drifted_coded",)        # drift on a segment a human already coded as another failure — not double-counted
+
+# Axial failure-mode codes other than M7 itself. A drifted word on a segment
+# carrying one of these is a downstream symptom of an already-counted failure
+# (M2 hallucination, M4 wrong speaker, ...), so it is held OUT of the M7 floor —
+# the same no-double-counting rule as M10. "NotA" (not a failure) and "M7" do
+# not count as another mode: those segments stay eligible as genuine M7.
+def other_failure_codes(codes):
+    return [c for c in codes if c not in ("NotA", "M7")]
+
 
 CAT_COLOR = {
     "ok": "#4caf50",
     "drifted": "#f44336",
+    "drifted_coded": "#78909c",
     "isolated": "#fdd835",
     "quiet_ambiguous": "#9c27b0",
 }
 CAT_LABEL = {
     "ok": "ok",
     "drifted": "drifted",
+    "drifted_coded": "already coded (other mode)",
     "isolated": "isolated silence",
     "quiet_ambiguous": "quiet / maybe real",
 }
@@ -256,6 +269,19 @@ def classify_word(loud_db, threshold_db, total_frac, loud_nearby,
 
 
 # --- session analysis --------------------------------------------------------
+def load_axial_codes(session_dir):
+    """Read-only: segmentId -> [axial codes] from axial-labels.json, or {} if none.
+
+    The drift tool never writes this file; it only reads the human coding to
+    decide which drift candidates are already explained by another failure mode.
+    """
+    path = session_dir / "axial-labels.json"
+    if not path.exists():
+        return {}
+    with open(path) as f:
+        return {e["segmentId"]: e.get("codes", []) for e in json.load(f).get("labels", [])}
+
+
 def m10_filler_ids(transcript, session_id):
     """Segment ids folded into an M10 filler-loop for this session.
 
@@ -291,6 +317,7 @@ def analyze_session(session, noise_pct, margin, empty_frac, neighbor_sec):
     noise_floor, threshold = session_floor(db, noise_pct, margin)
     diar = diarization.get("segments", [])
     drop_ids = m10_filler_ids(transcript, session["id"])
+    axial = load_axial_codes(sdir)
 
     records = []
     seg_rows = []
@@ -300,6 +327,7 @@ def analyze_session(session, noise_pct, margin, empty_frac, neighbor_sec):
             # Looped filler word (M10), not a drifted real word — skip entirely.
             m10_excluded += sum(1 for w in seg.get("words", []) if w["end"] > w["start"])
             continue
+        seg_other = other_failure_codes(axial.get(seg.get("id"), []))
         words = seg.get("words", [])
         seg_records = []
         for wi, word in enumerate(words):
@@ -310,6 +338,12 @@ def analyze_session(session, noise_pct, margin, empty_frac, neighbor_sec):
             loud_db = window_loudness(db, start, end)
             loud_nearby = window_loudness(db, start - neighbor_sec, end + neighbor_sec) >= threshold
             verdict = classify_word(loud_db, threshold, total, loud_nearby, empty_frac)
+            # A drift candidate on a segment a human already coded as another
+            # failure is a downstream symptom of that mode — held out of the M7
+            # floor (it still shows on the check page, tagged with its code).
+            if verdict["category"] == "drifted" and seg_other:
+                verdict["category"] = "drifted_coded"
+            verdict["axial"] = seg_other
             rec = {"seg_id": seg.get("id"), "wi": wi, "start": start, "end": end,
                    "word": (word.get("word") or "").strip(), **verdict}
             records.append(rec)
@@ -332,6 +366,7 @@ def tally(records, story_end):
     def bucket(rs):
         return {
             "floor": sum(1 for r in rs if r["category"] in FLOOR),
+            "coded": sum(1 for r in rs if r["category"] in CODED),
             "isolated": sum(1 for r in rs if r["category"] in ISOLATED),
             "ambiguous": sum(1 for r in rs if r["category"] in AMBIGUOUS),
             "total": len(rs),
@@ -391,6 +426,7 @@ def render_html(session, analysis, story_end):
 
     counted = [r for r in records if story_end is None or r["start"] < story_end]
     n_floor = sum(1 for r in counted if r["category"] in FLOOR)
+    n_coded = sum(1 for r in counted if r["category"] in CODED)
     n_iso = sum(1 for r in counted if r["category"] in ISOLATED)
     n_amb = sum(1 for r in counted if r["category"] in AMBIGUOUS)
     n_m10 = analysis.get("m10_excluded", 0)
@@ -416,6 +452,7 @@ def render_html(session, analysis, story_end):
         f'<div style="color:#999;font-size:12px">Session {e(session["id"])} · {scope_txt} · '
         f'noise floor {noise_floor:.1f} dBFS, loud ≥ {threshold:.1f} dBFS · '
         f'<b style="color:#f55">{n_floor} drifted (Mode 7 floor)</b> · '
+        f'<b style="color:#90a4ae">{n_coded} already coded (other mode, excluded)</b> · '
         f'<b style="color:#fd5">{n_iso} isolated (≈hallucination)</b> · '
         f'<b style="color:#c79">{n_amb} quiet / maybe-real (→ #13)</b>'
         + (f' · <span style="color:#777">{n_m10} M10 filler-loop words excluded</span>'
@@ -429,6 +466,8 @@ def render_html(session, analysis, story_end):
         '"a word should be at least this loud" threshold). The middle strip is every word, '
         '<b>tinted by what we found</b>: <span style="color:#f55">red</span> = near-silent here '
         'but the real word is loud right beside it (the time <b>drifted</b> off it); '
+        '<span style="color:#90a4ae">slate</span> = drifted, but a human already coded that '
+        'segment as another failure (M2, M4, …), so it is counted there, not as M7; '
         '<span style="color:#fd5">yellow</span> = quiet with nothing loud anywhere near (no word '
         'there at all — likely a hallucination, a different problem, so not counted); '
         '<span style="color:#c8f">purple</span> = quiet but someone IS detected — maybe drift, '
@@ -437,7 +476,7 @@ def render_html(session, analysis, story_end):
     )
 
     out.append('<div class="legend" style="margin-top:14px">')
-    for cat in ("drifted", "isolated", "quiet_ambiguous", "ok"):
+    for cat in ("drifted", "drifted_coded", "isolated", "quiet_ambiguous", "ok"):
         out.append(f'<span style="background:{CAT_COLOR[cat]};color:#000">{CAT_LABEL[cat]}</span>')
     if story_end is not None:
         out.append('<span style="background:#fff;color:#000">story end ↓</span>')
@@ -525,7 +564,9 @@ def render_simple_html(session, analysis, story_end, cap=100):
 
     One card per word, each with a Play button that seeks a second early and
     plays through — so a reviewer can confirm by ear that the word is NOT where
-    its timestamp claims. Shows the drifted words (the Mode 7 floor).
+    its timestamp claims. The clean drift (the Mode 7 floor) is the to-check
+    list; drift on segments already coded as another failure goes in a separate
+    grey box, tagged with its code, to skip.
     """
     e = html.escape
     by_seg = {s.get("id"): s for s in analysis["transcript"]["segments"]}
@@ -538,12 +579,17 @@ def render_simple_html(session, analysis, story_end, cap=100):
         m, s = divmod(float(t), 60)
         return f"{int(m)}:{s:06.3f}"
 
-    cands = [r for r in analysis["records"]
-             if r["category"] in FLOOR
-             and (story_end is None or r["start"] < story_end)]
-    cands.sort(key=lambda r: r["score"], reverse=True)
-    total = len(cands)
-    shown = cands[:cap]
+    def in_scope(r):
+        return story_end is None or r["start"] < story_end
+
+    # Two groups: clean drift (the M7 floor, to check by ear) and drift on
+    # segments a human already coded as another failure (shown to skip).
+    clean = [r for r in analysis["records"] if r["category"] in FLOOR and in_scope(r)]
+    clean.sort(key=lambda r: (is_filler_word(r["word"]), r["score"]), reverse=True)
+    coded = [r for r in analysis["records"] if r["category"] in CODED and in_scope(r)]
+    coded.sort(key=lambda r: r["score"], reverse=True)
+    total_clean = len(clean)
+    shown_clean = clean[:cap]
 
     out = []
     out.append('<!doctype html><html><head><meta charset="utf-8">')
@@ -556,10 +602,13 @@ def render_simple_html(session, analysis, story_end, cap=100):
     out.append(".count{font-size:15px;color:#444;margin:0 0 16px}")
     out.append(".card{border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-bottom:12px;"
                "background:#fff;display:flex;gap:14px;align-items:flex-start}")
-    out.append(".suspect{background:#fff7ed;border:1px solid #fdba74;border-radius:12px;"
-               "padding:16px 18px;margin-bottom:24px}")
-    out.append(".shead{font-size:17px;font-weight:800;color:#c2410c;margin:0 0 6px}")
-    out.append(".snote{font-size:14px;color:#7c2d12;margin-bottom:14px}")
+    out.append(".coded{background:#f1f5f9;border:1px solid #cbd5e1;border-radius:12px;"
+               "padding:16px 18px;margin-top:28px}")
+    out.append(".chead{font-size:16px;font-weight:700;color:#475569;margin:0 0 6px}")
+    out.append(".cnote{font-size:14px;color:#475569;margin-bottom:14px}")
+    out.append(".codetag{background:#475569;color:#fff;font-size:11px;font-weight:700;"
+               "padding:2px 7px;border-radius:4px;margin-left:4px}")
+    out.append(".filler{color:#c2410c;font-weight:600}")
     out.append(".play{flex:none;background:#2563eb;color:#fff;border:none;border-radius:8px;"
                "padding:10px 14px;font-size:15px;cursor:pointer}.play:hover{background:#1d4ed8}")
     out.append(".meta{font-weight:600;font-size:15px}.ctx{color:#555;font-size:14px;margin-top:6px}")
@@ -582,8 +631,10 @@ def render_simple_html(session, analysis, story_end, cap=100):
                "start and end time, but Whisper guesses those times rather than measuring them, so "
                "they drift. This page lists the words whose time looks <b>clearly wrong</b>: the spot "
                "is near-silent while the word's real sound is loud right beside it. "
-               "<b>Filler-shaped words</b> (\"Hmm.\", \"Huh?\") are pulled into a flagged box at the "
-               "top — those are the likeliest false alarms, worth checking first. "
+               "The list below is what to <b>check by ear</b>. Words on segments you already coded as "
+               "another failure (a hallucination, wrong speaker, …) are pulled into a separate "
+               "grey box at the bottom — those are counted under that other mode, so you can skip "
+               "them here. "
                "<br><br><b>How to check one.</b> Click <b>▶ Play</b> — it starts a second early and "
                "plays through the word's claimed time. If you do NOT hear that word right there, the "
                "timestamp drifted. If you DO hear it, it's a false alarm.</div>")
@@ -591,9 +642,7 @@ def render_simple_html(session, analysis, story_end, cap=100):
     out.append('<div class="player"><audio id="aud" controls src="audio.m4a" preload="none"></audio>'
                '<div class="now">▶ playing at <span id="nowt">0:00.000</span></div></div>')
 
-    suspect = [r for r in shown if is_filler_word(r["word"])]
-    rest = [r for r in shown if not is_filler_word(r["word"])]
-    cap_note = "" if total <= cap else f" (of {total} — showing the {cap} highest-confidence)"
+    cap_note = "" if total_clean <= cap else f" (of {total_clean} — showing the {cap} highest-confidence)"
 
     def card(r):
         seg = by_seg.get(r["seg_id"])
@@ -602,48 +651,53 @@ def render_simple_html(session, analysis, story_end, cap=100):
         ctx = e(text[:120])
         if word and word in text:
             ctx = e(text[:120]).replace(e(word), f'<span class="here">{e(word)}</span>', 1)
-        reason = ("The audio at this timestamp is near-silent, but the word's real sound is "
-                  "loud just beside it — the timestamp drifted off the actual word.")
+        codes = r.get("axial") or []
+        if codes:
+            tag = f'<span class="codetag">already: {e(", ".join(codes))}</span>'
+            reason = ("This segment is already coded as " + e(", ".join(codes)) + " — that failure "
+                      "is counted there, so it is not added to the M7 count. Shown only to confirm.")
+        else:
+            tag = (f'<span class="tag" style="background:{CAT_COLOR[r["category"]]}">'
+                   f'{CAT_LABEL[r["category"]]}</span>')
+            reason = ("The audio at this timestamp is near-silent, but the word's real sound is "
+                      "loud just beside it — the timestamp drifted off the actual word.")
+            if is_filler_word(word):
+                reason += (' <span class="filler">Filler-shaped — confirm it isn\'t a '
+                           'non-speech sound (a different problem) before counting it.</span>')
         rows = ['<div class="card">']
         rows.append(f'<button class="play" onclick="play({r["start"]:.2f},{r["end"]:.2f})">▶ Play</button>')
         rows.append('<div>')
         rows.append(f'<div class="meta">"{e(word) or "·"}" — claims {mmss_ms(r["start"])} → '
-                    f'{mmss_ms(r["end"])} <span class="tag" style="background:{CAT_COLOR[r["category"]]}">'
-                    f'{CAT_LABEL[r["category"]]}</span></div>')
+                    f'{mmss_ms(r["end"])} {tag}</div>')
         rows.append(f'<div class="reason">{reason}</div>')
         rows.append(f'<div class="ctx">in: "{ctx}"</div>')
         rows.append("</div></div>")
         return "\n".join(rows)
 
-    out.append(f'<div class="count">Showing <b>{len(shown)}</b> words whose timestamp looks '
-               f"clearly wrong{cap_note}"
-               + (f" — <b>{len(suspect)}</b> are filler-shaped and pulled to the top to check first."
-                  if suspect else "")
+    out.append(f'<div class="count"><b>{len(shown_clean)}</b> Mode 7 candidates to check by ear'
+               f"{cap_note}"
+               + (f" · <b>{len(coded)}</b> more sit on already-coded segments (in the grey box below "
+                  "— skip)." if coded else ".")
                + "</div>")
 
-    # Suspect filler-shaped words first — these may not be drift at all.
-    if suspect:
-        out.append('<div class="suspect">')
-        out.append(f'<div class="shead">⚠ Check these first — {len(suspect)} filler-shaped words</div>')
-        out.append('<div class="snote">Each of these flagged words is a backchannel or filler sound '
-                   '("Hmm.", "Huh?", "Yeah."). They may not be timing drift at all — often the '
-                   'transcriber laid a filler word over a non-speech sound (a different problem), or '
-                   "it's a short loop we haven't marked. <b>Listen:</b> if the word isn't actually "
-                   "spoken at that moment, it isn't drift and can come out of the count.</div>")
-        for r in suspect:
+    # Section A — the M7 floor: clean drift to confirm by ear.
+    for r in shown_clean:
+        out.append(card(r))
+    if not shown_clean:
+        out.append('<div class="count">No clean Mode 7 candidates in scope for this session.</div>')
+
+    # Section B — drift on segments already coded as another failure: skip.
+    if coded:
+        out.append('<div class="coded">')
+        out.append(f'<div class="chead">Already coded as another failure — {len(coded)} '
+                   "(skip for M7)</div>")
+        out.append('<div class="cnote">These words also tripped the drift detector, but you already '
+                   "coded their segment as a different failure (a hallucination, wrong speaker, name, "
+                   "…). That failure is counted under its own mode, so these are <b>not</b> added to "
+                   "the Mode 7 count — listed here only so you can confirm the existing code.</div>")
+        for r in coded:
             out.append(card(r))
         out.append("</div>")
-
-    # The rest — genuine-looking timestamp drift.
-    if rest:
-        if suspect:
-            out.append('<div class="count" style="margin-top:8px"><b>'
-                       f'{len(rest)}</b> more — these look like real timestamp drift.</div>')
-        for r in rest:
-            out.append(card(r))
-
-    if not shown:
-        out.append('<div class="count">No clearly-wrong timestamps in scope for this session.</div>')
 
     out.append('<div class="note">Audio is the <code>audio.m4a</code> beside this page. The full '
                "view — every word plus the timeline strips — is <code>timestamp-drift.html</code>.</div>")
@@ -673,19 +727,22 @@ def build_summary(results, noise_pct, margin):
                  "drift. This sweep checks every word against the sound. The **Mode 7 floor** is the "
                  "case provable from the waveform alone — **drifted**: the word's window is "
                  "near-silent, but its real audio is loud **right beside it**, so the timestamp slid "
-                 "off a word that exists. Two other signals are reported but held OUT of the floor, on "
-                 "purpose. **isolated** (near-silent with nothing loud anywhere near) is more likely a "
+                 "off a word that exists. Several signals are reported but held OUT of the floor, on "
+                 "purpose. **already-coded** drift sits on a segment a human already coded as another "
+                 "failure (M2 hallucination, M4 wrong speaker, …) — that failure is counted under its "
+                 "own mode, so counting it here too would double-count; it is excluded (same rule as "
+                 "M10). **isolated** (near-silent with nothing loud anywhere near) is more likely a "
                  "hallucination than drift, a *different* mode. **quiet / maybe-real** (quiet but a "
                  "speaker is detected) is possibly genuine soft speech, a missed-speech / #13 question "
-                 "(see the gap sweep). Holding these out keeps the floor to what the audio alone can "
-                 "prove. "
+                 "(see the gap sweep). Holding these out keeps the floor to drift that is the segment's "
+                 "*only* flagged problem. "
                  f"Loud threshold = the p{noise_pct} noise floor + {margin} dB, per session. "
                  "Story-scope excludes the end-of-session wind-down. Generated by "
                  "`scripts/timestamp_drift_analysis.py`.")
     lines.append("")
-    lines.append("| Session | Mode 7 floor — story (drifted) "
+    lines.append("| Session | Mode 7 floor — story (drifted) | already-coded (excluded) "
                  "| isolated (≈halluc.) | quiet/maybe-real (→#13) | words checked | whole-session floor |")
-    lines.append("|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|")
     for r in results:
         s = r["session"]
         name = s["name"] + (" *(no boundary — whole-session)*" if s.get("no_boundary") else "")
@@ -693,7 +750,7 @@ def build_summary(results, noise_pct, margin):
         wh = r["tally"]["whole"]
         pct = (100.0 * st["floor"] / st["total"]) if st["total"] else 0.0
         lines.append(
-            f"| {name} | **{st['floor']} words ({pct:.1f}%)** "
+            f"| {name} | **{st['floor']} words ({pct:.1f}%)** | {st['coded']} "
             f"| {st['isolated']} | {st['ambiguous']} "
             f"| {st['total']} | {wh['floor']} |"
         )
@@ -714,9 +771,15 @@ def build_summary(results, noise_pct, margin):
     lines.append("- **drifted** is almost always a segment's *first* word: Whisper anchors a word to "
                  "the segment start, which often falls in the pause before anyone speaks, so the "
                  "stamp sits ~0.5s before the real onset.")
-    lines.append("- **isolated** and **quiet / maybe-real** are held out: the first is likely a "
+    lines.append("- **already-coded** drift is held out of the floor: when a drift candidate sits on a "
+                 "segment a human already coded as another failure (M2/M4/M9/M1/…), that failure is "
+                 "counted under its own mode — so the drift is a downstream symptom, not an "
+                 "independent M7. Cross-referenced read-only against each session's "
+                 "`axial-labels.json`. This is what drops the raw mechanical count (e.g. Moon 17, "
+                 "Portal 60) to the floor below.")
+    lines.append("- **isolated** and **quiet / maybe-real** are held out too: the first is likely a "
                  "hallucination (a different mode), the second likely genuine soft speech (#13). "
-                 "Keeping both out stops Mode 7 from absorbing other modes.")
+                 "Keeping all of these out stops Mode 7 from absorbing other modes.")
     m10 = [(r["session"]["name"], r["m10_excluded"]) for r in results if r.get("m10_excluded")]
     if m10:
         detail = ", ".join(f"{name} {n}" for name, n in m10)
@@ -812,6 +875,7 @@ def main():
         print(f"\n{s['name']} ({s['id']}) · {scope}")
         print(f"  floor {r['noise_floor']:.1f} dBFS · loud ≥ {r['threshold']:.1f} dBFS")
         print(f"  Mode 7 floor (story): {st['floor']:>4} drifted words of {st['total']} checked")
+        print(f"  already coded as another mode (excluded): {st['coded']}")
         print(f"  isolated (≈hallucination): {st['isolated']}  ·  "
               f"quiet / maybe-real (→ #13): {st['ambiguous']}")
         if r["m10_excluded"]:

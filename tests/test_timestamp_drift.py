@@ -19,6 +19,7 @@ from timestamp_drift_analysis import (  # noqa: E402
     classify_word,
     is_filler_word,
     m10_filler_ids,
+    other_failure_codes,
     session_floor,
     speaker_coverage,
     window_loudness,
@@ -126,6 +127,17 @@ def test_m10_filler_ids_folds_only_in_range_filler_segments():
 def test_m10_filler_ids_empty_for_session_without_stretches():
     transcript = {"segments": [{"id": 1, "text": "Hmm.", "start": 0, "end": 1}]}
     assert m10_filler_ids(transcript, "00000000-000000") == set()
+
+
+def test_other_failure_codes_ignores_nota_and_m7():
+    # NotA ("fine") and M7 itself are NOT "another mode" — a segment with only
+    # those stays eligible as a genuine M7 candidate.
+    assert other_failure_codes(["M2"]) == ["M2"]
+    assert other_failure_codes(["M4", "M9"]) == ["M4", "M9"]
+    assert other_failure_codes(["NotA"]) == []
+    assert other_failure_codes(["M7"]) == []
+    assert other_failure_codes(["NotA", "M2"]) == ["M2"]
+    assert other_failure_codes([]) == []
 
 
 def test_is_filler_word_normalizes_punctuation_and_case():
