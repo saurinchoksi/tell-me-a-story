@@ -145,6 +145,22 @@ Simple type names. The folder provides session context, so IDs in filenames are 
 
 Word-level timestamps in transcript enable future caption sync (audio plays, words highlight).
 
+## Data File Schemas
+
+The field names that matter when reading session data (the gotchas below have cost real time — `scripts/emp_count.py` is a worked read of all of these):
+
+- **`axial-labels.json`** — EMP failure-mode coding; **present only on coded sessions**. Shape: `{"labels": [ {segmentId, codes, createdAt, updatedAt}, ... ]}`.
+  - `codes` is a **list** of mode tags (`"M1"`–`"M10"` or `"NotA"`) — *not* a single `mode` string. A segment may carry several (e.g. `["M1","M9"]`); count each.
+  - There is **no `text` and no `notes`** field here. To get a segment's words, join by `segmentId` to `transcript-rich.json`.
+  - `segmentId` is usually the integer index into `transcript-rich.json`'s `segments`, but injected gap segments use a string like `"gap_782.052"` (the gap's start time).
+- **`transcript-rich.json`** — enriched transcript. Shape: `{text, segments, language, audio, _processing, ...}`. `segments` is a list; each has `id` (== its list index), `start`, `end`, **`text`** (the words — they live here, not in axial-labels), `words` (word-level timestamps), and `_speaker`.
+- **`transcript-raw.json`** — same shape, pre-enrichment (before normalization/gap-injection); `--re-enrich` rebuilds rich from raw.
+- **`validation-notes.json`** — open-coding notes. Shape: `{"notes": [ ... ]}` — timestamped, segment-attached free-text observations (the human's prose, distinct from the `codes` in axial-labels).
+- **`diarization.json`** — pyannote speaker segments (speaker label + start/end).
+- **`data/mahabharata.json`** — proper-noun reference. Shape: `{_version, _description, entries: [...]}`; each entry has a `canonical` spelling plus `variants` / `aliases` lists. Build a name set from canonical + variants + aliases.
+
+**Session IDs are date-stamped (`YYYYMMDD-HHMMSS`)**, not hex — there are no hex-named session dirs. The five EMP-coded sessions are mapped to their story names at the top of `reference/career-build/emp.md`'s "Count result" section.
+
 ## Import Convention
 
 `src/` modules use **bare imports** (e.g. `from profiles import load_profiles`, not `from src.profiles import ...`). `api/app.py` adds `src/` to `sys.path` at startup. `api/app.py` also adds PROJECT_ROOT so the `api` package is importable from any working directory. Tests also rely on this — pytest discovers `src/` via the working directory.
