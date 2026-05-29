@@ -90,6 +90,14 @@ from gap_analysis import (  # noqa: E402
     seg_end_time,
 )
 
+# M10 (broken-Whisper "filler-loop") regions are a DIFFERENT failure mode: the
+# looped filler word ("Hmm.", "Right.") is a decoder artifact, not a real word
+# whose timestamp drifted — so it must not count toward the M7 floor (the same
+# no-double-counting rule that holds out isolated/quiet). The canonical region
+# definitions live in populate_mode10.py; importing them keeps this tool and the
+# M10 fold from ever disagreeing.
+from populate_mode10 import STRETCHES  # noqa: E402
+
 # --- tunable thresholds ------------------------------------------------------
 # These are deliberately simple and transparent (an honest floor beats a clever
 # one). All are exposed on the CLI so they can be swept per session.
@@ -226,6 +234,30 @@ def classify_word(loud_db, threshold_db, total_frac, loud_nearby,
 
 
 # --- session analysis --------------------------------------------------------
+def m10_filler_ids(transcript, session_id):
+    """Segment ids folded into an M10 filler-loop for this session.
+
+    A folded segment is one inside a configured stretch whose stripped text is
+    the looped filler word — exactly populate_mode10.py's fold set. Real-content
+    lines interleaved in a stretch are NOT folded, so they stay eligible for a
+    genuine drift flag.
+    """
+    stretches = [s for s in STRETCHES if s["session"] == session_id]
+    if not stretches:
+        return set()
+    ids = set()
+    for seg in transcript["segments"]:
+        sid = seg.get("id")
+        # Real segments carry integer ids; pipeline-injected [unintelligible]
+        # placeholders use string ids ("gap_1") and are never filler loops.
+        if not isinstance(sid, int):
+            continue
+        text = (seg.get("text") or "").strip()
+        if any(s["lo"] <= sid <= s["hi"] and text == s["word"] for s in stretches):
+            ids.add(sid)
+    return ids
+
+
 def analyze_session(session, noise_pct, margin, empty_frac, neighbor_sec):
     """Classify every word in a session. Returns everything render/tally need."""
     sdir, transcript, diarization = load_session(session["id"])
@@ -236,10 +268,16 @@ def analyze_session(session, noise_pct, margin, empty_frac, neighbor_sec):
     db = load_rms_db(audio_path)
     noise_floor, threshold = session_floor(db, noise_pct, margin)
     diar = diarization.get("segments", [])
+    drop_ids = m10_filler_ids(transcript, session["id"])
 
     records = []
     seg_rows = []
+    m10_excluded = 0
     for seg in real_segments(transcript):
+        if seg.get("id") in drop_ids:
+            # Looped filler word (M10), not a drifted real word — skip entirely.
+            m10_excluded += sum(1 for w in seg.get("words", []) if w["end"] > w["start"])
+            continue
         words = seg.get("words", [])
         seg_records = []
         for wi, word in enumerate(words):
@@ -264,7 +302,7 @@ def analyze_session(session, noise_pct, margin, empty_frac, neighbor_sec):
 
     return {"sdir": sdir, "transcript": transcript, "diarization": diarization,
             "db": db, "noise_floor": noise_floor, "threshold": threshold,
-            "records": records, "seg_rows": seg_rows}
+            "records": records, "seg_rows": seg_rows, "m10_excluded": m10_excluded}
 
 
 def tally(records, story_end):
@@ -333,6 +371,7 @@ def render_html(session, analysis, story_end):
     n_floor = sum(1 for r in counted if r["category"] in FLOOR)
     n_iso = sum(1 for r in counted if r["category"] in ISOLATED)
     n_amb = sum(1 for r in counted if r["category"] in AMBIGUOUS)
+    n_m10 = analysis.get("m10_excluded", 0)
 
     out = []
     out.append('<!doctype html><html><head><meta charset="utf-8">')
@@ -356,7 +395,10 @@ def render_html(session, analysis, story_end):
         f'noise floor {noise_floor:.1f} dBFS, loud ≥ {threshold:.1f} dBFS · '
         f'<b style="color:#f55">{n_floor} drifted (Mode 7 floor)</b> · '
         f'<b style="color:#fd5">{n_iso} isolated (≈hallucination)</b> · '
-        f'<b style="color:#c79">{n_amb} quiet / maybe-real (→ #13)</b></div>'
+        f'<b style="color:#c79">{n_amb} quiet / maybe-real (→ #13)</b>'
+        + (f' · <span style="color:#777">{n_m10} M10 filler-loop words excluded</span>'
+           if n_m10 else '')
+        + '</div>'
     )
     out.append(
         '<div style="color:#888;font-size:12px;margin-top:8px;max-width:920px">'
@@ -618,6 +660,13 @@ def build_summary(results, noise_pct, margin):
     lines.append("- **isolated** and **quiet / maybe-real** are held out: the first is likely a "
                  "hallucination (a different mode), the second likely genuine soft speech (#13). "
                  "Keeping both out stops Mode 7 from absorbing other modes.")
+    m10 = [(r["session"]["name"], r["m10_excluded"]) for r in results if r.get("m10_excluded")]
+    if m10:
+        detail = ", ".join(f"{name} {n}" for name, n in m10)
+        lines.append(f"- **M10 filler-loop words excluded from the floor** ({detail}). Inside a "
+                     "broken-Whisper stretch the looped filler (\"Hmm.\", \"Right.\") is a decoder "
+                     "artifact, not a real word whose time drifted — so it is a Mode 10 event, not "
+                     "Mode 7, and is dropped here. Regions per `scripts/populate_mode10.py`.")
     lines.append("- A **wrong-speaker** check (flagging a word whose speaker label disagreed with its "
                  "sentence) was tried and removed: ear spot-checks showed it was catching the "
                  "diarizer splitting one storyteller into several speakers — character voices "
@@ -656,6 +705,7 @@ def process(session, args):
         "severity": severity_distribution(counted),
         "noise_floor": analysis["noise_floor"],
         "threshold": analysis["threshold"],
+        "m10_excluded": analysis["m10_excluded"],
         "html": str(html_path.relative_to(ROOT)),
         "check": str(check_path.relative_to(ROOT)),
     }
@@ -707,6 +757,8 @@ def main():
         print(f"  Mode 7 floor (story): {st['floor']:>4} drifted words of {st['total']} checked")
         print(f"  isolated (≈hallucination): {st['isolated']}  ·  "
               f"quiet / maybe-real (→ #13): {st['ambiguous']}")
+        if r["m10_excluded"]:
+            print(f"  M10 filler-loop words excluded: {r['m10_excluded']}")
         print(f"  html:  {r['html']}")
         print(f"  check: {r['check']}")
 

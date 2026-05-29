@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 from timestamp_drift_analysis import (  # noqa: E402
     CHUNK_SEC,
     classify_word,
+    m10_filler_ids,
     session_floor,
     speaker_coverage,
     window_loudness,
@@ -105,3 +106,22 @@ def test_session_floor_is_a_margin_above_the_percentile():
     floor, thr = session_floor(DB, 20, 12.0)
     assert floor == -45.0          # p20 of a mostly -45 track
     assert thr == -33.0
+
+
+def test_m10_filler_ids_folds_only_in_range_filler_segments():
+    # Moon Story has a configured "Hmm." stretch over segs 99-136. Only filler
+    # segments (text == "Hmm.") inside the range are folded; a real-content line
+    # inside the range, and a "Hmm." just outside it, are NOT.
+    transcript = {"segments": [
+        {"id": 99, "text": "Hmm.", "start": 0, "end": 1},          # in range, filler -> folded
+        {"id": 110, "text": "The moon ran away.", "start": 1, "end": 2},  # in range, real -> kept
+        {"id": 120, "text": "Hmm.", "start": 2, "end": 3},          # in range, filler -> folded
+        {"id": 62, "text": "Hmm.", "start": 3, "end": 4},           # OUT of range -> kept
+    ]}
+    ids = m10_filler_ids(transcript, "20251207-195607")
+    assert ids == {99, 120}
+
+
+def test_m10_filler_ids_empty_for_session_without_stretches():
+    transcript = {"segments": [{"id": 1, "text": "Hmm.", "start": 0, "end": 1}]}
+    assert m10_filler_ids(transcript, "00000000-000000") == set()
