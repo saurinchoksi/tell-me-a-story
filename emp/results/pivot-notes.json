@@ -1,0 +1,181 @@
+{
+  "_about": "Structured notes for the EMP failure-mode pivot, keyed by failure mode -- a triage doc for the health of the speech-to-text system. Edited live in pivot.html when served (python emp/src/count.py --serve), or by hand here. Safe to commit -- thoughts about modes, no transcript text.",
+  "_lens": {
+    "purpose": "All four uses matter (faithful record, story structure, word-level playback, the names/themes bible) -- so health is read use-agnostically, with use-dependent flags where a mode bites one use harder (e.g. M7 timing -> playback).",
+    "metric": "Frequency is shown via the count columns (Human / Mechanical / Total).",
+    "organize": "Modes as rows, each tagged with its root cause (hybrid)."
+  },
+  "_axes": {
+    "root_cause": "The underlying reason, not the symptom. Several modes share a cause (e.g. character/performed voices drives M3, M4 and M5).",
+    "fix_locus": "Where a fix would live: ours = post-processing we control | model = needs a better model we don't control | unrecoverable = signal/hardware floor | mixed.",
+    "detection": "How we'd catch this error automatically (method step 4). code-signal = code cross-checking the transcript against the audio/diarization | code-text = code on the transcript text or a reference list | llm-judge = an LLM reading the text | hybrid = signal features feeding a judge | ears = needs a human listen | none = not feasible. TMAS is recognition, so most detection is code-against-signal; a text-only LLM can't hear the audio. One dominant tag per mode; subtype splits noted in thoughts.",
+    "subtypes": "Distinct failures bundled under one mode that may need different fixes (the M2A/M2B and M9-carve pattern).",
+    "thoughts": "Free-form thinking; editable live in the served pivot."
+  },
+  "_m9_cases": {
+    "_about": "M9 (name mistranscription) broken out by case for detection design (method step 4). Counts are NAME INSTANCES -- word occurrences of the mis-rendered tokens inside M9-tagged segments -- so they do NOT sum to M9's segment count. Editable: move a token between cases, or add one, and re-run count.py. Real family names are kept OUT of this public file -- M9a's name variants live in a gitignored sidecar (emp/results/pivot-notes.private.json) that count.py reads for counting only.",
+    "M9a": {
+      "label": "real people (the family roster)",
+      "detection": "code-text",
+      "variants": [],
+      "notes": "The child's own name plus the parents' names and the family surnames, all mis-rendered by Whisper. Biggest slice of M9 by far. Truth = the known family roster, which makes it the most fixable case: phonetic-match the roster to flag mis-spellings, or prevent at the source by biasing Whisper with the names so it spells them right while decoding. Open product question: how does the real capture flow supply the roster? Note: one Moon segment is a hidden case-1 mis-render (the child's name heard as a common word) that a token match can't catch, so the true M9a count is one higher than shown. (Real name variants are held in the gitignored private sidecar, not this public file.)"
+    },
+    "M9b": {
+      "label": "improvised, no canon",
+      "detection": "llm-judge",
+      "variants": [
+        "jiraki",
+        "jameis",
+        "jaraqui",
+        "jammus",
+        "jammes",
+        "jamis",
+        "james",
+        "bibi",
+        "foxy",
+        "squishy",
+        "boggle",
+        "boo-boo",
+        "khadija",
+        "khadijah",
+        "longer",
+        "yummy",
+        "pataki",
+        "bacchus"
+      ],
+      "notes": "Names the storyteller invents on the spot (Portal's engines Jiraki/Jameis/Jaraqui, Pataki, Bibi, Foxy, Squishy Baby; Cruel Baby's Khadija/Longer/Yummy). No external truth -- the only defect is inconsistency: the same made-up name spelled several ways. Pataki is a clean example: Whisper also rendered it 'Bacchus', so Pataki/Bacchus is one improvised name with two spellings -- exactly this case. Detect by clustering phonetically-similar name tokens within a story and flagging any cluster with more than one spelling (an LLM does this well; phonetic clustering is the cheaper code version). Per the project owner: this must run AFTER the session is split into stories, because a name can differ legitimately across stories -- so story-splitting is a prerequisite. Detection only flags the inconsistency; choosing the winning spelling is a separate fix decision. (Caveat: 'longer'/'yummy'/'james' are also common words, so their counts are soft.)"
+    },
+    "M9c": {
+      "label": "sourced canon (external reference)",
+      "detection": "code-text",
+      "variants": [
+        "duryodhan",
+        "yudhisthir",
+        "yudhisthir's",
+        "yudister",
+        "pondavas",
+        "fondo",
+        "fondos",
+        "dhrashtra",
+        "thomas",
+        "topham",
+        "hatt",
+        "percy"
+      ],
+      "notes": "Names with an authoritative external source: Mahabharata (Duryodhan, Yudhisthir, Pandavas) and, in Portal, Thomas & Friends (Thomas, Sir Topham Hatt). Two canons in the data is the real lesson -- the system must know WHICH source applies to a given session. Today's dictionary.py is exact-match against one hand-built Mahabharata list: it misses unforeseen variants (Dhrashtra slipped through) and every non-Mahabharata domain. But a hand-built dictionary per domain may be the wrong frame -- an LLM already holds Thomas & Friends and Mahabharata canon in its training, so the real detector is likely an LLM that recognizes a known entity and returns its canonical spelling, with a cached dictionary only as an optimization. (Confirmed: Pataki/Bacchus are improvised -> M9b; only Thomas & Sir Topham Hatt are true canon here.)"
+    }
+  },
+  "notes": {
+    "M1": {
+      "root_cause": "ASR signal floor / acoustic ambiguity",
+      "fix_locus": "mostly unrecoverable (ASR mishears) -- but some may overlap with quiet/character speech, which is recoverable",
+      "detection": "ears",
+      "subtypes": [
+        "one-word substitution (open code #1)",
+        "inserted word, nothing spoken behind it (#4)",
+        "confident words laid over speech that wasn't decipherable (#7)"
+      ],
+      "thoughts": "This is important but not sure how we improve it yet. I wonder if there are different failures within the counts"
+    },
+    "M2": {
+      "root_cause": "hallucination on silence / non-speech sound",
+      "fix_locus": "ours -- filters.py predicates already exist (silence_gap, near_zero_probability), just not wired in (M2A); M2B needs speech-vs-noise discrimination",
+      "detection": "code-signal",
+      "subtypes": [
+        "M2A -- words on silence (#5) -- code-signal via filters.py",
+        "M2B -- non-speech sound rendered as a word, e.g. a sigh as 'Oh.' (#6) -- needs audio, so ears/hybrid"
+      ],
+      "thoughts": "Need to dig into solutions could be"
+    },
+    "M3": {
+      "root_cause": "quiet/missed speech + dropped segments (quiet child speech, character voices)",
+      "fix_locus": "mixed -- ours (sharpen gap-detection in speaker.py) + partly unrecoverable (the quietest child speech; the 186-run experiment recovered none)",
+      "detection": "code-signal",
+      "subtypes": [
+        "partial drop -- part kept, part lost ('Jai Shri Krishna' -> 'Krishna') (#16)",
+        "whole utterance lost (#12)",
+        "no segment, no trace at all -- only the waveform (#13)"
+      ],
+      "thoughts": "Need to dig into what solutions could be"
+    },
+    "M4": {
+      "root_cause": "diarization limits / character & performed voices",
+      "fix_locus": "model -- pyannote community-1 is the current best open-source diarizer; performed voices fall outside the speaker's natural voiceprint",
+      "detection": "code-signal",
+      "subtypes": [
+        "line attributed to the wrong person (#8)",
+        "line with no speaker label at all (#9)",
+        "one storyteller's character voice split off as a separate speaker"
+      ],
+      "thoughts": "Need to dig into what solitions could be"
+    },
+    "M5": {
+      "root_cause": "diarization limits (two voices at once)",
+      "fix_locus": "model -- overlap-aware / multi-speaker ASR",
+      "detection": "ears",
+      "subtypes": [
+        "two voices at once; one is lost or both garbled (#11)"
+      ],
+      "thoughts": "Need to dig into solutions could be"
+    },
+    "M6": {
+      "root_cause": "segmentation post-processing",
+      "fix_locus": "ours -- post-processing on segment boundaries",
+      "detection": "code-text",
+      "subtypes": [
+        "word duplicated across a boundary (#3) -- code-text (find_duplicate_segments)",
+        "one continuous sound split across two segments (#14)",
+        "two distinct turns flattened into one, losing a turn/speaker (#18) -- llm-judge candidate"
+      ],
+      "thoughts": "Need to dig into solutions could be"
+    },
+    "M7": {
+      "root_cause": "Whisper guesses word times instead of measuring them",
+      "fix_locus": "ours -- forced alignment is the off-the-shelf fix (TMAS-50)",
+      "detection": "code-signal",
+      "subtypes": [
+        "segment-initial word anchored to the lead-in silence (the dominant case)",
+        "word lumped onto a neighbor"
+      ],
+      "thoughts": "There may be a standard fix for this, so it is worth running small experiments to see how a session fares\n\nImportance: low right now, we want the timing correct, but the content is more urgent"
+    },
+    "M8": {
+      "root_cause": "gap-detection threshold too eager",
+      "fix_locus": "ours -- gap-detection threshold in speaker.py",
+      "detection": "hybrid",
+      "subtypes": [
+        "[unintelligible] injected over pure silence",
+        "[unintelligible] injected over a non-speech vocalization (chuckle, sigh)"
+      ],
+      "thoughts": "Need to dig into solutions could be"
+    },
+    "M9": {
+      "root_cause": "the system has no knowledge of which names are correct",
+      "fix_locus": "ours, but narrow -- dictionary.py is a FIXER for pre-enumerated Mahabharata variants, not a general detector; real detection differs per case (see the M9a/M9b/M9c breakout in _m9_cases)",
+      "detection": "code-text",
+      "subtypes": [
+        "system users / real recurring people -- truth is a known roster (the child and parents) -- code-text",
+        "improvised name, no canon (Jiraki/Jiraqi/Geerakee) -- no external truth; llm-judge / within-session clustering",
+        "name with a source/canon (Duryodhan/Duryodhana) -- truth is an external reference library -- code-text"
+      ],
+      "thoughts": "This is probably the first one to look at but we have to think through this. We will need an LLM to look over the session that has been transcribed by Whisper. Let's think about a few cases...\n\nWhisper --> a misspelling of the child's name\n\nWe could, I think feed Whisper the family's names (the child and the parents), etc... but how in the real system would this data be given to Whisper? Or is that a problem that is out of scope?\n-------\nWhisper --> Jiraki, Jiraqi, Geerakee, etc\nWe would need an LLM to review the session and then consolidate on one spelling. But it would be better if that pass happened AFTER the session is split into stories. So splitting the session into stories is a blocking task\n--------\nWhisper --> Duryodhan, Duryodhana, etc get commonized to one proper noun...\nWe dealt this in an artificial way with the Mahabharata LLM pass and dictionary ... the main question I have is how does the system get all that info in a real experience? \n\nSo in summary - there different types of proper noun issues - it might be helpful to break them apart into different subsections of M9... \n- There is the users of the system\n- There is the improvised name, no canon\n- There is the name that has a source/canon\n\nImportance: high because in the end we want to have a \"bible\" of our themes, names, etc\n(Real names genericized for the public repo; verbatim original in the private sidecar.)"
+    },
+    "M10": {
+      "root_cause": "Whisper decoder gets stuck in a filler loop",
+      "fix_locus": "ours -- detect the loop signature, recover any real speech underneath",
+      "detection": "code-text",
+      "subtypes": [
+        "loop over near-silence (no real content lost)",
+        "loop masking real speech underneath (an M3 hides inside -- this is what makes it heavy)"
+      ],
+      "thoughts": "Need to dig into solutions could be\nImportant and that 4 is a heavy 4...\n"
+    },
+    "NotA": {
+      "root_cause": "",
+      "fix_locus": "",
+      "detection": "",
+      "subtypes": [],
+      "thoughts": ""
+    }
+  }
+}
