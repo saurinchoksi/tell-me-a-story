@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code, a local model, or a frontier model? — a detection eval</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5b5f66; --faint:#8a8f98;
+    --rule:#e6e7ea; --bg:#fbfbfa; --card:#ffffff;
+    --accent:#3a5a78; --good:#1f7a4d; --bad:#b23a3a; --warn:#a9791c;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.62; font-size:17px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:4rem 1.25rem 6rem}
+  .eyebrow{font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; color:var(--faint); margin:0 0 .9rem}
+  h1{font-size:2.05rem; line-height:1.18; letter-spacing:-.015em; margin:0 0 .7rem; font-weight:700}
+  .deck{font-size:1.18rem; color:var(--muted); margin:0 0 2.2rem; line-height:1.5}
+  h2{font-size:1.32rem; letter-spacing:-.01em; margin:3rem 0 .3rem; font-weight:680}
+  h2 .num{color:var(--faint); font-weight:600; margin-right:.5rem; font-variant-numeric:tabular-nums}
+  h3{font-size:1.02rem; margin:1.8rem 0 .2rem; font-weight:650}
+  p{margin:.85rem 0}
+  a{color:var(--accent)}
+  strong{font-weight:650}
+  .lede::first-letter{}
+  /* TL;DR card */
+  .tldr{
+    background:var(--card); border:1px solid var(--rule); border-radius:12px;
+    padding:1.5rem 1.6rem; margin:0 0 1rem; box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .tldr h2{margin:0 0 .8rem; font-size:1.05rem; letter-spacing:.02em; text-transform:uppercase; color:var(--accent)}
+  .tldr dl{display:grid; grid-template-columns:auto 1fr; gap:.55rem 1.1rem; margin:0}
+  .tldr dt{font-weight:650; color:var(--ink); white-space:nowrap}
+  .tldr dd{margin:0; color:var(--muted)}
+  /* tables */
+  .tablewrap{overflow-x:auto; margin:1.3rem -0.25rem}
+  table{border-collapse:collapse; width:100%; font-size:.92rem}
+  caption{caption-side:top; text-align:left; color:var(--faint); font-size:.82rem; margin-bottom:.5rem}
+  th,td{padding:.55rem .7rem; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top}
+  thead th{font-size:.78rem; letter-spacing:.03em; text-transform:uppercase; color:var(--faint); font-weight:600; border-bottom:1.5px solid #d7d9dd}
+  tbody tr:last-child td{border-bottom:none}
+  td.c,th.c{text-align:center}
+  .row-head{font-weight:600}
+  .yes{color:var(--good); font-weight:650}
+  .no{color:var(--bad); font-weight:650}
+  .mid{color:var(--warn); font-weight:650}
+  .dim{color:var(--faint)}
+  /* pull quote / callout */
+  .callout{
+    border-left:3px solid var(--accent); padding:.2rem 0 .2rem 1.2rem; margin:1.8rem 0;
+    color:var(--ink); font-size:1.07rem;
+  }
+  .key{background:#f4f6f8; border:1px solid var(--rule); border-radius:10px; padding:1.1rem 1.3rem; margin:1.6rem 0}
+  .key p{margin:.4rem 0}
+  code{font-family:var(--mono); font-size:.86em; background:#f0f1f3; padding:.08em .35em; border-radius:4px}
+  hr{border:none; border-top:1px solid var(--rule); margin:3rem 0}
+  .footnote{font-size:.86rem; color:var(--faint); margin-top:2.5rem}
+  ul.tight{margin:.6rem 0; padding-left:1.2rem}
+  ul.tight li{margin:.3rem 0}
+  .stage{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <p class="eyebrow">Evaluation case study · speech recognition</p>
+  <h1>Code, a local model, or a frontier model?</h1>
+  <p class="deck">Choosing a detector for the most common failure in a private, on-device storytelling transcriber — and measuring exactly what the privacy and hardware constraints cost in accuracy.</p>
+
+  <div class="tldr">
+    <h2>The short version</h2>
+    <dl>
+      <dt>What we evaluated</dt>
+      <dd>The single most frequent failure in a local-only family-storytelling transcription system: proper names mis-transcribed — above all, the child protagonist's own name.</dd>
+      <dt>The method</dt>
+      <dd>Build a human ground-truth answer key, then score three classes of detector against it — deterministic code, a range of local language models (2B&ndash;26B), and a frontier model — on recall, precision, and reliability.</dd>
+      <dt>What it found</dt>
+      <dd>A few lines of deterministic code catch ~97% of the errors, with no model at all. Local language models add nothing and are <em>less</em> reliable. A frontier model catches the handful of reasoning-dependent cases — but can't be deployed, because the system is private by design. The local models capable enough to match it don't fit on consumer hardware.</dd>
+      <dt>The decision</dt>
+      <dd>Ship the code. Name the 1&ndash;2 cases it can't reach as the honest, measured cost of the privacy and hardware constraints — not as something to paper over.</dd>
+    </dl>
+  </div>
+
+  <h2><span class="num">1</span>The system, and the failure worth fixing</h2>
+  <p class="lede">The system is a small pipeline that records a parent and child telling bedtime stories, transcribes the audio with speaker labels, and pulls out the recurring people and places. One rule shapes everything: it is <strong>local-only by design</strong> — family audio never leaves the device, and no cloud service ever sees it.</p>
+  <p>An error-analysis pass over the sessions surfaced a clear top failure mode: <strong>names</strong>. The transcriber confidently mis-spells the people in the stories — and the most-mangled name of all is the story's own protagonist, the child. It is the kind of error that quietly poisons everything downstream: a "bible" of characters and themes is worthless if the lead character is spelled four different ways.</p>
+  <p>One property of the system matters for everything that follows. It is a <strong>recognition</strong> system, not a generation system. Almost every error is "the transcript doesn't match the audio." That single fact decides who can even be a candidate detector — because a text-only judge never hears the sound.</p>
+
+  <h2><span class="num">2</span>The eval, in four moves</h2>
+  <p>The framework is deliberately plain, and it is the point. Evals are structured data work on a stochastic system; the rigor lives in the bookkeeping, not in cleverness.</p>
+  <ul class="tight">
+    <li><strong>A rubric / answer key.</strong> A human (the domain owner) assembled the ground truth: each real recurring person &rarr; their one correct spelling &rarr; every way the transcriber actually mangled it, per session. This is the thing every detector is graded against.</li>
+    <li><strong>A test harness.</strong> A small, read-only script that runs any candidate detector across every session and produces flags — re-runnable, deterministic to invoke, and unchanged between candidates so the comparison is fair.</li>
+    <li><strong>A scorecard.</strong> Precision and recall for each detector, plus a reliability column (does it crash? does it answer the same way twice?).</li>
+    <li><strong>Reading the off-diagonals.</strong> Not the headline percentage — the specific cells. Which true errors did it miss, and which non-errors did it invent? That is where every real decision was made.</li>
+  </ul>
+
+  <h2><span class="num">3</span>Four shapes of one failure</h2>
+  <p>"Name errors" is not one problem. The answer key revealed four distinct shapes, and they do not yield to the same tool. The distinction that organizes them: <strong>does the wrong output leave a trace in the text, or only in the audio?</strong></p>
+
+  <div class="tablewrap">
+  <table>
+    <caption>The four error shapes, and where the evidence lives</caption>
+    <thead>
+      <tr><th>Shape</th><th>What it looks like</th><th>Where the "it's wrong" signal is</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="row-head">Mis-spelling, consistent</td><td>One wrong spelling, used the same way every time</td><td>In the text — but only versus the <em>correct</em> spelling (it looks internally fine)</td></tr>
+      <tr><td class="row-head">Mis-spelling, inconsistent</td><td>The same name spelled several ways in one story</td><td>In the text — the spellings contradict each other</td></tr>
+      <tr><td class="row-head">Front-distortion</td><td>A surname whose opening sound is misheard, so it no longer sounds like the real name at all</td><td>Faint — sound-matching can't bridge it; needs the known name or reasoning</td></tr>
+      <tr><td class="row-head">Dissolved into words</td><td>The name rendered as an ordinary, correctly-spelled phrase — or a different, perfectly plausible name</td><td><strong>Only in the audio.</strong> The text reads as flawless and unremarkable</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    A detector can only flag an error that leaves a trace in something it can look at. Three of these shapes leave a trace in the text. The fourth erases the very thing detection keys on — it turns a name into a normal phrase — so no text-only method, however clever, can ever catch it. That is not a weakness to engineer around; it is a fact about where the information is.
+  </div>
+
+  <h2><span class="num">4</span>The candidates, and the scorecard</h2>
+
+  <h3>Candidate A — plain code</h3>
+  <p>The first candidate is not a model at all: convert each transcript word and each known name to a rough phonetic code, and flag any word that <em>sounds like</em> a name but isn't spelled like one. It is roughly fifteen lines. Scored against the answer key, it lands at <strong>~0.96 precision and ~0.97 recall</strong> — and, crucially, it catches the "consistent mis-spelling" case that pure inconsistency-checking misses, because it compares against the correct answer, not against a word's neighbors. It is deterministic: same input, same output, forever. Its only blind spots are the front-distortion case (the sound diverged too far) and the dissolved case (no text signal exists).</p>
+
+  <h3>Candidate B — local language models</h3>
+  <p>The intuitive hope is that a language model, handed the list of real names, would simply <em>read</em> the transcript and catch everything. We tested that directly, across a ladder of on-device models, scoring each against the same answer key.</p>
+
+  <div class="tablewrap">
+  <table>
+    <caption>The local-model sweep — every model that runs on a typical laptop fails the cases that matter</caption>
+    <thead>
+      <tr>
+        <th>Detector</th>
+        <th class="c">Runs on a laptop?</th>
+        <th class="c">Reliable?</th>
+        <th class="c">Front-distortion case</th>
+        <th class="c">Substitute-name case</th>
+        <th class="c">Precision</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="row-head">Plain code (phonetic)</td><td class="c yes">yes</td><td class="c yes">deterministic</td><td class="c no">no <span class="dim">(alias covers)</span></td><td class="c no">no</td><td class="c yes">clean</td></tr>
+      <tr><td class="row-head">Local LLM · 8B</td><td class="c yes">yes</td><td class="c no">crashes on long inputs</td><td class="c no">no</td><td class="c no">no</td><td class="c no">poor</td></tr>
+      <tr><td class="row-head">Local LLM · 2B</td><td class="c yes">yes</td><td class="c no">crashes 2 of 3</td><td class="c dim">&mdash;</td><td class="c mid">noticed, mis-attributed</td><td class="c no">poor</td></tr>
+      <tr><td class="row-head">Local LLM · 4B</td><td class="c yes">yes</td><td class="c yes">stable</td><td class="c no">no</td><td class="c no">no</td><td class="c no">poor <span class="dim">(over-flags)</span></td></tr>
+      <tr><td class="row-head">Local LLM · 12B</td><td class="c yes">yes</td><td class="c yes">stable</td><td class="c yes">yes</td><td class="c mid">noticed, mis-attributed</td><td class="c no">poor <span class="dim">(noisy)</span></td></tr>
+      <tr><td class="row-head">Local LLM · 26B</td><td class="c no">no &mdash; out of memory</td><td class="c dim">&mdash;</td><td class="c dim">&mdash;</td><td class="c dim">&mdash;</td><td class="c dim">&mdash;</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Two failure modes recurred. The smaller models <strong>crash</strong>: handed a long, name-dense session, they try to "correct" every proper noun, loop on the invented ones, and overflow. The mid-size models stop crashing but <strong>over-flag</strong> — they force ordinary words and made-up character names onto the real-name list with serene confidence. And every model that comfortably runs on the hardware <em>misses the reasoning cases entirely</em> — or notices something is off but assigns it to the wrong person.</p>
+
+  <h3>Candidate C — a frontier model</h3>
+  <p>A frontier model, tested as a fresh instance with no prior context and the same prompt, did what the local models couldn't. It caught the front-distortion surname (from the line that explained it). It caught the substitute-name case by reasoning — "a parent is thanking the child here, and this name appears nowhere else, so it is probably the child's name mis-heard." It even declined a false positive the local models fell for, reasoning aloud about its own uncertainty. It missed only the dissolved case — the one no text-based method can reach.</p>
+
+  <h2><span class="num">5</span>A capability gradient, against a hardware wall</h2>
+  <p>Put end to end, the results are not a binary "LLMs can or can't." They are a <strong>gradient</strong>, and it runs straight into a wall.</p>
+
+  <div class="key">
+    <p><strong>The capability gradient.</strong> Format discipline (don't crash) appears around 4B. The easier reasoning case — a distortion the text <em>explains</em> in context — emerges around 12B, and runs locally. The harder reasoning case — an inference the text only <em>implies</em> — needs frontier scale; nothing smaller got it.</p>
+    <p><strong>The hardware wall.</strong> The local models capable enough to close the gap (26B and up) don't fit in a typical laptop's working memory — they load, then run out of memory on real inputs. And there is no convenient middle size to thread the needle.</p>
+  </div>
+
+  <p>So the three constraints collide. The capability to catch the reasoning cases requires scale; that scale exceeds the hardware; and the model that has the scale to spare lives in the cloud — which the privacy rule forbids. There is no "capable <em>and</em> local <em>and</em> runs here" option.</p>
+
+  <h2><span class="num">6</span>The decision the eval drove</h2>
+  <p>The deployed detector is the <strong>code</strong>. It is deterministic, it never crashes, it never invents a match, and it catches the overwhelming majority of the errors for the cost of a small script. A local language model — at any size that runs on the device — is strictly worse: it adds no unique catches, it is less reliable, and it hallucinates. The frontier model is better, and undeployable.</p>
+  <p>What the eval changed is not just the choice of tool; it is the <em>honesty</em> of the residual. The framework lets the system state, with evidence, exactly what its constraints cost:</p>
+  <ul class="tight">
+    <li>The privacy rule (no cloud) costs roughly <strong>one reasoning case</strong> a frontier model would otherwise catch.</li>
+    <li>The hardware limit closes the door on the local models that could have caught it on-device.</li>
+    <li>And one case is beyond <em>every</em> model, frontier or local — the name dissolved into ordinary words — because the evidence simply isn't in the text. That one is a job for the audio, or for no one.</li>
+  </ul>
+
+  <div class="callout">
+    The point of an evaluation framework isn't a perfect score. It's the ability to make a constrained decision on purpose, and to say precisely what you traded away to make it. "Ship the cheap deterministic check; here is the 1&ndash;2% it can't reach and exactly why" is a complete, honest answer — and a far more trustworthy one than a model that looks impressive and quietly guesses.
+  </div>
+
+  <h2><span class="num">7</span>What transfers</h2>
+  <p>The domain here is narrow — recognizing names in family audio — but the method isn't. Three things carry to any evaluation problem:</p>
+  <ul class="tight">
+    <li><strong>Decompose the failure before you pick a tool.</strong> "Name errors" was four different problems wearing one label; the right detector is different for each, and one of them has no software answer at all.</li>
+    <li><strong>A code check often beats an LLM judge.</strong> When the error has a mechanical fingerprint, deterministic code is cheaper, faster, perfectly repeatable, and doesn't hallucinate. Reserve the model for the cases that genuinely require reasoning — and prove it earns its place against ground truth before trusting it.</li>
+    <li><strong>Measure the cost of your constraints.</strong> Privacy, latency, on-device limits — each one buys you something and costs you something. An eval turns that trade from a vague worry into a number you can defend.</li>
+  </ul>
+
+  <hr>
+  <p class="footnote">
+    Names and identifying details from the underlying family recordings have been removed; the failure shapes, model results, and method are unchanged. Drafted with AI assistance and reviewed by the author.
+  </p>
+
+</main>
+</body>
+</html>
