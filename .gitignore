@@ -41,4 +41,4 @@ experiments/
 emp/results/visuals/
 
 # Private real-name data (family roster); count.py reads it for M9a counting only, never committed
-emp/results/pivot-notes.private.json
+emp/results/pivot-notes.private.json*
