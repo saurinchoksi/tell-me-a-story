@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-01 — Name detector checked against recordings it had never seen
+
+The deterministic name-checker — which flags when the family's own names come out mistranscribed — was scored by ear against two recordings held out of the earlier analysis. It caught every name error a fresh listen turned up, including spellings of the child's name it had never been shown, and raised a single false alarm on an ordinary word that merely sounds like her name. Checking it on recordings it had never seen, rather than the ones it was tuned on, is what turns a hopeful accuracy figure into a trustworthy one.
+
 ## 2026-06-01 — Playback speed is now a dropdown, with a 2× option
 
 The validator's audio speed used to be a row of buttons topping out at 1.5×. It's now a single dropdown that also offers 2×, so you can move through a long recording faster without crowding the control bar.
