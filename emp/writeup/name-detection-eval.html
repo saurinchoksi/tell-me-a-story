@@ -182,6 +182,11 @@
     The point of an evaluation framework isn't a perfect score. It's the ability to make a constrained decision on purpose, and to say precisely what you traded away to make it. "Ship the cheap deterministic check; here is the 1&ndash;2% it can't reach and exactly why" is a complete, honest answer — and a far more trustworthy one than a model that looks impressive and quietly guesses.
   </div>
 
+  <h3>A coda: even the cleanup didn't need a model</h3>
+  <p>One question remained. The code's lone false positive was a contraction that simply <em>sounds</em> like the name. Could the smallest on-device model — the one that comfortably fits the hardware — earn its place as a <em>filter</em>, reading each of the code's flags in context and dropping the ones that aren't really names? This is the bounded version of the job — judge a handful of candidates, yes or no — not the open-ended detection that defeated the small models earlier, so it was a fair second chance.</p>
+  <p>It came back a clean negative. The small model was now perfectly <em>reliable</em> — stable across repeated runs, no crashes; the bounded framing fixed that. But it failed on <em>accuracy</em>, and on exactly the case that was supposed to justify it: a name that is also an everyday word. It correctly dropped the contraction, but it also threw out every instance of a real name that doubles as a common adjective — reading it as the adjective and ignoring the context that made it a name. It traded several real catches for one false-positive removal: a worse detector, not a better one.</p>
+  <p>What <em>did</em> work was a single line of code: keep only the flags that are capitalized. The stray contraction was lowercase mid-sentence; every real name was capitalized. That one rule removed the false positive and kept every true name — perfect precision and recall, no model, no gigabytes of dependencies. The lesson rhymes with the rest: when a deterministic signal is sitting right there in the data, a model isn't just unnecessary — it can be actively worse, because it brings its own confident mistakes.</p>
+
   <h2><span class="num">7</span>What transfers</h2>
   <p>The domain here is narrow — recognizing names in family audio — but the method isn't. Three things carry to any evaluation problem:</p>
   <ul class="tight">

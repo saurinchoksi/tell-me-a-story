@@ -1,5 +1,6 @@
 # Python
 venv/
+venv-mlx-vlm/
 __pycache__/
 *.pyc
 .pytest_cache/

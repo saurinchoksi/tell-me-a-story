@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-01 — A one-line rule beat a local model at cleaning up name flags
+
+The name-checker's one false alarm — an everyday word that sounds like a name — prompted a test: could the smallest on-device language model, reading each flag in context, drop the false alarms while keeping the real names? It proved reliable but not accurate — it also threw out a real name that doubles as a common word, a worse trade than it fixed. A single deterministic rule — keep only capitalized flags — removed the false alarm and kept every real name, so the checker now uses that instead of a model.
+
 ## 2026-06-01 — Name detector checked against recordings it had never seen
 
 The deterministic name-checker — which flags when the family's own names come out mistranscribed — was scored by ear against two recordings held out of the earlier analysis. It caught every name error a fresh listen turned up, including spellings of the child's name it had never been shown, and raised a single false alarm on an ordinary word that merely sounds like her name. Checking it on recordings it had never seen, rather than the ones it was tuned on, is what turns a hopeful accuracy figure into a trustworthy one.

@@ -56,6 +56,17 @@ def codes(word: str) -> set:
     return {c for c in doublemetaphone(word) if c}
 
 
+def is_capitalized(raw: str) -> bool:
+    """First alphabetic character is uppercase -- a cheap 'name-shaped' precision
+    gate that drops lowercase homophones (e.g. the contraction "where'd", whose
+    code collides with the child's name) with no model. Caveat: it would also drop
+    a name Whisper rendered lowercase, and let through a capitalized common word at
+    a sentence start -- neither occurred in the validated sessions. (Out-scored a
+    Gemma 4 E2B context-filter, which sacrificed recall on "Earthy"; see emp.md.)"""
+    first = next((ch for ch in raw if ch.isalpha()), "")
+    return first.isupper()
+
+
 def load_roster():
     side = json.loads(SIDECAR.read_text())
     roster = side["m9a_roster"]
@@ -88,7 +99,7 @@ def load_roster():
     return canon, canon_forms, code_to_pid, roster_codes, alias
 
 
-def detect(session_id, canon, canon_forms, code_to_pid, roster_codes, alias):
+def detect(session_id, canon, canon_forms, code_to_pid, roster_codes, alias, cap_gate=True):
     path = SESSIONS_DIR / session_id / "transcript-rich.json"
     data = json.loads(path.read_text())
     flags, n_tokens = [], 0
@@ -110,6 +121,8 @@ def detect(session_id, canon, canon_forms, code_to_pid, roster_codes, alias):
                 mtype = "alias"
             else:
                 continue
+            if cap_gate and not is_capitalized(w["word"].strip()):
+                continue   # capitalization gate -- drop lowercase homophones
             flags.append({
                 "session": session_id,
                 "segment_id": seg["id"],
@@ -148,6 +161,8 @@ def report(session_id, flags, n_tokens, canon):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("sessions", nargs="+", help="session ids under sessions/")
+    ap.add_argument("--no-cap-gate", action="store_true",
+                    help="disable the capitalization precision gate (for analysis)")
     args = ap.parse_args()
 
     canon, canon_forms, code_to_pid, roster_codes, alias = load_roster()
@@ -157,8 +172,10 @@ def main():
     print(f"   alias layer (exact, front-distortion): "
           f"{ {k: canon.get(v, v) for k, v in alias.items()} }")
 
+    cap_gate = not args.no_cap_gate
+    print(f"   capitalization gate: {'ON' if cap_gate else 'OFF'}")
     for sid in args.sessions:
-        flags, n_tokens = detect(sid, canon, canon_forms, code_to_pid, roster_codes, alias)
+        flags, n_tokens = detect(sid, canon, canon_forms, code_to_pid, roster_codes, alias, cap_gate=cap_gate)
         report(sid, flags, n_tokens, canon)
         outdir = VISUALS / sid
         outdir.mkdir(parents=True, exist_ok=True)
