@@ -23,6 +23,9 @@ import { useAutoScroll } from './validator/useAutoScroll';
 import { useKeyboardShortcuts } from './validator/useKeyboardShortcuts';
 import './ValidatorPage.css';
 
+/** Audio playback speeds offered in the validator's speed dropdown. */
+const PLAYBACK_RATES = [0.5, 1, 1.5, 2] as const;
+
 /** Binary search: find the segment containing `time`, or -1. */
 function findSegmentIndex(segments: ValidatorSegment[], time: number): number {
   let lo = 0;
@@ -449,15 +452,16 @@ export default function ValidatorPage() {
           >
             {state.playing ? 'Pause' : 'Play'}
           </button>
-          {[0.5, 1, 1.5].map((rate) => (
-            <button
-              key={rate}
-              className={`btn btn--small ${state.playbackRate === rate ? 'btn--active' : ''}`}
-              onClick={() => dispatch({ type: 'SET_PLAYBACK_RATE', rate })}
-            >
-              {rate}x
-            </button>
-          ))}
+          <select
+            className="speed-select"
+            aria-label="Playback speed"
+            value={state.playbackRate}
+            onChange={(e) => dispatch({ type: 'SET_PLAYBACK_RATE', rate: Number(e.target.value) })}
+          >
+            {PLAYBACK_RATES.map((rate) => (
+              <option key={rate} value={rate}>{rate}×</option>
+            ))}
+          </select>
         </div>
 
         <div className="controls-filters">

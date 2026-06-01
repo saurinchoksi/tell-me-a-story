@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-01 — Playback speed is now a dropdown, with a 2× option
+
+The validator's audio speed used to be a row of buttons topping out at 1.5×. It's now a single dropdown that also offers 2×, so you can move through a long recording faster without crowding the control bar.
+
 ## 2026-05-29 — Evals project files gathered into one folder
 
 The scattered evals scripts and result files now live under one top-level folder, and the failure-mode counts render as a standalone page; the recordings and coding files stayed where they were.
