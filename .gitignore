@@ -43,3 +43,7 @@ emp/results/visuals/
 
 # Private real-name data (family roster); count.py reads it for M9a counting only, never committed
 emp/results/pivot-notes.private.json*
+
+# Interactive review scaffolding (regenerable HTML + co-edited working notes)
+emp/writeup/*-review.html
+emp/writeup/*-notes.json

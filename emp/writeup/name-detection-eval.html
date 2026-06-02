@@ -3,203 +3,70 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Code, a local model, or a frontier model? — a detection eval</title>
+<title>The name the computer kept getting wrong</title>
 <style>
-  :root{
-    --ink:#1a1a1a; --muted:#5b5f66; --faint:#8a8f98;
-    --rule:#e6e7ea; --bg:#fbfbfa; --card:#ffffff;
-    --accent:#3a5a78; --good:#1f7a4d; --bad:#b23a3a; --warn:#a9791c;
-    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
-  }
+
+  :root{--ink:#1a1a1a;--muted:#5b5f66;--faint:#8a8f98;--rule:#e6e7ea;--bg:#fbfbfa;--accent:#3a5a78;--good:#1f7a4d;--mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;}
   *{box-sizing:border-box}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    line-height:1.62; font-size:17px; -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:760px; margin:0 auto; padding:4rem 1.25rem 6rem}
-  .eyebrow{font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; color:var(--faint); margin:0 0 .9rem}
-  h1{font-size:2.05rem; line-height:1.18; letter-spacing:-.015em; margin:0 0 .7rem; font-weight:700}
-  .deck{font-size:1.18rem; color:var(--muted); margin:0 0 2.2rem; line-height:1.5}
-  h2{font-size:1.32rem; letter-spacing:-.01em; margin:3rem 0 .3rem; font-weight:680}
-  h2 .num{color:var(--faint); font-weight:600; margin-right:.5rem; font-variant-numeric:tabular-nums}
-  h3{font-size:1.02rem; margin:1.8rem 0 .2rem; font-weight:650}
-  p{margin:.85rem 0}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.62;font-size:17px;-webkit-font-smoothing:antialiased}
+  .eyebrow{font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:0 0 .9rem}
+  h1{font-size:2.05rem;line-height:1.18;letter-spacing:-.015em;margin:0 0 .7rem;font-weight:700}
+  .deck{font-size:1.18rem;color:var(--muted);margin:0 0 2.4rem;line-height:1.5}
+  h2{font-size:1.32rem;letter-spacing:-.01em;margin:3rem 0 .3rem;font-weight:680}
+  p{margin:.95rem 0}
   a{color:var(--accent)}
   strong{font-weight:650}
-  .lede::first-letter{}
-  /* TL;DR card */
-  .tldr{
-    background:var(--card); border:1px solid var(--rule); border-radius:12px;
-    padding:1.5rem 1.6rem; margin:0 0 1rem; box-shadow:0 1px 2px rgba(0,0,0,.03);
-  }
-  .tldr h2{margin:0 0 .8rem; font-size:1.05rem; letter-spacing:.02em; text-transform:uppercase; color:var(--accent)}
-  .tldr dl{display:grid; grid-template-columns:auto 1fr; gap:.55rem 1.1rem; margin:0}
-  .tldr dt{font-weight:650; color:var(--ink); white-space:nowrap}
-  .tldr dd{margin:0; color:var(--muted)}
-  /* tables */
-  .tablewrap{overflow-x:auto; margin:1.3rem -0.25rem}
-  table{border-collapse:collapse; width:100%; font-size:.92rem}
-  caption{caption-side:top; text-align:left; color:var(--faint); font-size:.82rem; margin-bottom:.5rem}
-  th,td{padding:.55rem .7rem; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top}
-  thead th{font-size:.78rem; letter-spacing:.03em; text-transform:uppercase; color:var(--faint); font-weight:600; border-bottom:1.5px solid #d7d9dd}
-  tbody tr:last-child td{border-bottom:none}
-  td.c,th.c{text-align:center}
-  .row-head{font-weight:600}
-  .yes{color:var(--good); font-weight:650}
-  .no{color:var(--bad); font-weight:650}
-  .mid{color:var(--warn); font-weight:650}
-  .dim{color:var(--faint)}
-  /* pull quote / callout */
-  .callout{
-    border-left:3px solid var(--accent); padding:.2rem 0 .2rem 1.2rem; margin:1.8rem 0;
-    color:var(--ink); font-size:1.07rem;
-  }
-  .key{background:#f4f6f8; border:1px solid var(--rule); border-radius:10px; padding:1.1rem 1.3rem; margin:1.6rem 0}
-  .key p{margin:.4rem 0}
-  code{font-family:var(--mono); font-size:.86em; background:#f0f1f3; padding:.08em .35em; border-radius:4px}
-  hr{border:none; border-top:1px solid var(--rule); margin:3rem 0}
-  .footnote{font-size:.86rem; color:var(--faint); margin-top:2.5rem}
-  ul.tight{margin:.6rem 0; padding-left:1.2rem}
-  ul.tight li{margin:.3rem 0}
-  .stage{font-variant-numeric:tabular-nums}
+  .callout{border-left:3px solid var(--accent);padding:.3rem 0 .3rem 1.2rem;margin:2rem 0;color:var(--ink);font-size:1.08rem;line-height:1.55}
+  code{font-family:var(--mono);font-size:.86em;background:#f0f1f3;padding:.08em .35em;border-radius:4px}
+  hr{border:none;border-top:1px solid var(--rule);margin:3rem 0}
+  .footnote{font-size:.86rem;color:var(--faint);margin-top:2.5rem;line-height:1.55}
+  ul{margin:.9rem 0;padding-left:1.2rem}
+  ul li{margin:.5rem 0}
+
+  .wrap{max-width:720px;margin:0 auto;padding:4rem 1.25rem 6rem}
+
 </style>
 </head>
 <body>
 <main class="wrap">
-
-  <p class="eyebrow">Evaluation case study · speech recognition</p>
-  <h1>Code, a local model, or a frontier model?</h1>
-  <p class="deck">Choosing a detector for the most common failure in a private, on-device storytelling transcriber — and measuring exactly what the privacy and hardware constraints cost in accuracy.</p>
-
-  <div class="tldr">
-    <h2>The short version</h2>
-    <dl>
-      <dt>What we evaluated</dt>
-      <dd>The single most frequent failure in a local-only family-storytelling transcription system: proper names mis-transcribed — above all, the child protagonist's own name.</dd>
-      <dt>The method</dt>
-      <dd>Build a human ground-truth answer key, then score three classes of detector against it — deterministic code, a range of local language models (2B&ndash;26B), and a frontier model — on recall, precision, and reliability.</dd>
-      <dt>What it found</dt>
-      <dd>A few lines of deterministic code catch ~97% of the errors, with no model at all. Local language models add nothing and are <em>less</em> reliable. A frontier model catches the handful of reasoning-dependent cases — but can't be deployed, because the system is private by design. The local models capable enough to match it don't fit on consumer hardware.</dd>
-      <dt>The decision</dt>
-      <dd>Ship the code. Name the 1&ndash;2 cases it can't reach as the honest, measured cost of the privacy and hardware constraints — not as something to paper over.</dd>
-    </dl>
-  </div>
-
-  <h2><span class="num">1</span>The system, and the failure worth fixing</h2>
-  <p class="lede">The system is a small pipeline that records a parent and child telling bedtime stories, transcribes the audio with speaker labels, and pulls out the recurring people and places. One rule shapes everything: it is <strong>local-only by design</strong> — family audio never leaves the device, and no cloud service ever sees it.</p>
-  <p>An error-analysis pass over the sessions surfaced a clear top failure mode: <strong>names</strong>. The transcriber confidently mis-spells the people in the stories — and the most-mangled name of all is the story's own protagonist, the child. It is the kind of error that quietly poisons everything downstream: a "bible" of characters and themes is worthless if the lead character is spelled four different ways.</p>
-  <p>One property of the system matters for everything that follows. It is a <strong>recognition</strong> system, not a generation system. Almost every error is "the transcript doesn't match the audio." That single fact decides who can even be a candidate detector — because a text-only judge never hears the sound.</p>
-
-  <h2><span class="num">2</span>The eval, in four moves</h2>
-  <p>The framework is deliberately plain, and it is the point. Evals are structured data work on a stochastic system; the rigor lives in the bookkeeping, not in cleverness.</p>
-  <ul class="tight">
-    <li><strong>A rubric / answer key.</strong> A human (the domain owner) assembled the ground truth: each real recurring person &rarr; their one correct spelling &rarr; every way the transcriber actually mangled it, per session. This is the thing every detector is graded against.</li>
-    <li><strong>A test harness.</strong> A small, read-only script that runs any candidate detector across every session and produces flags — re-runnable, deterministic to invoke, and unchanged between candidates so the comparison is fair.</li>
-    <li><strong>A scorecard.</strong> Precision and recall for each detector, plus a reliability column (does it crash? does it answer the same way twice?).</li>
-    <li><strong>Reading the off-diagonals.</strong> Not the headline percentage — the specific cells. Which true errors did it miss, and which non-errors did it invent? That is where every real decision was made.</li>
-  </ul>
-
-  <h2><span class="num">3</span>Four shapes of one failure</h2>
-  <p>"Name errors" is not one problem. The answer key revealed four distinct shapes, and they do not yield to the same tool. The distinction that organizes them: <strong>does the wrong output leave a trace in the text, or only in the audio?</strong></p>
-
-  <div class="tablewrap">
-  <table>
-    <caption>The four error shapes, and where the evidence lives</caption>
-    <thead>
-      <tr><th>Shape</th><th>What it looks like</th><th>Where the "it's wrong" signal is</th></tr>
-    </thead>
-    <tbody>
-      <tr><td class="row-head">Mis-spelling, consistent</td><td>One wrong spelling, used the same way every time</td><td>In the text — but only versus the <em>correct</em> spelling (it looks internally fine)</td></tr>
-      <tr><td class="row-head">Mis-spelling, inconsistent</td><td>The same name spelled several ways in one story</td><td>In the text — the spellings contradict each other</td></tr>
-      <tr><td class="row-head">Front-distortion</td><td>A surname whose opening sound is misheard, so it no longer sounds like the real name at all</td><td>Faint — sound-matching can't bridge it; needs the known name or reasoning</td></tr>
-      <tr><td class="row-head">Dissolved into words</td><td>The name rendered as an ordinary, correctly-spelled phrase — or a different, perfectly plausible name</td><td><strong>Only in the audio.</strong> The text reads as flawless and unremarkable</td></tr>
-    </tbody>
-  </table>
-  </div>
-
-  <div class="callout">
-    A detector can only flag an error that leaves a trace in something it can look at. Three of these shapes leave a trace in the text. The fourth erases the very thing detection keys on — it turns a name into a normal phrase — so no text-only method, however clever, can ever catch it. That is not a weakness to engineer around; it is a fact about where the information is.
-  </div>
-
-  <h2><span class="num">4</span>The candidates, and the scorecard</h2>
-
-  <h3>Candidate A — plain code</h3>
-  <p>The first candidate is not a model at all: convert each transcript word and each known name to a rough phonetic code, and flag any word that <em>sounds like</em> a name but isn't spelled like one. It is roughly fifteen lines. Scored against the answer key, it lands at <strong>~0.96 precision and ~0.97 recall</strong> — and, crucially, it catches the "consistent mis-spelling" case that pure inconsistency-checking misses, because it compares against the correct answer, not against a word's neighbors. It is deterministic: same input, same output, forever. Its only blind spots are the front-distortion case (the sound diverged too far) and the dissolved case (no text signal exists).</p>
-
-  <h3>Candidate B — local language models</h3>
-  <p>The intuitive hope is that a language model, handed the list of real names, would simply <em>read</em> the transcript and catch everything. We tested that directly, across a ladder of on-device models, scoring each against the same answer key.</p>
-
-  <div class="tablewrap">
-  <table>
-    <caption>The local-model sweep — every model that runs on a typical laptop fails the cases that matter</caption>
-    <thead>
-      <tr>
-        <th>Detector</th>
-        <th class="c">Runs on a laptop?</th>
-        <th class="c">Reliable?</th>
-        <th class="c">Front-distortion case</th>
-        <th class="c">Substitute-name case</th>
-        <th class="c">Precision</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td class="row-head">Plain code (phonetic)</td><td class="c yes">yes</td><td class="c yes">deterministic</td><td class="c no">no <span class="dim">(alias covers)</span></td><td class="c no">no</td><td class="c yes">clean</td></tr>
-      <tr><td class="row-head">Local LLM · 8B</td><td class="c yes">yes</td><td class="c no">crashes on long inputs</td><td class="c no">no</td><td class="c no">no</td><td class="c no">poor</td></tr>
-      <tr><td class="row-head">Local LLM · 2B</td><td class="c yes">yes</td><td class="c no">crashes 2 of 3</td><td class="c dim">&mdash;</td><td class="c mid">noticed, mis-attributed</td><td class="c no">poor</td></tr>
-      <tr><td class="row-head">Local LLM · 4B</td><td class="c yes">yes</td><td class="c yes">stable</td><td class="c no">no</td><td class="c no">no</td><td class="c no">poor <span class="dim">(over-flags)</span></td></tr>
-      <tr><td class="row-head">Local LLM · 12B</td><td class="c yes">yes</td><td class="c yes">stable</td><td class="c yes">yes</td><td class="c mid">noticed, mis-attributed</td><td class="c no">poor <span class="dim">(noisy)</span></td></tr>
-      <tr><td class="row-head">Local LLM · 26B</td><td class="c no">no &mdash; out of memory</td><td class="c dim">&mdash;</td><td class="c dim">&mdash;</td><td class="c dim">&mdash;</td><td class="c dim">&mdash;</td></tr>
-    </tbody>
-  </table>
-  </div>
-
-  <p>Two failure modes recurred. The smaller models <strong>crash</strong>: handed a long, name-dense session, they try to "correct" every proper noun, loop on the invented ones, and overflow. The mid-size models stop crashing but <strong>over-flag</strong> — they force ordinary words and made-up character names onto the real-name list with serene confidence. And every model that comfortably runs on the hardware <em>misses the reasoning cases entirely</em> — or notices something is off but assigns it to the wrong person.</p>
-
-  <h3>Candidate C — a frontier model</h3>
-  <p>A frontier model, tested as a fresh instance with no prior context and the same prompt, did what the local models couldn't. It caught the front-distortion surname (from the line that explained it). It caught the substitute-name case by reasoning — "a parent is thanking the child here, and this name appears nowhere else, so it is probably the child's name mis-heard." It even declined a false positive the local models fell for, reasoning aloud about its own uncertainty. It missed only the dissolved case — the one no text-based method can reach.</p>
-
-  <h2><span class="num">5</span>A capability gradient, against a hardware wall</h2>
-  <p>Put end to end, the results are not a binary "LLMs can or can't." They are a <strong>gradient</strong>, and it runs straight into a wall.</p>
-
-  <div class="key">
-    <p><strong>The capability gradient.</strong> Format discipline (don't crash) appears around 4B. The easier reasoning case — a distortion the text <em>explains</em> in context — emerges around 12B, and runs locally. The harder reasoning case — an inference the text only <em>implies</em> — needs frontier scale; nothing smaller got it.</p>
-    <p><strong>The hardware wall.</strong> The local models capable enough to close the gap (26B and up) don't fit in a typical laptop's working memory — they load, then run out of memory on real inputs. And there is no convenient middle size to thread the needle.</p>
-  </div>
-
-  <p>So the three constraints collide. The capability to catch the reasoning cases requires scale; that scale exceeds the hardware; and the model that has the scale to spare lives in the cloud — which the privacy rule forbids. There is no "capable <em>and</em> local <em>and</em> runs here" option.</p>
-
-  <h2><span class="num">6</span>The decision the eval drove</h2>
-  <p>The deployed detector is the <strong>code</strong>. It is deterministic, it never crashes, it never invents a match, and it catches the overwhelming majority of the errors for the cost of a small script. A local language model — at any size that runs on the device — is strictly worse: it adds no unique catches, it is less reliable, and it hallucinates. The frontier model is better, and undeployable.</p>
-  <p>What the eval changed is not just the choice of tool; it is the <em>honesty</em> of the residual. The framework lets the system state, with evidence, exactly what its constraints cost:</p>
-  <ul class="tight">
-    <li>The privacy rule (no cloud) costs roughly <strong>one reasoning case</strong> a frontier model would otherwise catch.</li>
-    <li>The hardware limit closes the door on the local models that could have caught it on-device.</li>
-    <li>And one case is beyond <em>every</em> model, frontier or local — the name dissolved into ordinary words — because the evidence simply isn't in the text. That one is a job for the audio, or for no one.</li>
-  </ul>
-
-  <div class="callout">
-    The point of an evaluation framework isn't a perfect score. It's the ability to make a constrained decision on purpose, and to say precisely what you traded away to make it. "Ship the cheap deterministic check; here is the 1&ndash;2% it can't reach and exactly why" is a complete, honest answer — and a far more trustworthy one than a model that looks impressive and quietly guesses.
-  </div>
-
-  <h3>A coda: even the cleanup didn't need a model</h3>
-  <p>One question remained. The code's lone false positive was a contraction that simply <em>sounds</em> like the name. Could the smallest on-device model — the one that comfortably fits the hardware — earn its place as a <em>filter</em>, reading each of the code's flags in context and dropping the ones that aren't really names? This is the bounded version of the job — judge a handful of candidates, yes or no — not the open-ended detection that defeated the small models earlier, so it was a fair second chance.</p>
-  <p>It came back a clean negative. The small model was now perfectly <em>reliable</em> — stable across repeated runs, no crashes; the bounded framing fixed that. But it failed on <em>accuracy</em>, and on exactly the case that was supposed to justify it: a name that is also an everyday word. It correctly dropped the contraction, but it also threw out every instance of a real name that doubles as a common adjective — reading it as the adjective and ignoring the context that made it a name. It traded several real catches for one false-positive removal: a worse detector, not a better one.</p>
-  <p>What <em>did</em> work was a single line of code: keep only the flags that are capitalized. The stray contraction was lowercase mid-sentence; every real name was capitalized. That one rule removed the false positive and kept every true name — perfect precision and recall, no model, no gigabytes of dependencies. The lesson rhymes with the rest: when a deterministic signal is sitting right there in the data, a model isn't just unnecessary — it can be actively worse, because it brings its own confident mistakes.</p>
-
-  <h2><span class="num">7</span>What transfers</h2>
-  <p>The domain here is narrow — recognizing names in family audio — but the method isn't. Three things carry to any evaluation problem:</p>
-  <ul class="tight">
-    <li><strong>Decompose the failure before you pick a tool.</strong> "Name errors" was four different problems wearing one label; the right detector is different for each, and one of them has no software answer at all.</li>
-    <li><strong>A code check often beats an LLM judge.</strong> When the error has a mechanical fingerprint, deterministic code is cheaper, faster, perfectly repeatable, and doesn't hallucinate. Reserve the model for the cases that genuinely require reasoning — and prove it earns its place against ground truth before trusting it.</li>
-    <li><strong>Measure the cost of your constraints.</strong> Privacy, latency, on-device limits — each one buys you something and costs you something. An eval turns that trade from a vague worry into a number you can defend.</li>
-  </ul>
-
+  <p class="eyebrow">Evaluation case study</p>
+  <h1>The name the computer kept getting wrong</h1>
+  <p class="deck">I built a small tool that records my kid's bedtime stories and writes them down. Then I sat down to find out what it gets wrong, how often, and the best way to fix it.</p>
+  <p>At night, my kid and I make up stories, and I record them. A little pipeline on my own computer turns the audio into text, labels who said what, and pulls out the characters and names we invent along the way. The point is to keep a growing record of our made-up world. One rule sits on top of all of it: nothing leaves my machine. This is my family's voice, so it never goes to the cloud.</p>
+  <p>The tool is good, but it gets things wrong, and the thing it gets wrong most is names. It will spell my kid's name four different ways in a single story. That matters more than it sounds like it should. If the main character's name is a mess, the record I am trying to keep is mostly junk. So I stopped adding features and did something slower and more useful. I sat down to measure it. Two questions: how bad is it really, and what is the best way to catch it.</p>
+  <h2>First I read the transcripts and wrote down what was broken</h2>
+  <p>I did not try to fix anything yet. That part is a trap. The moment you start rewriting lines, you stop noticing the failures and start polishing them away. So I just read, story by story, and every time I hit a new kind of mistake, I gave it a short, plain name. Missed a word. Put the words on the wrong person. I wrote down what I saw, not what I guessed had caused it. To keep this quick, I built a small tool for it: each line of the transcript shows up as a card with a row of buttons, one per kind of mistake, so I could tag a line with a click instead of writing a note every time.</p>
+  <p>I kept going until I stopped finding new kinds. That took six stories. In the first one I found fifteen new kinds of mistake. By the fourth, I was finding one. It never quite dropped to zero, but the flattening was the signal to stop: I had clearly seen the common failures, and chasing the long tail across fifty more stories would have been a waste of time. I ended with eighteen kinds.</p>
+  <h2>Then I grouped them</h2>
+  <p>A lot of those eighteen were the same problem in different clothes. So I sorted them into ten groups, and for each group I wrote down a rough idea of how you would actually fix it. Grouping by the fix is the useful part. Two mistakes that look different but get repaired the same way belong together. I also kept a &quot;none of these&quot; bucket open the whole time, in case something refused to fit any group. It stayed empty. That is a small thing, but it told me the ten groups really did cover everything I had seen.</p>
+  <h2>Then I counted</h2>
+  <p>Finding the kinds of mistakes is one job. Counting how often each one happens is a different job, so I did it on its own pass. I built the count as something I could poke at and edit, not a frozen table. Each mistake type carries its own notes and a guess at how a fix would work, and the whole thing saves back to a file so I can keep refining it as I learn more. And because some mistakes are nearly impossible to catch by ear, I wrote a couple of small scripts that line the transcript up against the actual sound and against who was talking. They turned up a pile of mistakes I would have missed by hand. In the longest story alone, close to a minute of talking had been dropped with no trace at all.</p>
+  <p>The result was not close. Names were the most common mistake by a wide margin, well ahead of plain wrong words and wrong-speaker mix-ups. So names is what I went after.</p>
+  <h2>What a name mistake actually is</h2>
+  <p>Before building a catcher, I had to be honest about what I was even catching, and it turned out a name mistake is really four different problems:</p>
+  <ul><li>The same wrong spelling, every time.</li><li>The same name spelled a few different ways inside one story.</li><li>A name whose first sound gets misheard, so it stops sounding like the real name at all.</li><li>A name that comes out as an ordinary word, or as a different, perfectly normal name. This is the hard one. Nothing about the text looks wrong, so you can only catch it by listening.</li></ul>
+  <p>Those four do not give way to the same tool. Three of them leave a trace in the text you can grab onto. The fourth erases the only thing a text checker could ever look at, so no amount of cleverness in software will catch it. That is not a flaw to engineer around. It is a fact about where the clue lives.</p>
+  <h2>The answer key</h2>
+  <p>To grade anything, I needed the right answers. So I went back through every story and wrote down each real person, the one correct spelling of their name, and every single way the computer had mangled it. That list is the answer key. Every catcher I try gets graded against it, the same way, so the comparison stays fair.</p>
+  <h2>Three ways to catch the mistakes</h2>
+  <p>I tried three. The first is not a model at all. Turn every word into a rough code for how it sounds, then flag any word that sounds like one of our names but is not spelled like one of them. It is about fifteen lines of code. Graded against the answer key, it caught about 97% of the mistakes, with no model anywhere in sight.</p>
+  <p>The second was small AI models, the kind you could run on a cheap home device without sending anything to the cloud. I tried a range of sizes. The small ones crashed on the longer stories. The medium ones stopped crashing but flagged far too much, forcing ordinary words onto the name list with total confidence. And the ones actually smart enough to help are too big to fit on the hardware I would put this on.</p>
+  <p>The third was a big cloud model. This one did the hard cases. It reasoned them out, the way a person would, catching a name that had turned into a different name by noticing it appeared nowhere else and that a parent was clearly talking to the kid. But I cannot use it, for the same reason that shaped everything else here. My kid's voice does not go to the cloud.</p>
+  <h2>The decision: ship the code</h2>
+  <p>The plain code wins. It is simple, it never crashes, it never invents a match, and it catches almost everything for the price of a tiny script. The cloud model is smarter, and it is off the table. The local models that would fit are worse than the code, and the ones that could compete do not fit.</p>
+  <div class="callout">And one kind of mistake, the name that turns into an ordinary word, cannot be caught from the text by anything, big model or small, because the clue simply is not in the text. I would rather say that out loud, and point to the one or two cases it costs me, than ship something that looks impressive and quietly guesses.</div>
+  <p>That, more than the score, is what the exercise gave me. Not just a tool, but an honest account of what my own rules cost. Keeping this private and on a small device costs me a couple of hard cases, and now I can name them exactly instead of waving my hands.</p>
+  <h2>One more test, just to be sure</h2>
+  <p>The code had exactly one false alarm: a word that happens to sound like the name. I wondered if the smallest local model could at least clean that one up, since judging a single word in context is a far easier job than reading a whole story. This time it did not crash. But it failed at the one thing I asked it to do. A real name that is also an everyday word, it threw out, reading it as the everyday word and ignoring the sentence around it. It traded away several real catches to remove one false alarm. That is a worse tool, not a better one.</p>
+  <p>What actually fixed the false alarm was one more line of code: only flag words that start with a capital letter. The false alarm was lowercase, sitting in the middle of a sentence. The real names were all capitalized. Done.</p>
+  <h2>Did it actually work, or did I just fit my own test?</h2>
+  <p>That is the question that matters, and it is the easiest one to skip. A score measured on the same stories you built the tool from can look great for the wrong reasons. So I ran the whole thing on two stories I had never opened. It caught every name mistake I could find by ear in them, including spellings it had never seen before, and it raised the same single harmless false alarm. The score held up on new material, which is the only kind of score worth trusting.</p>
+  <h2>What I took from this</h2>
+  <p>The project is small and the names are made up, but the steps are not particular to either one:</p>
+  <ul><li><strong>Break the problem apart before you reach for a tool.</strong> &quot;Name mistakes&quot; was four different problems wearing one label, and one of them has no software answer at all.</li><li><strong>Plain code often beats an AI model.</strong> When the clue is sitting right there in the data, code is cheaper, faster, repeats perfectly, and does not make things up. Save the model for the cases that genuinely need reasoning, and make it prove it earns its place against a real answer key before you trust it.</li><li><strong>Be honest about what your limits cost you.</strong> Private, on-device, small hardware: each choice buys something and costs something, and a real evaluation turns that from a vague worry into a number you can point to.</li></ul>
+  <p>There is one more thing that carries, and it is the one I keep coming back to. This project turns sound into text. A voice assistant does the opposite. It turns an idea into speech. The thing you would be checking is completely different. But the work is the same: sit with the failures, name them, group them, count them, choose a check for each one, and test that check against a real answer key before you believe it. The tool you build will not survive the next model. The way you decided what to build will.</p>
   <hr>
-  <p class="footnote">
-    Names and identifying details from the underlying family recordings have been removed; the failure shapes, model results, and method are unchanged. Drafted with AI assistance and reviewed by the author.
-  </p>
-
+  <p class="footnote">Names and identifying details from the family recordings have been removed; the failures, the model results, and the method are unchanged. The code behind this (the detector, its scorer, the counting board, and the audio checks) is on <a href="https://github.com/saurinchoksi/tell-me-a-story/tree/main/emp">GitHub</a>. Written with help from an AI assistant and edited by me.</p>
 </main>
 </body>
 </html>
