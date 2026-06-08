@@ -3,70 +3,186 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The name the computer kept getting wrong</title>
+<title>Why I shipped plain code, not an AI model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,560;0,9..144,640;1,9..144,420;1,9..144,520&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 
-  :root{--ink:#1a1a1a;--muted:#5b5f66;--faint:#8a8f98;--rule:#e6e7ea;--bg:#fbfbfa;--accent:#3a5a78;--good:#1f7a4d;--mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;}
+  :root{
+    --cream:#FBF8F3; --paper:#FFFFFF;
+    --maroon:#6A3843; --maroon-deep:#4f2932;
+    --gold:#BFA265; --gold-deep:#977c41;
+    --rose:#F2E6E8;
+    --ink:#352B2D; --read:#4A4042; --muted:#8C8081; --faint:#A99FA0;
+    --rule:#E9DFD9;
+    --serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:"DM Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.62;font-size:17px;-webkit-font-smoothing:antialiased}
-  .eyebrow{font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:0 0 .9rem}
-  h1{font-size:2.05rem;line-height:1.18;letter-spacing:-.015em;margin:0 0 .7rem;font-weight:700}
-  .deck{font-size:1.18rem;color:var(--muted);margin:0 0 2.4rem;line-height:1.5}
-  h2{font-size:1.32rem;letter-spacing:-.01em;margin:3rem 0 .3rem;font-weight:680}
-  p{margin:.95rem 0}
-  a{color:var(--accent)}
-  strong{font-weight:650}
-  .callout{border-left:3px solid var(--accent);padding:.3rem 0 .3rem 1.2rem;margin:2rem 0;color:var(--ink);font-size:1.08rem;line-height:1.55}
-  code{font-family:var(--mono);font-size:.86em;background:#f0f1f3;padding:.08em .35em;border-radius:4px}
-  hr{border:none;border-top:1px solid var(--rule);margin:3rem 0}
-  .footnote{font-size:.86rem;color:var(--faint);margin-top:2.5rem;line-height:1.55}
-  ul{margin:.9rem 0;padding-left:1.2rem}
-  ul li{margin:.5rem 0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;color:var(--read);background:var(--cream);
+    font-family:var(--sans);font-size:18px;line-height:1.68;font-weight:400;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    counter-reset:sec;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(1200px 600px at 78% -8%, rgba(191,162,101,.10), transparent 60%),
+      radial-gradient(900px 500px at 0% 4%, rgba(106,56,67,.05), transparent 55%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
 
-  .wrap{max-width:720px;margin:0 auto;padding:4rem 1.25rem 6rem}
+  .wrap{position:relative;z-index:1;max-width:716px;margin:0 auto;padding:5.5rem 1.4rem 7rem}
+
+  .eyebrow{
+    display:flex;align-items:center;gap:.7rem;
+    font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
+    color:var(--gold-deep);margin:0 0 1.4rem;
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--gold);display:inline-block}
+
+  h1{
+    font-family:var(--serif);font-weight:640;font-optical-sizing:auto;
+    font-variation-settings:"opsz" 120;
+    font-size:clamp(2.3rem,6vw,3.25rem);line-height:1.04;letter-spacing:-.018em;
+    color:var(--maroon);margin:0 0 2.2rem;
+  }
+
+  h2{
+    font-family:var(--sans);font-size:.76rem;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--maroon);
+    margin:3.4rem 0 .4rem;display:flex;align-items:baseline;gap:.7rem;
+  }
+  h2::before{
+    counter-increment:sec;content:counter(sec,decimal-leading-zero);
+    font-family:var(--serif);font-style:italic;font-weight:420;font-size:1.5rem;
+    letter-spacing:0;text-transform:none;color:var(--gold);line-height:1;
+  }
+
+  p{margin:1rem 0}
+  strong{font-weight:600;color:var(--ink)}
+  .nm{font-family:var(--mono);font-size:.92em;color:var(--maroon)}
+
+  a{color:var(--maroon);text-decoration:none;
+    background-image:linear-gradient(var(--gold),var(--gold));
+    background-size:100% 1px;background-repeat:no-repeat;background-position:0 95%;
+    padding-bottom:1px;transition:background-size .25s ease}
+  a:hover{background-size:100% 2px}
+
+  /* name figure */
+  .namefig{display:flex;align-items:center;flex-wrap:wrap;gap:.85rem 1.15rem;
+    margin:1.5rem 0 .4rem;padding:1.15rem 1.3rem;background:var(--paper);
+    border:1px solid var(--rule);border-radius:10px}
+  .namefig .correct{display:flex;flex-direction:column;gap:.2rem}
+  .namefig .lab{font-size:.6rem;letter-spacing:.17em;text-transform:uppercase;color:var(--gold-deep);font-weight:600}
+  .namefig .val{font-family:var(--serif);font-weight:560;font-size:1.7rem;color:var(--maroon);line-height:1}
+  .namefig .arrow{font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);font-weight:600;white-space:nowrap}
+  .namefig .heard{display:flex;flex-wrap:wrap;gap:.45rem}
+  .namefig .chip{font-family:var(--mono);font-size:.82rem;color:var(--muted);
+    background:#FBF7F2;border:1px solid var(--rule);border-radius:5px;padding:.2em .55em}
+
+  /* results table */
+  figure.tbl{margin:2.4rem 0 1.2rem;overflow-x:auto}
+  figcaption{font-size:.82rem;color:var(--muted);line-height:1.5;margin-top:1rem;max-width:64ch}
+  table.d{border-collapse:collapse;width:100%;min-width:30rem;background:var(--paper);
+    border:1px solid var(--rule);border-radius:10px;overflow:hidden;
+    box-shadow:0 1px 0 rgba(106,56,67,.04),0 18px 40px -28px rgba(106,56,67,.28)}
+  table.d thead th{
+    font-family:var(--sans);font-size:.66rem;font-weight:600;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--faint);text-align:left;
+    padding:.85rem .95rem;border-bottom:1px solid var(--rule);background:#FCFAF6}
+  table.d td{padding:.78rem .95rem;border-bottom:1px solid var(--rule);vertical-align:top;font-size:.92rem}
+  table.d tbody tr:last-child td{border-bottom:none}
+  table.d td:first-child{font-family:var(--mono);font-size:.84rem;color:var(--ink);white-space:nowrap}
+  table.d tr.win td{background:rgba(191,162,101,.11)}
+  table.d tr.win td:first-child{color:var(--maroon);font-weight:500;box-shadow:inset 3px 0 0 var(--gold)}
+  .ok{color:var(--maroon);font-weight:500}
+  .nope{color:var(--faint);font-style:italic}
+  .metric{font-family:var(--mono);font-size:.86em;color:var(--maroon-deep);white-space:nowrap}
+
+  .close{font-family:var(--serif);font-variation-settings:"opsz" 32;font-size:1.18rem;
+    line-height:1.5;color:var(--ink);margin-top:2.4rem}
+
+  hr{border:none;height:1px;background:var(--rule);margin:3rem 0 0}
+  .footnote{font-size:.82rem;color:var(--muted);line-height:1.6;margin-top:1.4rem}
+
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .reveal{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .reveal:nth-child(1){animation-delay:.04s}
+  .reveal:nth-child(2){animation-delay:.12s}
+  .reveal:nth-child(3){animation-delay:.22s}
+  .reveal:nth-child(4){animation-delay:.32s}
+  .reveal:nth-child(5){animation-delay:.42s}
+  .reveal:nth-child(n+6){animation-delay:.5s}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;animation:none}}
+
+  @media (max-width:560px){
+    body{font-size:16px}
+    .wrap{padding:3.5rem 1.2rem 5rem}
+    figure.tbl{overflow-x:visible}
+    table.d{min-width:0;font-size:.8rem}
+    table.d th,table.d td{padding:.55rem .55rem}
+    table.d td:first-child{white-space:normal}
+  }
 
 </style>
 </head>
 <body>
 <main class="wrap">
-  <p class="eyebrow">Evaluation case study</p>
-  <h1>The name the computer kept getting wrong</h1>
-  <p class="deck">I built a small tool that records my kid's bedtime stories and writes them down. Then I sat down to find out what it gets wrong, how often, and the best way to fix it.</p>
-  <p>At night, my kid and I make up stories, and I record them. A little pipeline on my own computer turns the audio into text, labels who said what, and pulls out the characters and names we invent along the way. The point is to keep a growing record of our made-up world. One rule sits on top of all of it: nothing leaves my machine. This is my family's voice, so it never goes to the cloud.</p>
-  <p>The tool is good, but it gets things wrong, and the thing it gets wrong most is names. It will spell my kid's name four different ways in a single story. That matters more than it sounds like it should. If the main character's name is a mess, the record I am trying to keep is mostly junk. So I stopped adding features and did something slower and more useful. I sat down to measure it. Two questions: how bad is it really, and what is the best way to catch it.</p>
-  <h2>First I read the transcripts and wrote down what was broken</h2>
-  <p>I did not try to fix anything yet. That part is a trap. The moment you start rewriting lines, you stop noticing the failures and start polishing them away. So I just read, story by story, and every time I hit a new kind of mistake, I gave it a short, plain name. Missed a word. Put the words on the wrong person. I wrote down what I saw, not what I guessed had caused it. To keep this quick, I built a small tool for it: each line of the transcript shows up as a card with a row of buttons, one per kind of mistake, so I could tag a line with a click instead of writing a note every time.</p>
-  <p>I kept going until I stopped finding new kinds. That took six stories. In the first one I found fifteen new kinds of mistake. By the fourth, I was finding one. It never quite dropped to zero, but the flattening was the signal to stop: I had clearly seen the common failures, and chasing the long tail across fifty more stories would have been a waste of time. I ended with eighteen kinds.</p>
-  <h2>Then I grouped them</h2>
-  <p>A lot of those eighteen were the same problem in different clothes. So I sorted them into ten groups, and for each group I wrote down a rough idea of how you would actually fix it. Grouping by the fix is the useful part. Two mistakes that look different but get repaired the same way belong together. I also kept a &quot;none of these&quot; bucket open the whole time, in case something refused to fit any group. It stayed empty. That is a small thing, but it told me the ten groups really did cover everything I had seen.</p>
-  <h2>Then I counted</h2>
-  <p>Finding the kinds of mistakes is one job. Counting how often each one happens is a different job, so I did it on its own pass. I built the count as something I could poke at and edit, not a frozen table. Each mistake type carries its own notes and a guess at how a fix would work, and the whole thing saves back to a file so I can keep refining it as I learn more. And because some mistakes are nearly impossible to catch by ear, I wrote a couple of small scripts that line the transcript up against the actual sound and against who was talking. They turned up a pile of mistakes I would have missed by hand. In the longest story alone, close to a minute of talking had been dropped with no trace at all.</p>
-  <p>The result was not close. Names were the most common mistake by a wide margin, well ahead of plain wrong words and wrong-speaker mix-ups. So names is what I went after.</p>
-  <h2>What a name mistake actually is</h2>
-  <p>Before building a catcher, I had to be honest about what I was even catching, and it turned out a name mistake is really four different problems:</p>
-  <ul><li>The same wrong spelling, every time.</li><li>The same name spelled a few different ways inside one story.</li><li>A name whose first sound gets misheard, so it stops sounding like the real name at all.</li><li>A name that comes out as an ordinary word, or as a different, perfectly normal name. This is the hard one. Nothing about the text looks wrong, so you can only catch it by listening.</li></ul>
-  <p>Those four do not give way to the same tool. Three of them leave a trace in the text you can grab onto. The fourth erases the only thing a text checker could ever look at, so no amount of cleverness in software will catch it. That is not a flaw to engineer around. It is a fact about where the clue lives.</p>
-  <h2>The answer key</h2>
-  <p>To grade anything, I needed the right answers. So I went back through every story and wrote down each real person, the one correct spelling of their name, and every single way the computer had mangled it. That list is the answer key. Every catcher I try gets graded against it, the same way, so the comparison stays fair.</p>
-  <h2>Three ways to catch the mistakes</h2>
-  <p>I tried three. The first is not a model at all. Turn every word into a rough code for how it sounds, then flag any word that sounds like one of our names but is not spelled like one of them. It is about fifteen lines of code. Graded against the answer key, it caught about 97% of the mistakes, with no model anywhere in sight.</p>
-  <p>The second was small AI models, the kind you could run on a cheap home device without sending anything to the cloud. I tried a range of sizes. The small ones crashed on the longer stories. The medium ones stopped crashing but flagged far too much, forcing ordinary words onto the name list with total confidence. And the ones actually smart enough to help are too big to fit on the hardware I would put this on.</p>
-  <p>The third was a big cloud model. This one did the hard cases. It reasoned them out, the way a person would, catching a name that had turned into a different name by noticing it appeared nowhere else and that a parent was clearly talking to the kid. But I cannot use it, for the same reason that shaped everything else here. My kid's voice does not go to the cloud.</p>
-  <h2>The decision: ship the code</h2>
-  <p>The plain code wins. It is simple, it never crashes, it never invents a match, and it catches almost everything for the price of a tiny script. The cloud model is smarter, and it is off the table. The local models that would fit are worse than the code, and the ones that could compete do not fit.</p>
-  <div class="callout">And one kind of mistake, the name that turns into an ordinary word, cannot be caught from the text by anything, big model or small, because the clue simply is not in the text. I would rather say that out loud, and point to the one or two cases it costs me, than ship something that looks impressive and quietly guesses.</div>
-  <p>That, more than the score, is what the exercise gave me. Not just a tool, but an honest account of what my own rules cost. Keeping this private and on a small device costs me a couple of hard cases, and now I can name them exactly instead of waving my hands.</p>
-  <h2>One more test, just to be sure</h2>
-  <p>The code had exactly one false alarm: a word that happens to sound like the name. I wondered if the smallest local model could at least clean that one up, since judging a single word in context is a far easier job than reading a whole story. This time it did not crash. But it failed at the one thing I asked it to do. A real name that is also an everyday word, it threw out, reading it as the everyday word and ignoring the sentence around it. It traded away several real catches to remove one false alarm. That is a worse tool, not a better one.</p>
-  <p>What actually fixed the false alarm was one more line of code: only flag words that start with a capital letter. The false alarm was lowercase, sitting in the middle of a sentence. The real names were all capitalized. Done.</p>
-  <h2>Did it actually work, or did I just fit my own test?</h2>
-  <p>That is the question that matters, and it is the easiest one to skip. A score measured on the same stories you built the tool from can look great for the wrong reasons. So I ran the whole thing on two stories I had never opened. It caught every name mistake I could find by ear in them, including spellings it had never seen before, and it raised the same single harmless false alarm. The score held up on new material, which is the only kind of score worth trusting.</p>
-  <h2>What I took from this</h2>
-  <p>The project is small and the names are made up, but the steps are not particular to either one:</p>
-  <ul><li><strong>Break the problem apart before you reach for a tool.</strong> &quot;Name mistakes&quot; was four different problems wearing one label, and one of them has no software answer at all.</li><li><strong>Plain code often beats an AI model.</strong> When the clue is sitting right there in the data, code is cheaper, faster, repeats perfectly, and does not make things up. Save the model for the cases that genuinely need reasoning, and make it prove it earns its place against a real answer key before you trust it.</li><li><strong>Be honest about what your limits cost you.</strong> Private, on-device, small hardware: each choice buys something and costs something, and a real evaluation turns that from a vague worry into a number you can point to.</li></ul>
-  <p>There is one more thing that carries, and it is the one I keep coming back to. This project turns sound into text. A voice assistant does the opposite. It turns an idea into speech. The thing you would be checking is completely different. But the work is the same: sit with the failures, name them, group them, count them, choose a check for each one, and test that check against a real answer key before you believe it. The tool you build will not survive the next model. The way you decided what to build will.</p>
-  <hr>
-  <p class="footnote">Names and identifying details from the family recordings have been removed; the failures, the model results, and the method are unchanged. The code behind this (the detector, its scorer, the counting board, and the audio checks) is on <a href="https://github.com/saurinchoksi/tell-me-a-story/tree/main/emp">GitHub</a>. Written with help from an AI assistant and edited by me.</p>
+  <p class="eyebrow reveal">AI model evaluation</p>
+  <h1 class="reveal">Why I shipped plain code, not an AI model</h1>
+
+  <div class="reveal">
+    <h2>Problem</h2>
+    <p>I built a <a href="https://saurinchoksi.com/tell-me-a-story">pipeline</a> to transcribe made-up bedtime stories and label who said what. I imposed one constraint: nothing leaves my local machine, for family privacy. Analyzing the transcriptions, I found the most common error was mistranscribed proper names. That matters because I plan to chart these improvised characters across sessions, which only works if their names stay stable. It even misspelled my daughter's own name:</p>
+    <figure class="namefig">
+      <div class="correct"><span class="lab">Her name</span><span class="val">Arti</span></div>
+      <div class="arrow">transcribed as &rarr;</div>
+      <div class="heard"><span class="chip">Artie</span><span class="chip">Arthie</span><span class="chip">Earthy</span><span class="chip">Arty</span></div>
+    </figure>
+    <p>So before fixing it, I ran an evaluation: what's the most reliable way to catch proper-name errors against a set roster?</p>
+  </div>
+
+  <div class="reveal">
+    <h2>Action</h2>
+    <p>First I went through the session transcripts and flagged every place the tool mis-rendered a name. With the family roster as the correct spellings, those flags became the ground truth I scored against. Then I ran a range of detectors over the same transcripts: plain code that matches words by phonetic sound, a size-ladder of local AI models (each prompted with the roster), and a frontier cloud model as a comparison.</p>
+    <p>One honest limit on the comparison: every model got the same prompt and I changed only the model. That's a fair head-to-head, not proof a sharper prompt couldn't push one further.</p>
+  </div>
+
+  <div class="reveal">
+    <h2>Result</h2>
+    <p>Scored against the errors I'd flagged, the detectors split sharply by what they could actually do on the device.</p>
+    <figure class="tbl">
+      <table class="d">
+        <thead><tr><th>Detector</th><th>Runs on device?</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr class="win"><td>Plain code (matches by sound)</td><td><span class="ok">yes</span></td><td>Caught every name error in the test, and 91% of its flags were right <span class="metric">(100% recall, 91% precision)</span></td></tr>
+          <tr><td>Gemma, ~2B</td><td><span class="ok">yes</span></td><td>Crashed on the longer stories</td></tr>
+          <tr><td>Gemma, ~4B</td><td><span class="ok">yes</span></td><td>Stable, but over-flagged ordinary words</td></tr>
+          <tr><td>Qwen, ~8B</td><td><span class="ok">yes</span></td><td>Crashed on the long, name-dense story</td></tr>
+          <tr><td>Gemma, ~12B</td><td><span class="ok">yes</span></td><td>First to reason through a hard case, but buried it in false flags</td></tr>
+          <tr><td>Gemma, ~26B</td><td><span class="nope">no (out of memory)</span></td><td>Won't load on the device</td></tr>
+          <tr><td>Opus (cloud)</td><td><span class="nope">no (privacy)</span></td><td>Caught every case by reasoning, but breaks the local-only constraint</td></tr>
+        </tbody>
+      </table>
+      <figcaption>Gemma, Qwen, and Opus are AI models; the numbers (~2B to ~26B) are their sizes in billions of parameters. Bigger is more capable but heavier, and the ~26B wouldn't fit on the 16GB M1 MacBook Pro this ran on. Recall is the share of real errors caught; precision, the share that were right.</figcaption>
+    </figure>
+    <p>So the plain code is what ships, and it held up: on two audio sessions it had never seen (a small check, but a real one), it caught every error a careful listen could find, with a single false positive. A very different name might not match as cleanly, but for a tool only I use, that's reliable enough.</p>
+    <p>The choice has honest costs. A cloud model could reason out a few cases the code misses, but privacy keeps it off the table. And one failure case beat every method, cloud included: when a name comes out as ordinary words that still make sense in context (e.g., <span class="nm">Arti</span> &rarr; <span class="nm">are these</span>). So the next layer of detection is feeding audio to a model so that it listens, not just reads.</p>
+    <p class="close">The real payoff isn't the detector; it's the foundation the evaluation leaves. Once you've found the failure modes, sorted and measured them, and built a way to detect them, you can fix the problem on solid ground and keep catching it as the system grows.</p>
+  </div>
+
+  <div class="reveal">
+    <hr>
+    <p class="footnote">The code behind this (the detector, its scorer, and the audio checks) is on <a href="https://github.com/saurinchoksi/tell-me-a-story/tree/main/emp">GitHub</a>. Written with AI assistance, reviewed and edited by me.</p>
+  </div>
 </main>
 </body>
 </html>
