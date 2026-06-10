@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-10 — The eval project's working doc moved into the repo, kept private
+
+The doc that holds the evaluation project's method and running findings now lives inside the project folder instead of a separate reference directory, after a workspace reorganization. Because it carries family names and job-search context, it is excluded from version control while the tools and write-up drafts around it stay public. A file that moves into a public repo's folder is published by default; keeping it private has to be done explicitly.
+
 ## 2026-06-01 — A one-line rule beat a local model at cleaning up name flags
 
 The name-checker's one false alarm — an everyday word that sounds like a name — prompted a test: could the smallest on-device language model, reading each flag in context, drop the false alarms while keeping the real names? It proved reliable but not accurate — it also threw out a real name that doubles as a common word, a worse trade than it fixed. A single deterministic rule — keep only capitalized flags — removed the false alarm and kept every real name, so the checker now uses that instead of a model.
