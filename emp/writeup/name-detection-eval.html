@@ -183,31 +183,31 @@
           <tr><td>Qwen, ~8B</td><td><span class="ok">yes</span></td><td>Crashed on the long, name-dense story</td></tr>
           <tr><td>Gemma, ~12B</td><td><span class="ok">yes</span></td><td>First to reason through a hard case, but buried it in false flags</td></tr>
           <tr><td>Gemma, ~26B</td><td><span class="nope">no (out of memory)</span></td><td>Won't run on the device</td></tr>
-          <tr><td>Opus (cloud)</td><td><span class="nope">no (privacy)</span></td><td>Reasoned out every case except one<sup class="fn">2</sup>, but breaks the local-only constraint</td></tr>
+          <tr><td>Opus (cloud)</td><td><span class="nope">no (privacy)</span></td><td>Reasoned out every case except one<sup class="fn">3</sup>, but breaks the local-only constraint</td></tr>
         </tbody>
       </table>
       <figcaption>Gemma, Qwen, and Opus are AI models; the numbers (~2B to ~26B) are their sizes in billions of parameters. Bigger is more capable but heavier, and the ~26B wouldn't fit on the 16GB M1 MacBook Pro this ran on. Recall is the share of real errors caught; precision, the share that were right.</figcaption>
     </figure>
-    <p>So the plain code is what ships. As a final check, I ran it on two audio sessions it had never seen (a small check, but a real one): it caught every error a careful listen could find, with a single false positive <span class="metric">(100% recall, 91% precision)</span>. A very different name might not match as cleanly, but for a tool only I use, that's reliable enough.</p>
+    <p>So the phonetic matcher is what ships. As a final check, I ran it on two new sessions it had never seen &mdash; a small test, but a real one. It caught every error a careful listen could find, with a single false positive<sup class="fn">2</sup> <span class="metric">(100% recall, 91% precision)</span>. A very different name might not match as cleanly, but for a tool only I use, that's reliable enough.</p>
     <p>The choice has honest costs, and they live in three outliers:</p>
     <figure class="edgefig">
       <div class="case">
         <span class="lab">Swapped for another name<sup class="fn">1</sup></span>
         <span class="path"><span class="from">Arti</span><span class="arr">became</span><span class="chip">Ricky</span></span>
-        <span class="who">No sounds in common, so matching by sound is blind to it. Only the cloud model caught it &mdash; by reasoning that a parent was praising her.</span>
+        <span class="who">No sounds in common, so matching by sound is blind to it. Only the cloud model caught it, by reasoning from context that a parent was praising her.</span>
       </div>
       <div class="case">
-        <span class="lab">Dissolved into ordinary words<sup class="fn">2</sup></span>
-        <span class="path"><span class="from">Arti</span><span class="arr">became</span><span class="chip">are these</span></span>
-        <span class="who">Reads as normal words in context. Every method missed it, cloud included &mdash; only the audio knows.</span>
-      </div>
-      <div class="case">
-        <span class="lab">Sound-alike false alarms</span>
+        <span class="lab">Sound-alike false alarms<sup class="fn">2</sup></span>
         <span class="path"><span class="chip">weird</span><span class="chip">where'd</span><span class="arr">flagged as her name</span></span>
-        <span class="who">Correctly transcribed words that share her name's phonetic code &mdash; the handful of wrong flags behind the precision numbers.</span>
+        <span class="who">Correctly transcribed words that share her name's phonetic code. They're lowercase mid-sentence where real names are capitalized, so a one-line capitalization check &mdash; added after this test &mdash; now screens them out.</span>
+      </div>
+      <div class="case">
+        <span class="lab">Dissolved into ordinary words<sup class="fn">3</sup></span>
+        <span class="path"><span class="from">Arti</span><span class="arr">became</span><span class="chip">are these</span></span>
+        <span class="who">Nothing name-shaped is left to flag. Every method missed it, cloud included.</span>
       </div>
     </figure>
-    <p>The dissolved case is the floor: no amount of model quality buys it back from the text alone. So the next layer of detection is feeding audio to a model so that it listens, not just reads.</p>
+    <p>That last case is the one nothing text-based will ever catch: once the name comes out as ordinary words that fit in context, the transcript holds no trace of the error. Catching it means giving a model the audio &mdash; listening, not just reading.</p>
     <p class="close">The real payoff isn't the detector; it's the foundation the evaluation leaves. Once you've found the failure modes, sorted and measured them, and built a way to detect them, you can fix the problem on solid ground and keep catching it as the system grows.</p>
   </div>
 
