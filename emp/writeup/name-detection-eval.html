@@ -188,7 +188,7 @@
       </table>
       <figcaption>Gemma, Qwen, and Opus are AI models; the numbers (~2B to ~26B) are their sizes in billions of parameters. Bigger is more capable but heavier, and the ~26B wouldn't fit on the 16GB M1 MacBook Pro this ran on. Recall is the share of real errors caught; precision, the share that were right.</figcaption>
     </figure>
-    <p>So the phonetic matcher is what ships. As a final check, I ran it on two new sessions it had never seen &mdash; a small test, but a real one. It caught every error a careful listen could find, with a single false positive<sup class="fn">2</sup> <span class="metric">(100% recall, 91% precision)</span>. A very different name might not match as cleanly, but for a tool only I use, that's reliable enough.</p>
+    <p>So the phonetic matcher is what ships. As a final check, I ran it on two new sessions it had never seen: 745 segments of fresh transcript. It caught all ten name errors a careful listen could find, with a single false positive<sup class="fn">2</sup> <span class="metric">(100% recall, 91% precision)</span>. A very different name might not match as cleanly, but for a tool only I use, that's reliable enough.</p>
     <p>The choice has honest costs, and they live in three outliers:</p>
     <figure class="edgefig">
       <div class="case">
@@ -199,7 +199,7 @@
       <div class="case">
         <span class="lab">Sound-alike false alarms<sup class="fn">2</sup></span>
         <span class="path"><span class="chip">weird</span><span class="chip">where'd</span><span class="arr">flagged as her name</span></span>
-        <span class="who">Correctly transcribed words that share her name's phonetic code. They're lowercase mid-sentence where real names are capitalized, so a one-line capitalization check &mdash; added after this test &mdash; now screens them out.</span>
+        <span class="who">Correctly transcribed words that share her name's phonetic code. They're lowercase mid-sentence where real names are capitalized, so a one-line capitalization check, added after this test, now screens them out.</span>
       </div>
       <div class="case">
         <span class="lab">Dissolved into ordinary words<sup class="fn">3</sup></span>
@@ -207,7 +207,8 @@
         <span class="who">Nothing name-shaped is left to flag. Every method missed it, cloud included.</span>
       </div>
     </figure>
-    <p>That last case is the one nothing text-based will ever catch: once the name comes out as ordinary words that fit in context, the transcript holds no trace of the error. Catching it means giving a model the audio &mdash; listening, not just reading.</p>
+    <p>That last case is the one nothing text-based will ever catch: once the name comes out as ordinary words that fit in context, the transcript holds no trace of the error.</p>
+    <p>The next step is to give the model the audio and let it listen, not just read.</p>
     <p class="close">The real payoff isn't the detector; it's the foundation the evaluation leaves. Once you've found the failure modes, sorted and measured them, and built a way to detect them, you can fix the problem on solid ground and keep catching it as the system grows.</p>
   </div>
 
