@@ -3,7 +3,7 @@
 L1 -- deterministic M9a (family-name) detector for the EMP.  READ-ONLY.
 
 Faithful reconstruction of the in-sample phonetic probe validated in
-`reference/career-build/emp.md` (see "M9a ground truth + detector validation").
+`tell-me-a-story/emp/emp.md` (see "M9a ground truth + detector validation").
 The earlier probe was a one-off and was never saved; this is the reusable form.
 
 A transcript token is flagged iff:

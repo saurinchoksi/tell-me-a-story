@@ -1,8 +1,10 @@
 # EMP — Evals Mini Project (tooling & outputs)
 
 Self-contained home for the Evals Mini Project's code and analysis outputs.
-The **canonical write-up and method** live in `reference/career-build/emp.md`
-(outside this repo); this folder is just the tools and their results.
+The **canonical write-up and method** live in `emp.md` here
+(gitignored — it is the private working doc and never ships to the
+public repo); this folder's tracked contents are just the tools and
+their results.
 
 ## Layout
 - `src/` — analysis tools (read-only over session data; run from the repo root):

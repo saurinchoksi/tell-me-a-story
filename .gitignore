@@ -47,3 +47,6 @@ emp/results/pivot-notes.private.json*
 # Interactive review scaffolding (regenerable HTML + co-edited working notes)
 emp/writeup/*-review.html
 emp/writeup/*-notes.json
+
+# Private working doc (Sierra positioning + family names) - never commit
+emp/emp.md
