@@ -172,7 +172,7 @@
 
   <div class="reveal">
     <h2>Result</h2>
-    <p>Scored against the nearly one hundred errors I'd flagged across five sessions, the detectors split sharply by what they could actually do on the device.</p>
+    <p>Scored against the roughly 100 errors I'd flagged across 5 sessions (1,382 segments of transcript), the detectors split sharply by what they could actually do on the device.</p>
     <figure class="tbl">
       <table class="d">
         <thead><tr><th>Detector</th><th>Runs on device?</th><th>Result</th></tr></thead>
@@ -188,8 +188,8 @@
       </table>
       <figcaption>Gemma, Qwen, and Opus are AI models; the numbers (~2B to ~26B) are their sizes in billions of parameters. Bigger is more capable but heavier, and the ~26B wouldn't fit on the 16GB M1 MacBook Pro this ran on. Recall is the share of real errors caught; precision, the share that were right.</figcaption>
     </figure>
-    <p>So the phonetic matcher is what ships. As a final check, I ran it on two new sessions it had never seen: 745 segments of fresh transcript. It caught all ten name errors a careful listen could find, with a single false positive<sup class="fn">2</sup> <span class="metric">(100% recall, 91% precision)</span>. A very different name might not match as cleanly, but for a tool only I use, that's reliable enough.</p>
-    <p>The choice has honest costs, and they live in three outliers:</p>
+    <p>So the phonetic matcher is what ships. As a final check, I ran it on 2 new sessions it had never seen: 745 segments of fresh transcript. It caught all 10 name errors a careful listen could find, with a single false positive<sup class="fn">2</sup> <span class="metric">(100% recall, 91% precision)</span>. A very different name might not match as cleanly, but for a tool only I use, that's reliable enough.</p>
+    <p>The choice has honest costs, and they live in 3 outliers:</p>
     <figure class="edgefig">
       <div class="case">
         <span class="lab">Swapped for another name<sup class="fn">1</sup></span>
