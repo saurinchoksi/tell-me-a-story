@@ -159,9 +159,9 @@ The field names that matter when reading session data (the gotchas below have co
 - **`diarization.json`** — pyannote speaker segments (speaker label + start/end).
 - **`data/mahabharata.json`** — proper-noun reference. Shape: `{_version, _description, entries: [...]}`; each entry has a `canonical` spelling plus `variants` / `aliases` lists. Build a name set from canonical + variants + aliases.
 
-**Session IDs are date-stamped (`YYYYMMDD-HHMMSS`)**, not hex — there are no hex-named session dirs. The five EMP-coded sessions are mapped to their story names at the top of `reference/career-build/emp.md`'s "Count result" section. 
+**Session IDs are date-stamped (`YYYYMMDD-HHMMSS`)**, not hex — there are no hex-named session dirs. The five EMP-coded sessions are mapped to their story names at the top of `tell-me-a-story/emp/emp.md`'s "Count result" section. 
 
-**EMP tooling and outputs live under `emp/`:** `emp/src/` holds the analysis scripts (run from the repo root, e.g. `python emp/src/count.py`); `emp/results/` holds the committed outputs (`pivot.html` and the two sweep summaries). The pivot is an **interactive triage doc** — `python emp/src/count.py --serve` serves it with editable, file-backed notes saved to `emp/results/pivot-notes.json`. Each mode carries root-cause / fix-locus / a `detection` dropdown (code-signal · code-text · llm-judge · hybrid · ears · none) / sub-types / free-text thoughts; Mode 9 also renders three derived sub-rows (M9a/M9b/M9c) from the `_m9_cases` name→case map. **Real family names stay out of this public repo:** M9a's name variants live in the gitignored `emp/results/pivot-notes.private.json`, which `count.py` reads for counting only (never rendered to HTML). Per-session visual HTMLs go to `emp/results/visuals/<id>/` (gitignored — transcript text). Portfolio write-up drafts live in `emp/writeup/` (scrubbed of family names — safe to commit).
+**EMP tooling and outputs live under `emp/`:** `emp/src/` holds the analysis scripts (run from the repo root, e.g. `python emp/src/count.py`); `emp/results/` holds the committed outputs (`pivot.html` and the two sweep summaries). The pivot is an **interactive triage doc** — `python emp/src/count.py --serve` serves it with editable, file-backed notes saved to `emp/results/pivot-notes.json`. Each mode carries root-cause / fix-locus / a `detection` dropdown (code-signal · code-text · llm-judge · hybrid · ears · none) / sub-types / free-text thoughts; Mode 9 also renders three derived sub-rows (M9a/M9b/M9c) from the `_m9_cases` name→case map. **Real family names stay out of this public repo:** M9a's name variants live in the gitignored `emp/results/pivot-notes.private.json`, which `count.py` reads for counting only (never rendered to HTML). Per-session visual HTMLs go to `emp/results/visuals/<id>/` (gitignored — transcript text). Portfolio write-up drafts live in `emp/writeup/` (scrubbed of family names — safe to commit), with one codified exception (2026-06-10): a draft that mirrors a case study already published on saurinchoksi.com may carry exactly what the live page carries — currently `name-detection-eval.html`, which includes the child's first name. The website page is the boundary; nothing appears in a draft that isn't already public on the site.
 
 ## Import Convention
 
@@ -212,7 +212,7 @@ Exact diffs live in git history; decision context lives in Linear.
 
 ## Linear Handoff Protocol
 
-Linear handles task tracking for most TMAS work. **The EMP (Evals Mini Project) is an exception: it is doc-canonical via `/Users/choksi/dev/reference/career-build/emp.md`** — no parallel Linear maintenance during in-progress work. Create a Linear ticket for EMP work only at ship-time, when the write-up is ready to ship.
+Linear handles task tracking for most TMAS work. **The EMP (Evals Mini Project) is an exception: it is doc-canonical via `/Users/choksi/dev/tell-me-a-story/emp/emp.md`** — no parallel Linear maintenance during in-progress work. Create a Linear ticket for EMP work only at ship-time, when the write-up is ready to ship.
 
 For all other TMAS work:
 
