@@ -172,12 +172,12 @@
 
   <div class="reveal">
     <h2>Result</h2>
-    <p>Scored against the errors I'd flagged, the detectors split sharply by what they could actually do on the device.</p>
+    <p>Scored against the nearly one hundred errors I'd flagged across five sessions, the detectors split sharply by what they could actually do on the device.</p>
     <figure class="tbl">
       <table class="d">
         <thead><tr><th>Detector</th><th>Runs on device?</th><th>Result</th></tr></thead>
         <tbody>
-          <tr class="win"><td>Plain code (matches by sound)</td><td><span class="ok">yes</span></td><td>Caught all but one name error<sup class="fn">1</sup>, and 96% of its flags were right <span class="metric">(99% recall, 96% precision)</span></td></tr>
+          <tr class="win"><td>Phonetic matcher (plain code)</td><td><span class="ok">yes</span></td><td>Caught all but one name error<sup class="fn">1</sup>, and 96% of its flags were right <span class="metric">(99% recall, 96% precision)</span></td></tr>
           <tr><td>Gemma, ~2B</td><td><span class="ok">yes</span></td><td>Crashed on the longer stories</td></tr>
           <tr><td>Gemma, ~4B</td><td><span class="ok">yes</span></td><td>Stable, but over-flagged ordinary words</td></tr>
           <tr><td>Qwen, ~8B</td><td><span class="ok">yes</span></td><td>Crashed on the long, name-dense story</td></tr>
