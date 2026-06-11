@@ -34,6 +34,9 @@ ui/dist/
 # Speaker profiles (private voice data)
 data/speaker_profiles.json
 
+# Family-name roster for detectors (real names) — schema documented in data/name_roster.example.json
+data/name_roster.json
+
 # Experiments (scripts run locally, results are generated output)
 experiments/
 

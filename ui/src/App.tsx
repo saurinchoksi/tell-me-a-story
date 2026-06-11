@@ -5,6 +5,8 @@ import SessionSpeakers from './pages/SessionSpeakers';
 import ProfileGallery from './pages/ProfileGallery';
 import ProfileDetail from './pages/ProfileDetail';
 import ValidatorPage from './pages/ValidatorPage';
+import Monitor from './pages/Monitor';
+import SessionDetections from './pages/SessionDetections';
 import './App.css';
 
 export default function App() {
@@ -18,6 +20,8 @@ export default function App() {
           <Route path="/" element={<Navigate to="/sessions" replace />} />
           <Route path="/sessions" element={<Sessions />} />
           <Route path="/sessions/:id/speakers" element={<SessionSpeakers />} />
+          <Route path="/sessions/:id/detections" element={<SessionDetections />} />
+          <Route path="/monitor" element={<Monitor />} />
           <Route path="/profiles" element={<ProfileGallery />} />
           <Route path="/profiles/:id" element={<ProfileDetail />} />
         </Route>

@@ -21,9 +21,15 @@ def _make_inbox(tmp_dir, filenames):
 
 
 def _patch_dirs(stack, inbox_dir, sessions_dir):
-    """Patch module-level directory constants onto an ExitStack."""
+    """Patch module-level directory constants onto an ExitStack.
+
+    Also empties the detector registry so tests stay hermetic — the real
+    family-name detector needs the gitignored data/name_roster.json.
+    Detector-specific tests re-patch the registry with a fake.
+    """
     stack.enter_context(patch("process_inbox.INBOX_DIR", inbox_dir))
     stack.enter_context(patch("process_inbox.SESSIONS_DIR", sessions_dir))
+    stack.enter_context(patch("detectors.DETECTORS", []))
 
 
 def _make_pipeline_result(embeddings=None):
@@ -265,6 +271,78 @@ def test_process_inbox_mixed_results(capsys):
         assert "Created (1):" in output
         assert "Skipped" in output
         assert "Failed (1):" in output
+
+
+class _FakeDetector:
+    id = "fake-detector"
+    label = "Fake detector"
+    failure_mode = "M0"
+    version = "0.0.1"
+
+    def run(self, session_dir):
+        return {"n_word_tokens": 1, "flags": []}
+
+
+class _FailingDetector(_FakeDetector):
+    def run(self, session_dir):
+        raise RuntimeError("roster missing")
+
+
+def test_process_inbox_runs_detectors(capsys):
+    """Registered detectors run on each created session and write detections.json."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = _make_inbox(tmp, ["story.m4a"])
+        sessions = Path(tmp) / "sessions"
+        sessions.mkdir()
+        session_dir = sessions / "20260301-120000"
+        session_dir.mkdir()
+        (session_dir / "audio.m4a").write_bytes(b"fake audio")
+
+        mock_init = MagicMock(return_value=("20260301-120000", "audio.m4a"))
+        mock_pipeline = MagicMock(return_value=_make_pipeline_result())
+        mock_save = _make_saving_mock(session_dir)
+
+        with contextlib.ExitStack() as stack:
+            _patch_dirs(stack, inbox, sessions)
+            stack.enter_context(patch("process_inbox.init_session", mock_init))
+            stack.enter_context(patch("process_inbox.run_pipeline", mock_pipeline))
+            stack.enter_context(patch("process_inbox.save_computed", mock_save))
+            stack.enter_context(patch("detectors.DETECTORS", [_FakeDetector()]))
+            process_inbox()
+
+        data = json.loads((session_dir / "detections.json").read_text())
+        assert data["detectors"]["fake-detector"]["n_flags"] == 0
+        output = capsys.readouterr().out
+        assert "Done" in output
+
+
+def test_process_inbox_detector_failure_recorded(capsys):
+    """A detector exception lands the session in the failed list (artifacts kept)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        inbox = _make_inbox(tmp, ["story.m4a"])
+        sessions = Path(tmp) / "sessions"
+        sessions.mkdir()
+        session_dir = sessions / "20260301-120000"
+        session_dir.mkdir()
+        (session_dir / "audio.m4a").write_bytes(b"fake audio")
+
+        mock_init = MagicMock(return_value=("20260301-120000", "audio.m4a"))
+        mock_pipeline = MagicMock(return_value=_make_pipeline_result())
+        mock_save = _make_saving_mock(session_dir)
+
+        with contextlib.ExitStack() as stack:
+            _patch_dirs(stack, inbox, sessions)
+            stack.enter_context(patch("process_inbox.init_session", mock_init))
+            stack.enter_context(patch("process_inbox.run_pipeline", mock_pipeline))
+            stack.enter_context(patch("process_inbox.save_computed", mock_save))
+            stack.enter_context(patch("detectors.DETECTORS", [_FailingDetector()]))
+            process_inbox()
+
+        output = capsys.readouterr().out
+        assert "Pipeline failed" in output
+        assert "roster missing" in output
+        # Transcription artifacts were already saved before the detector ran
+        assert (session_dir / "transcript-rich.json").exists()
 
 
 # --- _print_summary tests ---

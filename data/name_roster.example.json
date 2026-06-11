@@ -1,0 +1,10 @@
+{
+  "_about": "Schema for data/name_roster.json (gitignored — holds real family names). Used by the m9a-family-names detector. 'people' feeds the phonetic layer: each canonical spelling is matched against transcript tokens by Double Metaphone codes (primary + secondary). 'aliases' is the exact-match layer for front-of-word distortions the phonetic codes cannot reach: 'token' is the CLEANED form (lowercased, punctuation and possessive stripped). An alias whose own codes already reach a canonical is redundant and rejected at load time.",
+  "people": [
+    { "id": "child", "canonical": "Marta", "role": "child" },
+    { "id": "parent", "canonical": "Kiran", "role": "parent" }
+  ],
+  "aliases": [
+    { "token": "bemarta", "person_id": "child" }
+  ]
+}

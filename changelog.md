@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-11 — The validated name detector now runs as a monitor with its own screen
+
+The name-checker proven in the eval project now runs over every recording as part of the system itself, writing its findings to a per-session file without ever touching the transcript. A new Monitor screen shows the results across all sessions — including which ones haven't been scanned yet — with a per-session view of each flagged word in context. The framework is built for more failure-mode checkers to plug in as they get validated; the family-name list itself stays in a private file outside version control.
+
 ## 2026-06-10 — The eval project's working doc moved into the repo, kept private
 
 The doc that holds the evaluation project's method and running findings now lives inside the project folder instead of a separate reference directory, after a workspace reorganization. Because it carries family names and job-search context, it is excluded from version control while the tools and write-up drafts around it stay public. A file that moves into a public repo's folder is published by default; keeping it private has to be done explicitly.

@@ -245,6 +245,70 @@ export interface NoteModalState {
   existingNote: Note | null;
 }
 
+// --- Detections (Monitor) ---
+
+/** Registry metadata for one failure-mode detector. */
+export interface DetectorInfo {
+  id: string;
+  label: string;
+  failure_mode: string;
+  version: string;
+}
+
+/** One detector's run summary on one session (rollup view). */
+export interface DetectionRunSummary {
+  n_flags: number;
+  run_at: string;
+  detector_version: string;
+}
+
+export interface DetectionsRollupSession {
+  session_id: string;
+  duration_seconds: number | null;
+  /** Keyed by detector id. A missing key means "never scanned" — distinct from 0 flags. */
+  results: Record<string, DetectionRunSummary>;
+}
+
+export interface DetectionsRollup {
+  detectors: DetectorInfo[];
+  sessions: DetectionsRollupSession[];
+  totals: Record<string, number>;
+}
+
+/** One flagged token, joined server-side to its transcript segment. */
+export interface DetectionFlag {
+  segment_id: SegmentId;
+  word_index: number;
+  start: number | null;
+  end: number | null;
+  token: string;
+  cleaned: string;
+  dm_codes: string[];
+  match_type: 'phonetic' | 'alias';
+  matched_person_ids: string[];
+  matched_canonicals: string[];
+  segment_text: string | null;
+  segment_start: number | null;
+  segment_end: number | null;
+  segment_speaker: string | null;
+}
+
+export interface SessionDetectorResult {
+  label: string;
+  failure_mode: string;
+  detector_version: string;
+  run_at: string;
+  n_word_tokens: number;
+  n_flags: number;
+  flags: DetectionFlag[];
+}
+
+export interface SessionDetectionsData {
+  session_id: string;
+  /** Keyed by detector id; {} when the session was never scanned. */
+  detectors: Record<string, SessionDetectorResult>;
+}
+
 // --- Speaker confirmation (Task 6) ---
 
 export type DecisionAction = 'confirm' | 'confirm_variant' | 'create' | 'reassign' | 'skip';

@@ -38,6 +38,7 @@ markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 matplotlib==3.10.8
 mdurl==0.1.2
+Metaphone==0.6
 mlx==0.30.6
 mlx-metal==0.30.6
 mlx-whisper==0.4.3

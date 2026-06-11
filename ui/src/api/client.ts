@@ -16,6 +16,8 @@ import type {
   ConfirmSpeakersResponse,
   Note,
   AxialLabel,
+  DetectionsRollup,
+  SessionDetectionsData,
 } from '../types';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -138,6 +140,18 @@ export async function removeEmbedding(
   return fetchJSON(`/api/profiles/${profileId}/embeddings/${sessionId}`, {
     method: 'DELETE',
   });
+}
+
+// --- Detections (Monitor) ---
+
+export async function getDetectionsRollup(): Promise<DetectionsRollup> {
+  return fetchJSON<DetectionsRollup>('/api/detections');
+}
+
+export async function getSessionDetections(
+  sessionId: string,
+): Promise<SessionDetectionsData> {
+  return fetchJSON<SessionDetectionsData>(`/api/sessions/${sessionId}/detections`);
 }
 
 // --- Notes ---

@@ -100,6 +100,13 @@ def process_inbox(target_file: str | None = None):
                         identifications,
                         str(SESSIONS_DIR / session_id / "identifications.json"),
                     )
+
+            # Run failure-mode detectors (detection only — writes detections.json)
+            from detectors import DETECTORS
+            from detectors.base import write_detections
+            for det in DETECTORS:
+                write_detections(SESSIONS_DIR / session_id, det, det.run(SESSIONS_DIR / session_id))
+
             created.append(session_id)
             print(f"  ✓ Done — {session_id}")
         except Exception as e:

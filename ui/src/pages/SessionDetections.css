@@ -1,0 +1,167 @@
+/* --- Session detections — per-session drill-down from the Monitor --- */
+
+.session-detections-page {
+  max-width: 800px;
+  padding: var(--space-6) var(--space-4);
+}
+
+.session-detections-back {
+  display: inline-block;
+  margin-bottom: var(--space-4);
+  font-size: 0.85rem;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.session-detections-back:hover {
+  text-decoration: underline;
+}
+
+.session-detections-header {
+  margin-bottom: var(--space-6);
+}
+
+.session-detections-header h1 {
+  margin: 0 0 var(--space-1);
+}
+
+.session-detections-subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* Detector section */
+
+.detection-section {
+  margin-bottom: var(--space-8);
+}
+
+.detection-section-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.detection-section-mode {
+  padding: 1px 8px;
+  border-radius: var(--radius);
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.detection-section-label {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.detection-section-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.detection-section-clean {
+  font-size: 0.85rem;
+  color: var(--color-success);
+}
+
+/* Flag cards */
+
+.detection-flags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.detection-flag {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.detection-flag-top {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.detection-flag-token {
+  padding: 1px 8px;
+  border-radius: var(--radius);
+  background: rgba(184, 145, 60, 0.18);
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+.detection-flag-arrow {
+  color: var(--color-text-muted);
+}
+
+.detection-flag-canonical {
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.detection-flag-type {
+  padding: 1px 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.detection-flag-meta {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.detection-flag-text {
+  margin: 0 0 var(--space-2);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.detection-flag-text--missing {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.detection-flag-codes {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+/* Empty state */
+
+.session-detections-empty {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+}
+
+.session-detections-empty h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.session-detections-empty code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  background: var(--color-surface);
+  padding: 1px 6px;
+  border-radius: var(--radius);
+}

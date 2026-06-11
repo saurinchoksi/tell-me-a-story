@@ -47,8 +47,13 @@ cd ui && npm run dev:vite  # Vite only (port 5174)
 # Lint frontend
 cd ui && npm run lint
 
-# Process inbox (init + pipeline + embeddings for all inbox audio)
+# Process inbox (init + pipeline + embeddings + detectors for all inbox audio)
 python src/process_inbox.py
+
+# Run failure-mode detectors (writes sessions/<id>/detections.json)
+python src/detect.py                          # all sessions with a transcript
+python src/detect.py <session-id> [...]       # specific sessions
+python src/detect.py --detector m9a-family-names
 ```
 
 ## Environment
@@ -108,7 +113,17 @@ Separate from the main pipeline, run on demand:
 Session onboarding:
 
 8. **init_session.py** — Creates session folders from inbox audio (duplicate detection via content hash)
-9. **process_inbox.py** — Batch processor: init → pipeline → embeddings for all inbox files
+9. **process_inbox.py** — Batch processor: init → pipeline → embeddings → detectors for all inbox files
+
+## Failure-Mode Detection (Monitor)
+
+Validated detectors run over session transcripts and emit flags — **detection only, the transcript is never modified**. This is the production ("monitor") side of the EMP's offline evals: a detector graduates here once validated there.
+
+- **`src/detectors/`** — the framework. `base.py` has the `Detector` contract (`id`, `label`, `failure_mode`, `version`, `run(session_dir)`) and `write_detections()` (read-merge-write of `detections.json`; each detector overwrites only its own section). `__init__.py` holds the explicit `DETECTORS` registry — add new detectors there.
+- **`src/detectors/family_names.py`** — first detector (`m9a-family-names`): Double Metaphone phonetic matching of word tokens against the family-name roster + exact-alias layer + capitalization gate. Ported verbatim from the sealed EMP probe `emp/src/detect_m9a.py` (1.00/1.00 on validated sessions) — don't change the matching logic without re-validating.
+- **Roster:** `data/name_roster.json` — **gitignored** (real family names). Schema documented in the committed `data/name_roster.example.json` (fake names): `people` (canonicals, phonetic layer) + `aliases` (cleaned tokens, exact layer). The loader rejects aliases the phonetic layer already covers.
+- **Runner:** `python src/detect.py` (see Commands). `process_inbox.py` also runs all registered detectors on each new session.
+- **Staleness caveat:** `detections.json` records `run_at` but isn't tied to transcript version — re-run `detect.py` after `--re-enrich`.
 
 ## API + Frontend
 
@@ -119,9 +134,10 @@ Session onboarding:
   - `routes/profiles.py` — `GET /api/profiles`, `GET /api/profiles/:id`, `POST /api/profiles`, `PUT /api/profiles/:id`, `DELETE /api/profiles/:id`, `POST /api/profiles/:id/refresh-centroid`, `DELETE /api/profiles/:id/embeddings/:session_id`
   - `routes/speakers.py` — `POST /api/sessions/:id/confirm-speakers` (batch confirm/reassign/create)
   - `routes/audio.py` — `GET /api/sessions/:id/audio` (Flask handles range requests)
+  - `routes/detections.py` — `GET /api/detections` (rollup: every transcribed session × every registered detector; empty `results` = never scanned, distinct from 0 flags), `GET /api/sessions/:id/detections` (flags joined server-side to transcript segments)
 - **`ui/`** — React + TypeScript + Vite on port 5174
   - Vite proxies `/api` → localhost:5002 (configured in `ui/vite.config.ts`)
-  - Routes: `/sessions`, `/sessions/:id/speakers`, `/profiles`, `/profiles/:id`
+  - Routes: `/sessions`, `/sessions/:id/speakers`, `/sessions/:id/detections`, `/monitor`, `/profiles`, `/profiles/:id`
   - `AudioPlayer` component: play/pause, scrub, external `seekTo` prop for caption sync
   - `api/client.ts` — typed fetch wrapper matching all API endpoints
   - CSS custom properties in `App.css` establish design tokens
@@ -139,6 +155,7 @@ sessions/00000000-000000/
   embeddings.json
   identifications.json
   validation-notes.json
+  detections.json
 ```
 
 Simple type names. The folder provides session context, so IDs in filenames are redundant.
@@ -157,6 +174,7 @@ The field names that matter when reading session data (the gotchas below have co
 - **`transcript-raw.json`** — same shape, pre-enrichment (before normalization/gap-injection); `--re-enrich` rebuilds rich from raw.
 - **`validation-notes.json`** — open-coding notes. Shape: `{"notes": [ ... ]}` — timestamped, segment-attached free-text observations (the human's prose, distinct from the `codes` in axial-labels).
 - **`diarization.json`** — pyannote speaker segments (speaker label + start/end).
+- **`detections.json`** — failure-mode detector output (read-only monitor; never edits the transcript). Shape: `{_about, detectors: {<detector-id>: {label, failure_mode, detector_version, run_at, n_word_tokens, n_flags, flags: [...]}}}`. Each flag carries `segment_id`/`word_index` (join to `transcript-rich.json` for text), the flagged `token`, `match_type` (`phonetic`|`alias`), and `matched_canonicals`. Flag tokens can echo mis-rendered family names — the file lives only under gitignored `sessions/`.
 - **`data/mahabharata.json`** — proper-noun reference. Shape: `{_version, _description, entries: [...]}`; each entry has a `canonical` spelling plus `variants` / `aliases` lists. Build a name set from canonical + variants + aliases.
 
 **Session IDs are date-stamped (`YYYYMMDD-HHMMSS`)**, not hex — there are no hex-named session dirs. The five EMP-coded sessions are mapped to their story names at the top of `tell-me-a-story/emp/emp.md`'s "Count result" section. 

@@ -3,3 +3,4 @@ pyannote.audio
 pytest
 mutagen
 flask-cors
+metaphone
