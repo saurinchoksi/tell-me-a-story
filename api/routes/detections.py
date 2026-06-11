@@ -94,6 +94,9 @@ def session_detections(session_id: str):
     except FileNotFoundError as e:
         return jsonify({"error": str(e)}), 404
 
+    # Whether the per-flag "play around this clip" control can be shown.
+    has_audio = next(session_dir.glob("audio.*"), None) is not None
+
     transcript_path = session_dir / "transcript-rich.json"
     if transcript_path.exists():
         # Detector errors get their own handler — the get_session_dir
@@ -106,7 +109,8 @@ def session_detections(session_id: str):
         # No transcript to scan — serve whatever exists (join fields null)
         data = _read_detections(session_dir)
         if data is None:
-            return jsonify({"session_id": session_id, "detectors": {}})
+            return jsonify({"session_id": session_id, "has_audio": has_audio,
+                            "detectors": {}})
 
     # Join flags to segments server-side so the UI never ships the transcript.
     seg_by_id = {}
@@ -129,4 +133,5 @@ def session_detections(session_id: str):
             })
         detectors[det_id] = {**section, "flags": flags}
 
-    return jsonify({"session_id": session_id, "detectors": detectors})
+    return jsonify({"session_id": session_id, "has_audio": has_audio,
+                    "detectors": detectors})

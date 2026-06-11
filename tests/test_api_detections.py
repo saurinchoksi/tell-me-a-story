@@ -91,8 +91,9 @@ def sessions_dir(tmp_path):
     scanned.mkdir(parents=True)
     (scanned / "transcript-rich.json").write_text(json.dumps(TRANSCRIPT))
     (scanned / "detections.json").write_text(json.dumps(_canned_detections(scanned)))
+    (scanned / "audio.m4a").write_bytes(b"fake audio")  # drives has_audio=True
 
-    # Unscanned session: transcript only — auto-scanned on first view
+    # Unscanned session: transcript only, no audio — auto-scanned on first view
     unscanned = tmp_path / "sessions" / "20260102-120000"
     unscanned.mkdir()
     (unscanned / "transcript-rich.json").write_text(json.dumps(TRANSCRIPT))
@@ -253,7 +254,16 @@ def test_session_detections_joins_segment_context(client):
 def test_session_detections_no_transcript_no_detections(client):
     resp = client.get("/api/sessions/20260103-120000/detections")
     assert resp.status_code == 200
-    assert resp.get_json() == {"session_id": "20260103-120000", "detectors": {}}
+    assert resp.get_json() == {"session_id": "20260103-120000",
+                               "has_audio": False, "detectors": {}}
+
+
+def test_session_detections_reports_has_audio(client):
+    # 20260101-120000 has an audio.m4a fixture; 20260102-120000 does not
+    with_audio = client.get("/api/sessions/20260101-120000/detections").get_json()
+    without_audio = client.get("/api/sessions/20260102-120000/detections").get_json()
+    assert with_audio["has_audio"] is True
+    assert without_audio["has_audio"] is False
 
 
 def test_session_detections_missing_transcript_joins_null(client, sessions_dir,

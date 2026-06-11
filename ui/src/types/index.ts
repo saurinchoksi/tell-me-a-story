@@ -305,6 +305,8 @@ export interface SessionDetectorResult {
 
 export interface SessionDetectionsData {
   session_id: string;
+  /** Whether an audio file exists — gates the per-flag "play clip" control. */
+  has_audio: boolean;
   /** Keyed by detector id; {} when the session was never scanned. */
   detectors: Record<string, SessionDetectorResult>;
 }
