@@ -212,7 +212,7 @@ def client(tmp_path):
 
 - Pyannote struggles with soft/child speech—alignment heuristics compensate
 - Test audio: `sessions/00000000-000000/audio.m4a`
-- Private data in `sessions/` is gitignored. Derived JSON artifacts (transcript-rich, validation-notes, axial-labels) are mirrored to the sibling private repo `tell-me-a-story-data/` via its `sync.sh` script — audio stays local-only. A launchd job (`~/Library/LaunchAgents/com.choksi.tmas-data-sync.plist`) runs the sync daily at noon; run it on-demand with `cd ../tell-me-a-story-data && ./sync.sh`.
+- Private data in `sessions/` is gitignored. Derived JSON artifacts (transcript-rich, validation-notes, axial-labels) plus the hand-curated `data/name_roster.json` are mirrored to the sibling private repo `tell-me-a-story-data/` via its `sync.sh` script — audio stays local-only; `detections.json` is deliberately not synced (regenerable in milliseconds). A launchd job (`~/Library/LaunchAgents/com.choksi.tmas-data-sync.plist`) runs the sync daily at noon; run it on-demand with `cd ../tell-me-a-story-data && ./sync.sh`.
 - Reference library: `data/mahabharata.json` (56 entries, variants vs. aliases distinction). Opt-in via `library_path` — not loaded by default.
 - **Inbox:** unprocessed sessions wait in `inbox/` at the **project root** — i.e. `tell-me-a-story/inbox/` (e.g. `inbox/New Recording 60.m4a`). `init_session.py` and `process_inbox.py` read from here. This is the only TMAS inbox — **not** the workspace-level `dev/inbox/`.
 - Supported audio formats: `.m4a`, `.mp3`, `.wav` (defined in `init_session.py`)

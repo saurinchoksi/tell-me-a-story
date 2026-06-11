@@ -4,17 +4,9 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
-## 2026-06-11 — Name-list edits now reach the monitor without a restart
+## 2026-06-11 — The validated name detector now runs as a self-refreshing monitor
 
-A code review caught that the freshness fix watched only half the picture: a detector's results depend on the recording's transcript and on the name list it checks against, but only the transcript was being watched for changes. Editing the list — adding a family member, fixing a spelling — changed nothing on screen until a manual re-run after a server restart. Both inputs are now fingerprinted, so a list edit re-scans everything on the next page view; alongside this, inbox processing no longer reports a detector hiccup as a failed recording, and error messages reach the screen instead of a blank server error.
-
-## 2026-06-11 — Detection results now refresh themselves when viewed
-
-Each detector's saved results now carry a fingerprint of the transcript they scanned, and opening the Monitor re-checks every session against it — anything scanned against an older transcript, or never scanned at all, is re-run on the spot. There is no manual scan step anymore; the page you look at is always current. Saved results are a cache, and a cache without an invalidation signal quietly turns into a lie.
-
-## 2026-06-11 — The validated name detector now runs as a monitor with its own screen
-
-The name-checker proven in the eval project now runs over every recording as part of the system itself, writing its findings to a per-session file without ever touching the transcript. A new Monitor screen shows the results across all sessions — including which ones haven't been scanned yet — with a per-session view of each flagged word in context. The framework is built for more failure-mode checkers to plug in as they get validated; the family-name list itself stays in a private file outside version control.
+The name-checker proven in the eval project now runs over every recording as part of the system, with a new Monitor screen showing flagged words across all sessions and within each one — the transcript itself is never touched, and the framework takes more failure-mode checkers as they get validated. Saved results carry fingerprints of both things they depend on, the transcript and the family name list, so editing either re-scans automatically on the next page view; there is no manual step. A same-day code review caught that the first version watched only the transcript half, a reminder that cached results without an invalidation signal quietly turn into lies.
 
 ## 2026-06-10 — The eval project's working doc moved into the repo, kept private
 
