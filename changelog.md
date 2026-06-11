@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-11 — Detection results now refresh themselves when viewed
+
+Each detector's saved results now carry a fingerprint of the transcript they scanned, and opening the Monitor re-checks every session against it — anything scanned against an older transcript, or never scanned at all, is re-run on the spot. There is no manual scan step anymore; the page you look at is always current. Saved results are a cache, and a cache without an invalidation signal quietly turns into a lie.
+
 ## 2026-06-11 — The validated name detector now runs as a monitor with its own screen
 
 The name-checker proven in the eval project now runs over every recording as part of the system itself, writing its findings to a per-session file without ever touching the transcript. A new Monitor screen shows the results across all sessions — including which ones haven't been scanned yet — with a per-session view of each flagged word in context. The framework is built for more failure-mode checkers to plug in as they get validated; the family-name list itself stays in a private file outside version control.

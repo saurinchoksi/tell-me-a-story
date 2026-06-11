@@ -66,10 +66,8 @@ export default function SessionDetections() {
 
       {sections.length === 0 ? (
         <div className="session-detections-empty">
-          <h2>Not scanned yet</h2>
-          <p>
-            Run <code>python src/detect.py {id}</code> to scan this session.
-          </p>
+          <h2>No detections</h2>
+          <p>This session has no transcript yet — there is nothing to scan.</p>
         </div>
       ) : (
         sections.map(([detId, result]) => (

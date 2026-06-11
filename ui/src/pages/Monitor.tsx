@@ -61,7 +61,8 @@ export default function Monitor() {
         <h1>Monitor</h1>
         <p className="monitor-subtitle">
           Failure-mode detectors over {sessions.length} transcribed session
-          {sessions.length !== 1 ? 's' : ''} — detection only, transcripts are never modified
+          {sessions.length !== 1 ? 's' : ''} — scans refresh automatically when this page
+          loads; transcripts are never modified
         </p>
       </div>
 

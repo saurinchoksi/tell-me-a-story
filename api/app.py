@@ -18,7 +18,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT))  # api package importable from any cwd
 
 
-def create_app(sessions_dir=None, profiles_path=None) -> Flask:
+def create_app(sessions_dir=None, profiles_path=None, detectors=None) -> Flask:
     """Create and configure the Flask app.
 
     Args:
@@ -26,11 +26,15 @@ def create_app(sessions_dir=None, profiles_path=None) -> Flask:
             Injectable for test isolation with temp directories.
         profiles_path: Path to speaker_profiles.json. Defaults to PROJECT_ROOT/data/speaker_profiles.json.
             Injectable for test isolation.
+        detectors: Failure-mode detector list for the detections routes.
+            Defaults to the src/detectors registry (resolved lazily). Injectable
+            so tests don't need the gitignored data/name_roster.json.
     """
     app = Flask(__name__)
 
     app.config["SESSIONS_DIR"] = Path(sessions_dir) if sessions_dir else DEFAULT_SESSIONS_DIR
     app.config["PROFILES_PATH"] = profiles_path or DEFAULT_PROFILES_PATH
+    app.config["DETECTORS"] = detectors  # None -> registry, resolved in the route
 
     # CORS — needed when serving production builds (dev uses Vite proxy)
     try:
