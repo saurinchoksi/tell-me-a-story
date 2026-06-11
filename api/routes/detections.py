@@ -60,6 +60,10 @@ def detections_rollup():
                 data = ensure_fresh_detections(entry, detector_objs)
             except json.JSONDecodeError as e:
                 return jsonify({"error": f"Corrupt detections.json in {entry.name}: {e}"}), 500
+            except (FileNotFoundError, ValueError) as e:
+                # Detector setup failure (e.g. missing/invalid roster) — fail
+                # loud, but with the actionable message instead of a bare 500.
+                return jsonify({"error": f"Detector failed on {entry.name}: {e}"}), 500
             results = {}
             for det_id, section in data["detectors"].items():
                 results[det_id] = {
@@ -92,7 +96,12 @@ def session_detections(session_id: str):
 
     transcript_path = session_dir / "transcript-rich.json"
     if transcript_path.exists():
-        data = ensure_fresh_detections(session_dir, _detectors())
+        # Detector errors get their own handler — the get_session_dir
+        # try/except above must stay narrow (its FileNotFoundError means 404).
+        try:
+            data = ensure_fresh_detections(session_dir, _detectors())
+        except (FileNotFoundError, ValueError) as e:
+            return jsonify({"error": f"Detector failed on {session_id}: {e}"}), 500
     else:
         # No transcript to scan — serve whatever exists (join fields null)
         data = _read_detections(session_dir)

@@ -36,6 +36,7 @@ def process_inbox(target_file: str | None = None):
     initialized = []
     skipped = []
     failed = []
+    detector_failed = []
 
     # Phase 1: init all sessions
     for audio_path in sorted(audio_files):
@@ -101,11 +102,18 @@ def process_inbox(target_file: str | None = None):
                         str(SESSIONS_DIR / session_id / "identifications.json"),
                     )
 
-            # Run failure-mode detectors (detection only — writes detections.json)
-            from detectors import DETECTORS
-            from detectors.base import write_detections
-            for det in DETECTORS:
-                write_detections(SESSIONS_DIR / session_id, det, det.run(SESSIONS_DIR / session_id))
+            # Run failure-mode detectors (detection only — writes detections.json).
+            # Separate try: a detector problem must not report the session as a
+            # pipeline failure — the transcription artifacts above are already
+            # saved and usable, and the Monitor re-scans automatically anyway.
+            try:
+                from detectors import DETECTORS
+                from detectors.base import write_detections
+                for det in DETECTORS:
+                    write_detections(SESSIONS_DIR / session_id, det, det.run(SESSIONS_DIR / session_id))
+            except Exception as e:
+                print(f"  ⚠ Detectors failed (transcript saved): {e}")
+                detector_failed.append((session_id, str(e)))
 
             created.append(session_id)
             print(f"  ✓ Done — {session_id}")
@@ -113,10 +121,10 @@ def process_inbox(target_file: str | None = None):
             print(f"  ✗ Pipeline failed: {e}")
             failed.append((session_id, str(e)))
 
-    _print_summary(created, skipped, failed)
+    _print_summary(created, skipped, failed, detector_failed)
 
 
-def _print_summary(created, skipped, failed):
+def _print_summary(created, skipped, failed, detector_failed=()):
     print("\n" + "─" * 50)
     if created:
         print(f"\nCreated ({len(created)}):")
@@ -130,7 +138,11 @@ def _print_summary(created, skipped, failed):
         print(f"\nFailed ({len(failed)}):")
         for name, err in failed:
             print(f"  ✗ {name}: {err}")
-    if not created and not skipped and not failed:
+    if detector_failed:
+        print(f"\nDetectors failed — artifacts saved ({len(detector_failed)}):")
+        for name, err in detector_failed:
+            print(f"  ⚠ {name}: {err}")
+    if not created and not skipped and not failed and not detector_failed:
         print("\n  (nothing processed)")
 
 

@@ -50,6 +50,7 @@ def test_write_creates_file_with_section_shape(session_dir):
     assert section["flags"] == RESULT["flags"]
     assert "run_at" in section
     assert section["transcript_fingerprint"] == transcript_fingerprint(session_dir)
+    assert section["config_fingerprint"] is None  # FakeDetector has no config
 
 
 def test_write_requires_transcript(tmp_path):
@@ -83,9 +84,15 @@ def test_corrupt_detections_file_fails_loud(session_dir):
 
 def test_build_section_counts_flags():
     section = build_section(FakeDetector(), {"n_word_tokens": 5, "flags": [{}, {}]},
-                            "sha256:x")
+                            "sha256:x", None)
     assert section["n_flags"] == 2
     assert section["transcript_fingerprint"] == "sha256:x"
+
+
+def test_save_leaves_no_temp_file(session_dir):
+    write_detections(session_dir, FakeDetector(), RESULT)
+    assert (session_dir / "detections.json").exists()
+    assert not (session_dir / "detections.json.tmp").exists()
 
 
 # --- ensure_fresh_detections (the freshness gate) -------------------------------
@@ -142,3 +149,26 @@ def test_ensure_fresh_corrupt_detections_fails_loud(session_dir):
     (session_dir / "detections.json").write_text("{not json")
     with pytest.raises(json.JSONDecodeError):
         ensure_fresh_detections(session_dir, [FakeDetector()])
+
+
+def test_ensure_fresh_reruns_when_config_changes(session_dir):
+    """A detector's output is a function of (transcript, config) — a config
+    edit must trigger a re-run even with the transcript unchanged."""
+
+    class ConfigDetector(FakeDetector):
+        def __init__(self):
+            super().__init__()
+            self.config = "v1"
+
+        def config_fingerprint(self):
+            return f"sha256:{self.config}"
+
+    det = ConfigDetector()
+    ensure_fresh_detections(session_dir, [det])
+    ensure_fresh_detections(session_dir, [det])
+    assert det.run_count == 1          # stable while config unchanged
+
+    det.config = "v2"
+    data = ensure_fresh_detections(session_dir, [det])
+    assert det.run_count == 2
+    assert data["detectors"]["fake-detector"]["config_fingerprint"] == "sha256:v2"

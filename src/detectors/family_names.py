@@ -22,6 +22,7 @@ PRIVACY: no real names are hardcoded here. The roster lives in the gitignored
 data/name_roster.json; its schema is documented in data/name_roster.example.json.
 """
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -67,14 +68,21 @@ class FamilyNameDetector(Detector):
 
     def __init__(self, roster_path=None):
         self.roster_path = Path(roster_path) if roster_path else DEFAULT_ROSTER_PATH
-        self._roster = None  # loaded lazily on first run()
+        self._roster = None              # parsed roster, cached...
+        self._roster_fingerprint = None  # ...keyed by the file's content hash
 
-    def _load_roster(self):
+    def config_fingerprint(self) -> str:
+        """Hash of the roster file. Feeding this into the staleness check
+        means a roster edit re-runs every session's scan, and keying the
+        in-memory cache on it means a long-lived process picks the edit up."""
         if not self.roster_path.exists():
             raise FileNotFoundError(
                 f"Family-name roster not found at {self.roster_path}. "
                 "Create it from the schema in data/name_roster.example.json."
             )
+        return "sha256:" + hashlib.sha256(self.roster_path.read_bytes()).hexdigest()
+
+    def _load_roster(self):
         roster = json.loads(self.roster_path.read_text())
 
         canon = {p["id"]: p["canonical"] for p in roster["people"]}
@@ -104,8 +112,10 @@ class FamilyNameDetector(Detector):
         self._roster = (canon, canon_forms, code_to_pid, roster_codes, alias)
 
     def run(self, session_dir: Path) -> dict:
-        if self._roster is None:
+        fingerprint = self.config_fingerprint()  # raises if roster missing
+        if self._roster is None or self._roster_fingerprint != fingerprint:
             self._load_roster()
+            self._roster_fingerprint = fingerprint
         canon, canon_forms, code_to_pid, roster_codes, alias = self._roster
 
         data = load_transcript(session_dir)

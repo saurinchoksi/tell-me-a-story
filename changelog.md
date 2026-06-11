@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-11 — Name-list edits now reach the monitor without a restart
+
+A code review caught that the freshness fix watched only half the picture: a detector's results depend on the recording's transcript and on the name list it checks against, but only the transcript was being watched for changes. Editing the list — adding a family member, fixing a spelling — changed nothing on screen until a manual re-run after a server restart. Both inputs are now fingerprinted, so a list edit re-scans everything on the next page view; alongside this, inbox processing no longer reports a detector hiccup as a failed recording, and error messages reach the screen instead of a blank server error.
+
 ## 2026-06-11 — Detection results now refresh themselves when viewed
 
 Each detector's saved results now carry a fingerprint of the transcript they scanned, and opening the Monitor re-checks every session against it — anything scanned against an older transcript, or never scanned at all, is re-run on the spot. There is no manual scan step anymore; the page you look at is always current. Saved results are a cache, and a cache without an invalidation signal quietly turns into a lie.

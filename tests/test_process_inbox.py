@@ -273,7 +273,10 @@ def test_process_inbox_mixed_results(capsys):
         assert "Failed (1):" in output
 
 
-class _FakeDetector:
+from detectors.base import Detector
+
+
+class _FakeDetector(Detector):
     id = "fake-detector"
     label = "Fake detector"
     failure_mode = "M0"
@@ -317,7 +320,8 @@ def test_process_inbox_runs_detectors(capsys):
 
 
 def test_process_inbox_detector_failure_recorded(capsys):
-    """A detector exception lands the session in the failed list (artifacts kept)."""
+    """A detector exception is reported separately — the session still counts
+    as created, because its transcription artifacts are saved and usable."""
     with tempfile.TemporaryDirectory() as tmp:
         inbox = _make_inbox(tmp, ["story.m4a"])
         sessions = Path(tmp) / "sessions"
@@ -339,8 +343,10 @@ def test_process_inbox_detector_failure_recorded(capsys):
             process_inbox()
 
         output = capsys.readouterr().out
-        assert "Pipeline failed" in output
+        assert "Detectors failed" in output
         assert "roster missing" in output
+        assert "Pipeline failed" not in output      # not conflated with pipeline errors
+        assert "Created (1):" in output             # session still counts as created
         # Transcription artifacts were already saved before the detector ran
         assert (session_dir / "transcript-rich.json").exists()
 

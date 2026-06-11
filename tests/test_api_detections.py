@@ -70,6 +70,7 @@ def _canned_detections(session_dir):
                 "detector_version": "0.1.0",
                 "run_at": "2026-06-11T12:00:00+00:00",
                 "transcript_fingerprint": transcript_fingerprint(session_dir),
+                "config_fingerprint": None,
                 "n_word_tokens": 4,
                 "n_flags": 1,
                 "flags": [CANNED_FLAG],
@@ -178,6 +179,37 @@ def test_rollup_corrupt_detections_is_500(client, sessions_dir):
     resp = client.get("/api/detections")
     assert resp.status_code == 500
     assert "Corrupt detections.json" in resp.get_json()["error"]
+
+
+class _BrokenDetector(_FakeDetector):
+    """Simulates detector setup failure (e.g. missing roster)."""
+
+    def run(self, session_dir):
+        raise FileNotFoundError("Family-name roster not found at data/name_roster.json.")
+
+
+def _broken_client(sessions_dir, tmp_path):
+    app = create_app(sessions_dir=sessions_dir,
+                     profiles_path=str(tmp_path / "profiles.json"),
+                     detectors=[_BrokenDetector()])
+    app.config["TESTING"] = True
+    return app.test_client()
+
+
+def test_rollup_detector_failure_is_legible_500(sessions_dir, tmp_path):
+    # The unscanned session forces a run; the broken detector raises
+    resp = _broken_client(sessions_dir, tmp_path).get("/api/detections")
+    assert resp.status_code == 500
+    error = resp.get_json()["error"]
+    assert "Detector failed on 20260102-120000" in error
+    assert "roster not found" in error
+
+
+def test_session_detector_failure_is_legible_500(sessions_dir, tmp_path):
+    resp = _broken_client(sessions_dir, tmp_path).get(
+        "/api/sessions/20260102-120000/detections")
+    assert resp.status_code == 500
+    assert "roster not found" in resp.get_json()["error"]
 
 
 # --- Per-session detail ---------------------------------------------------------

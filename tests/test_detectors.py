@@ -148,6 +148,29 @@ def test_missing_roster_fails_loud(tmp_path):
         det.run(make_session(tmp_path, ["hello"]))
 
 
+def test_config_fingerprint_missing_roster_fails_loud(tmp_path):
+    det = FamilyNameDetector(roster_path=tmp_path / "nope.json")
+    with pytest.raises(FileNotFoundError, match="name_roster.example.json"):
+        det.config_fingerprint()
+
+
+def test_roster_edit_picked_up_between_runs(tmp_path, roster_path):
+    """The roster cache is keyed by content hash — an edit while the detector
+    instance lives (long-running API process) takes effect on the next run."""
+    det = FamilyNameDetector(roster_path=roster_path)
+    # "Soran" — a phonetic variant of "Soren", who isn't in the roster yet
+    session = make_session(tmp_path, ["Soran", "arrived"])
+    assert det.run(session)["flags"] == []
+
+    roster = json.loads(roster_path.read_text())
+    roster["people"].append({"id": "uncle", "canonical": "Soren", "role": "family"})
+    roster_path.write_text(json.dumps(roster))
+
+    flags = det.run(session)["flags"]
+    assert len(flags) == 1                   # same instance, new roster
+    assert flags[0]["matched_canonicals"] == ["Soren"]
+
+
 def test_missing_transcript_fails_loud(tmp_path, roster_path):
     session_dir = tmp_path / "20260101-130000"
     session_dir.mkdir()
