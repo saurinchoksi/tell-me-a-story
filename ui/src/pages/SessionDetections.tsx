@@ -76,8 +76,15 @@ function FlagCard({ flag, isPlaying, canPlay, onToggle }: FlagCardProps) {
   );
 }
 
+// Keyed by session id so navigating A→B remounts the view — a fresh <audio>
+// element (the old one unmounts, stopping playback) and clean refs/state,
+// instead of leaking the prior session's audio and flags into the next.
 export default function SessionDetections() {
   const { id } = useParams<{ id: string }>();
+  return <SessionDetectionsView key={id} id={id} />;
+}
+
+function SessionDetectionsView({ id }: { id: string | undefined }) {
   const [data, setData] = useState<SessionDetectionsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -170,14 +177,14 @@ export default function SessionDetections() {
               <div className="detection-flags">
                 {result.flags.map((flag, i) => {
                   const key = `${String(flag.segment_id)}-${flag.word_index}-${i}`;
-                  const window = clipWindow(flag);
+                  const clip = clipWindow(flag);
                   return (
                     <FlagCard
                       key={key}
                       flag={flag}
                       isPlaying={playingKey === key}
-                      canPlay={data.has_audio && window !== null}
-                      onToggle={() => window && playClip(key, window[0], window[1])}
+                      canPlay={data.has_audio && clip !== null}
+                      onToggle={() => clip && playClip(key, clip[0], clip[1])}
                     />
                   );
                 })}
