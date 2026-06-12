@@ -138,6 +138,50 @@ def test_missing_transcript_fails_loud(tmp_path):
         NameConsistencyDetector().run(session_dir)
 
 
+def test_registered_in_registry():
+    from detectors import DETECTORS, get_detector
+    assert "m9b-name-consistency" in [d.id for d in DETECTORS]
+    assert get_detector("m9b-name-consistency").failure_mode == "M9b"
+
+
+# --- Offline judge layer -------------------------------------------------------
+
+def test_judge_recovers_all_common_cluster(tmp_path):
+    # Both spellings are "common", so code-only drops the cluster — but a judge
+    # that recognizes it as a name recovers it (the Bibi/Bacchus case).
+    wordlist = tmp_path / "words.txt"
+    wordlist.write_text("zerk\nzerg\n")
+    det = NameConsistencyDetector(wordlist_path=wordlist)
+    session = make_session(tmp_path, ["Zerk", "Zerg", "ran"])
+    assert det.run(session)["flags"] == []          # no judge → dropped
+
+    seen = {}
+    def judge(candidates):
+        seen["c"] = candidates
+        return {c["cluster_id"] for c in candidates}  # keep everything shown
+    flags = det.run(session, judge=judge)["flags"]
+    assert len(flags) == 2
+    assert len(seen["c"]) == 1                        # the one all-common cluster
+    assert set(seen["c"][0]["spellings"]) == {"Zerk", "Zerg"}
+
+
+def test_judge_drop_keeps_cluster_out(tmp_path):
+    wordlist = tmp_path / "words.txt"
+    wordlist.write_text("zerk\nzerg\n")
+    det = NameConsistencyDetector(wordlist_path=wordlist)
+    session = make_session(tmp_path, ["Zerk", "Zerg"])
+    assert det.run(session, judge=lambda c: set())["flags"] == []  # judge drops → empty
+
+
+def test_judge_not_called_for_clear_names(tmp_path):
+    # A cluster with a non-dictionary spelling is auto-kept; the judge never sees it.
+    det = NameConsistencyDetector(wordlist_path=None)  # stoplist-only
+    session = make_session(tmp_path, ["Zerk", "Zerg"])
+    calls = []
+    det.run(session, judge=lambda c: (calls.append(c), set())[1])
+    assert calls == [[]] or calls == []  # judge given no candidates (or not called)
+
+
 # --- Phonetics module move did not break M9a's helpers -------------------------
 
 def test_phonetics_helpers_intact():

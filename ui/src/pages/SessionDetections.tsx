@@ -52,11 +52,24 @@ function FlagCard({ flag, isPlaying, canPlay, onToggle }: FlagCardProps) {
           {isPlaying ? '❚❚' : '▶'}
         </button>
         <span className="detection-flag-token">{flag.token}</span>
-        <span className="detection-flag-arrow" aria-hidden="true">→</span>
-        <span className="detection-flag-canonical">{flag.matched_canonicals.join(', ')}</span>
-        <span className={`detection-flag-type detection-flag-type--${flag.match_type}`}>
-          {flag.match_type}
-        </span>
+        {'cluster_spellings' in flag ? (
+          <>
+            <span className="detection-flag-type detection-flag-type--inconsistent">
+              inconsistent
+            </span>
+            <span className="detection-flag-cluster">
+              spelled: {flag.cluster_spellings.join(' · ')}
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="detection-flag-arrow" aria-hidden="true">→</span>
+            <span className="detection-flag-canonical">{flag.matched_canonicals.join(', ')}</span>
+            <span className={`detection-flag-type detection-flag-type--${flag.match_type}`}>
+              {flag.match_type}
+            </span>
+          </>
+        )}
         <span className="detection-flag-meta">
           {flag.start != null ? formatTime(flag.start) : '—'}
           {flag.segment_speaker ? ` · ${flag.segment_speaker}` : ''}

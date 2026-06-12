@@ -275,8 +275,8 @@ export interface DetectionsRollup {
   totals: Record<string, number>;
 }
 
-/** One flagged token, joined server-side to its transcript segment. */
-export interface DetectionFlag {
+/** Fields every detector's flag carries — the anchor + the server-side join. */
+export interface DetectionFlagBase {
   segment_id: SegmentId;
   word_index: number;
   start: number | null;
@@ -284,14 +284,28 @@ export interface DetectionFlag {
   token: string;
   cleaned: string;
   dm_codes: string[];
-  match_type: 'phonetic' | 'alias';
-  matched_person_ids: string[];
-  matched_canonicals: string[];
   segment_text: string | null;
   segment_start: number | null;
   segment_end: number | null;
   segment_speaker: string | null;
 }
+
+/** M9a — a token matched against the family-name roster. */
+export interface FamilyNameFlag extends DetectionFlagBase {
+  match_type: 'phonetic' | 'alias';
+  matched_person_ids: string[];
+  matched_canonicals: string[];
+}
+
+/** M9b — a token in a name spelled inconsistently across the session. */
+export interface NameConsistencyFlag extends DetectionFlagBase {
+  cluster_id: string;
+  cluster_spellings: string[];
+  n_cluster_occurrences: number;
+}
+
+/** Discriminated by the presence of `cluster_spellings`. */
+export type DetectionFlag = FamilyNameFlag | NameConsistencyFlag;
 
 export interface SessionDetectorResult {
   label: string;

@@ -5,8 +5,9 @@ never transcript edits. Register new detectors here explicitly.
 """
 
 from detectors.family_names import FamilyNameDetector
+from detectors.name_consistency import NameConsistencyDetector
 
-DETECTORS = [FamilyNameDetector()]
+DETECTORS = [FamilyNameDetector(), NameConsistencyDetector()]
 
 
 def get_detector(detector_id: str):

@@ -62,7 +62,7 @@ class NameConsistencyDetector(Detector):
     id = "m9b-name-consistency"
     label = "Inconsistent name spelling"
     failure_mode = "M9b"
-    version = "0.2.0"  # pre-validation; bump to 1.0.0 once validated
+    version = "1.0.0"
 
     def __init__(self, wordlist_path=DEFAULT_WORDLIST):
         # wordlist_path=None → stoplist-only (degraded, used by tests).
@@ -84,8 +84,18 @@ class NameConsistencyDetector(Detector):
             self._common = common
         return c in self._common or (c.endswith("s") and c[:-1] in self._common)
 
-    def run(self, session_dir: Path) -> dict:
+    def run(self, session_dir: Path, judge=None) -> dict:
+        """Detect inconsistently-spelled names.
+
+        Code-only by default. `judge` is an optional callable for the offline
+        LLM layer: it receives the ambiguous all-common clusters (the residue
+        the dictionary filter would drop — improvised names that are also
+        dictionary words, like Bibi/Bacchus) and returns the set of cluster_ids
+        to keep. It is never invoked from the live API (too slow); only the
+        `detect.py --judge` path supplies it.
+        """
         data = load_transcript(session_dir)
+        seg_text = {seg["id"]: (seg.get("text") or "").strip() for seg in data["segments"]}
 
         # 1. Collect name-candidate occurrences: capitalized (name-shaped) and at
         #    least MIN_NAME_LEN chars (drops short function words / interjections).
@@ -120,20 +130,38 @@ class NameConsistencyDetector(Detector):
         cluster_forms = defaultdict(set)        # root -> {cleaned forms}
         cluster_surface = defaultdict(set)      # root -> {raw surface forms}
         cluster_count = defaultdict(int)        # root -> total occurrences
+        cluster_segs = defaultdict(list)        # root -> [segment ids]
         for sid, wi, start, end, raw, c in occurrences:
             root = uf.find(c)
             cluster_forms[root].add(c)
             cluster_surface[root].add(raw)
             cluster_count[root] += 1
-        # A cluster is a real inconsistent name iff it is spelled >1 way AND at
-        # least one spelling is not an ordinary word. The "any non-common" rule
-        # keeps a name even when one variant happens to be a dictionary word
-        # (Pataki/Bacchus survives via "pataki"; the misspelling is the signal),
-        # while dropping clusters that are *all* common (What/Whats, Yeah/Whoa).
-        inconsistent = {
-            r for r, forms in cluster_forms.items()
-            if len(forms) > 1 and any(not self._is_common(f) for f in forms)
-        }
+            cluster_segs[root].append(sid)
+        # Split the inconsistent clusters by the dictionary filter. A cluster with
+        # at least one non-ordinary spelling is a clear name (Pataki/Bacchus
+        # survives via "pataki" — the misspelling is the signal). A cluster that is
+        # *all* common words (What/Whats, Yeah/Whoa) is ambiguous: usually junk,
+        # but sometimes an invented name that is also a dictionary word (Bibi).
+        auto_keep, candidate_roots = set(), []
+        for r, forms in cluster_forms.items():
+            if len(forms) <= 1:
+                continue
+            if any(not self._is_common(f) for f in forms):
+                auto_keep.add(r)
+            else:
+                candidate_roots.append(r)
+
+        inconsistent = set(auto_keep)
+        if judge and candidate_roots:
+            candidates = [{
+                "cluster_id": min(cluster_forms[r]),
+                "spellings": sorted(cluster_surface[r]),
+                "examples": [seg_text[s] for s in dict.fromkeys(cluster_segs[r])
+                             if seg_text.get(s)][:3],
+            } for r in candidate_roots]
+            kept_ids = set(judge(candidates))
+            inconsistent |= {r for r in candidate_roots
+                             if min(cluster_forms[r]) in kept_ids}
 
         # 4. One flag per occurrence inside an inconsistent cluster.
         flags = []

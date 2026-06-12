@@ -45,9 +45,18 @@ def main():
     ap = argparse.ArgumentParser(description="Run failure-mode detectors over sessions.")
     ap.add_argument("sessions", nargs="*", help="session ids under sessions/ (default: all)")
     ap.add_argument("--detector", help="run only this detector id")
+    ap.add_argument("--judge", action="store_true",
+                    help="apply the offline LLM judge to m9b-name-consistency "
+                         "(recovers dictionary-word names; needs the mlx-vlm venv)")
     args = ap.parse_args()
 
     detectors = [get_detector(args.detector)] if args.detector else DETECTORS
+
+    # The judge is an offline upgrade for the M9b detector only.
+    m9b_judge = None
+    if args.judge:
+        from detectors.name_consistency_judge import make_judge
+        m9b_judge = make_judge()
 
     if args.sessions:
         session_ids = args.sessions
@@ -64,11 +73,15 @@ def main():
     for sid in session_ids:
         session_dir = SESSIONS_DIR / sid
         for det in detectors:
-            result = det.run(session_dir)
+            if m9b_judge and det.id == "m9b-name-consistency":
+                result = det.run(session_dir, judge=m9b_judge)
+            else:
+                result = det.run(session_dir)
             section = write_detections(session_dir, det, result)
+            judged = "  +judge" if (m9b_judge and det.id == "m9b-name-consistency") else ""
             print(
                 f"  {sid}  {det.id:<20} "
-                f"{section['n_flags']:>3} flags / {section['n_word_tokens']} tokens"
+                f"{section['n_flags']:>3} flags / {section['n_word_tokens']} tokens{judged}"
             )
 
 
