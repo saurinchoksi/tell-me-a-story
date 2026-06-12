@@ -28,8 +28,10 @@ def make_session(tmp_path, words, extra_segments=None):
     return session_dir
 
 
-def run_on(tmp_path, words, extra_segments=None):
-    det = NameConsistencyDetector()
+def run_on(tmp_path, words, extra_segments=None, wordlist_path=None):
+    # wordlist_path=None → stoplist-only, so the fake names below aren't filtered
+    # as "common words"; tests stay hermetic (no dependency on /usr/share/dict).
+    det = NameConsistencyDetector(wordlist_path=wordlist_path)
     return det.run(make_session(tmp_path, words, extra_segments))
 
 
@@ -96,10 +98,36 @@ def test_flag_anchor_fields_present(tmp_path):
         assert k in flag
 
 
+# --- Precision layer -----------------------------------------------------------
+
+def test_short_names_dropped_by_min_length(tmp_path):
+    # A 3-char inconsistent pair would cluster, but min-length removes it before
+    # clustering — short tokens are function words / interjections, not names.
+    result = run_on(tmp_path, ["Cat", "Kat", "ran"])
+    assert result["flags"] == []
+
+
+def test_all_common_cluster_dropped(tmp_path):
+    # Both spellings are ordinary words → not an improvised name → dropped.
+    wordlist = tmp_path / "words.txt"
+    wordlist.write_text("zerk\nzerg\n")
+    result = run_on(tmp_path, ["Zerk", "Zerg"], wordlist_path=wordlist)
+    assert result["flags"] == []
+
+
+def test_cluster_kept_when_one_spelling_is_not_a_word(tmp_path):
+    # One variant is a dictionary word, the other (the misspelling) is not →
+    # the cluster survives. This is the Pataki/Bacchus case.
+    wordlist = tmp_path / "words.txt"
+    wordlist.write_text("zerg\n")          # only one of the two is "common"
+    result = run_on(tmp_path, ["Zerk", "Zerg"], wordlist_path=wordlist)
+    assert len(result["flags"]) == 2
+
+
 # --- Contract ------------------------------------------------------------------
 
 def test_config_fingerprint_is_none(tmp_path):
-    # No external config — freshness keys on the transcript alone.
+    # No external config that needs freshness tracking — keys on the transcript.
     assert NameConsistencyDetector().config_fingerprint() is None
 
 

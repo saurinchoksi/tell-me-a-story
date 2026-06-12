@@ -25,6 +25,15 @@ from pathlib import Path
 from detectors.base import Detector, load_transcript
 from detectors.phonetics import clean, codes, is_capitalized
 
+# Precision layer (see the score_m9b validation: code-only clustering had 0.94
+# recall but 0.06 precision — it drowned in capitalized common words and
+# interjections sharing metaphone codes). Two cheap deterministic gates:
+DEFAULT_WORDLIST = Path("/usr/share/dict/words")  # the system English dictionary
+MIN_NAME_LEN = 4   # improvised names are >=4 chars; I/Oh/We/No/Uh are not
+# Fillers a formal wordlist may omit (the <4-char ones are already dropped by
+# MIN_NAME_LEN; these are the >=4 stragglers).
+EXTRA_COMMON = {"yeah", "whoa", "woah", "haha", "hehe", "uhhuh", "mmhmm", "okay"}
+
 
 class _UnionFind:
     """Minimal union-find over hashable items (the distinct cleaned spellings)."""
@@ -53,13 +62,33 @@ class NameConsistencyDetector(Detector):
     id = "m9b-name-consistency"
     label = "Inconsistent name spelling"
     failure_mode = "M9b"
-    version = "0.1.0"  # pre-validation; bump to 1.0.0 once validated
+    version = "0.2.0"  # pre-validation; bump to 1.0.0 once validated
+
+    def __init__(self, wordlist_path=DEFAULT_WORDLIST):
+        # wordlist_path=None → stoplist-only (degraded, used by tests).
+        self.wordlist_path = Path(wordlist_path) if wordlist_path else None
+        self._common = None  # loaded lazily
+
+    def _is_common(self, c: str) -> bool:
+        """Is this cleaned token an ordinary English word? (in the dictionary,
+        a known filler, or a plural/possessive/3sg of a dictionary word — the
+        trailing-s strip catches cleaned contractions like 'whats')."""
+        if self._common is None:
+            common = set(EXTRA_COMMON)
+            if self.wordlist_path and self.wordlist_path.exists():
+                common |= {
+                    line.strip().lower()
+                    for line in self.wordlist_path.read_text(errors="ignore").splitlines()
+                    if line.strip()
+                }
+            self._common = common
+        return c in self._common or (c.endswith("s") and c[:-1] in self._common)
 
     def run(self, session_dir: Path) -> dict:
         data = load_transcript(session_dir)
 
-        # 1. Collect capitalized-token occurrences (names are capitalized; the
-        #    gate drops lowercase common words).
+        # 1. Collect name-candidate occurrences: capitalized (name-shaped) and at
+        #    least MIN_NAME_LEN chars (drops short function words / interjections).
         occurrences = []  # (segment_id, word_index, start, end, raw, cleaned)
         form_codes = {}   # cleaned form -> set of Double Metaphone codes
         n_tokens = 0
@@ -70,7 +99,7 @@ class NameConsistencyDetector(Detector):
                 if not c:
                     continue
                 n_tokens += 1
-                if not is_capitalized(raw):
+                if not is_capitalized(raw) or len(c) < MIN_NAME_LEN:
                     continue
                 occurrences.append((seg["id"], wi, w.get("start"), w.get("end"), raw, c))
                 form_codes.setdefault(c, codes(c))
@@ -96,7 +125,15 @@ class NameConsistencyDetector(Detector):
             cluster_forms[root].add(c)
             cluster_surface[root].add(raw)
             cluster_count[root] += 1
-        inconsistent = {r for r, forms in cluster_forms.items() if len(forms) > 1}
+        # A cluster is a real inconsistent name iff it is spelled >1 way AND at
+        # least one spelling is not an ordinary word. The "any non-common" rule
+        # keeps a name even when one variant happens to be a dictionary word
+        # (Pataki/Bacchus survives via "pataki"; the misspelling is the signal),
+        # while dropping clusters that are *all* common (What/Whats, Yeah/Whoa).
+        inconsistent = {
+            r for r, forms in cluster_forms.items()
+            if len(forms) > 1 and any(not self._is_common(f) for f in forms)
+        }
 
         # 4. One flag per occurrence inside an inconsistent cluster.
         flags = []
