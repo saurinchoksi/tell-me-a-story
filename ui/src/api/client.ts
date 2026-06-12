@@ -154,6 +154,17 @@ export async function getSessionDetections(
   return fetchJSON<SessionDetectionsData>(`/api/sessions/${sessionId}/detections`);
 }
 
+/** Full re-scan of one session (code detectors + the M9b LLM judge). Slow. */
+export async function scanSession(sessionId: string): Promise<SessionDetectionsData> {
+  return fetchJSON<SessionDetectionsData>(
+    `/api/sessions/${sessionId}/detections/scan`, { method: 'POST' });
+}
+
+/** Re-scan every session whose results are missing or stale (full pass). */
+export async function scanAllDetections(): Promise<DetectionsRollup> {
+  return fetchJSON<DetectionsRollup>('/api/detections/scan', { method: 'POST' });
+}
+
 // --- Notes ---
 
 export async function getNotes(sessionId: string): Promise<Note[]> {

@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-12 — The Monitor now scans and views as separate steps
+
+The Monitor used to re-run its checkers quietly every time you opened the page, which was clever but wonky: it forced every checker to be fast enough to finish inside a page load, which is why the slow AI model had to be bolted on as an awkward special case. Now scanning and viewing are split cleanly. Checkers run when there's a reason to — right after a recording is transcribed, and on demand from a "Re-scan" button — and run the full pass including the model. Opening the page just reads the last results; if a transcript changed since its scan, the row shows a small "re-scan" mark instead of silently recomputing. The same shape now fits every checker, including future slow ones, with no per-checker special-casing.
+
 ## 2026-06-12 — A second name checker ships, and this time a small AI model earned its place
 
 The Monitor gained a second checker: it catches a made-up character name spelled several ways within one story, which would otherwise break tracking that character across the telling. Plain code finds the inconsistencies and a dictionary screens out the noise, but that screen is blind to invented names that are also ordinary words — so those go to a small local AI model that reads a few lines and decides whether the word is a character. A head-to-head of four local models, with the wording tuned to each, landed the opposite way from the first checker: the smallest deployable model won outright and beat one three times its size, lifting the share of inconsistent names caught from under half to most while keeping the flags trustworthy. The model is too slow to run on every page view, so it runs as an explicit upgrade pass; the lesson that keeps repeating is that you only learn whether code or a model wins by measuring, never by guessing up front.

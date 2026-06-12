@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getSessionDetections, audioURL } from '../api/client';
+import { getSessionDetections, scanSession, audioURL } from '../api/client';
 import { formatSessionDate, formatTime } from '../utils/time';
 import type { DetectionFlag, SessionDetectionsData } from '../types';
 import './SessionDetections.css';
@@ -101,6 +101,7 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
   const [data, setData] = useState<SessionDetectionsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [scanning, setScanning] = useState(false);
 
   // Shared clip player — one <audio> element drives every flag's play button.
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -140,6 +141,19 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
     setPlayingKey(null);
   }
 
+  async function handleRescan() {
+    if (!id) return;
+    setScanning(true);
+    setError(null);
+    try {
+      setData(await scanSession(id));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setScanning(false);
+    }
+  }
+
   if (loading) return <p>Loading detections...</p>;
   if (error) return <p className="error">Error: {error}</p>;
   if (!data || !id) return null;
@@ -163,14 +177,25 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
       )}
 
       <div className="session-detections-header">
-        <h1>{date}</h1>
+        <div className="session-detections-header-row">
+          <h1>{date}</h1>
+          <button
+            className="session-detections-rescan"
+            onClick={handleRescan}
+            disabled={scanning}
+            title="Re-scan this session (code detectors + the M9b LLM judge)"
+          >
+            {scanning ? 'Scanning…' : 'Full re-scan'}
+          </button>
+        </div>
         <p className="session-detections-subtitle">{time} · session {id}</p>
+        {data.warning && <p className="session-detections-warning">⚠ {data.warning}</p>}
       </div>
 
       {sections.length === 0 ? (
         <div className="session-detections-empty">
           <h2>No detections</h2>
-          <p>This session has no transcript yet — there is nothing to scan.</p>
+          <p>This session hasn't been scanned (or has no transcript). Use Full re-scan.</p>
         </div>
       ) : (
         sections.map(([detId, result]) => (
@@ -180,8 +205,14 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
               <h2 className="detection-section-label">{result.label}</h2>
               <span className="detection-section-meta">
                 {result.n_flags} flag{result.n_flags !== 1 ? 's' : ''} /{' '}
-                {result.n_word_tokens} tokens · v{result.detector_version} · scanned{' '}
+                {result.n_word_tokens} tokens · v{result.detector_version}
+                {result.judge_applied ? ' +judge' : ''} · scanned{' '}
                 {new Date(result.run_at).toLocaleString()}
+                {result.stale && (
+                  <span className="detection-stale" title="Transcript changed since this scan — re-scan">
+                    {' '}⟳ stale
+                  </span>
+                )}
               </span>
             </div>
             {result.n_flags === 0 ? (

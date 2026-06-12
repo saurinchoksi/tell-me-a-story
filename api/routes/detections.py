@@ -1,11 +1,12 @@
 """Detection (monitor) endpoints — failure-mode detector results.
 
-Viewing these endpoints keeps results fresh: any detector section that is
-missing or whose transcript fingerprint no longer matches the current
-transcript is re-run inline (detectors are deterministic code, ~ms per
-session). The transcript itself is never modified. The rollup distinguishes
-"0 flags" (scanned, clean) from "never scanned" — a monitoring view must not
-conflate them.
+Scan and view are separated. **Viewing is read-only** — the GET routes serve
+whatever the last scan wrote and never run a detector (so a slow LLM judge can
+live in a scan without ever blocking a page load). **Scanning** runs the
+detectors and persists results, triggered after transcription, by detect.py, or
+by the manual re-scan POST routes here. A section whose transcript changed since
+its scan is marked `stale` so the UI can prompt a re-scan; it is never silently
+recomputed. The transcript itself is never modified.
 """
 
 import json
@@ -36,14 +37,20 @@ def _read_detections(session_dir: Path) -> dict | None:
         return json.load(f)
 
 
-@bp.route("/detections")
-def detections_rollup():
-    """System-wide rollup: every session with a transcript × every detector,
-    refreshed against the current transcripts before returning."""
-    from detectors.base import ensure_fresh_detections  # deferred, like the registry
+def _make_judge():
+    """The M9b LLM judge for a full scan, or (None, reason) if its venv is absent
+    — in which case the scan falls back to code-only rather than failing."""
+    try:
+        from detectors.name_consistency_judge import make_judge
+        return make_judge(), None
+    except FileNotFoundError as e:
+        return None, str(e)
 
-    sessions_dir = current_app.config["SESSIONS_DIR"]
-    detector_objs = _detectors()
+
+# --- shared read builders (used by both GET and POST-scan) --------------------
+
+def _rollup(sessions_dir, detector_objs):
+    from detectors.base import section_is_stale
     detectors = [
         {"id": d.id, "label": d.label, "failure_mode": d.failure_mode, "version": d.version}
         for d in detector_objs
@@ -56,63 +63,35 @@ def detections_rollup():
                 continue
             if not (entry / "transcript-rich.json").exists():
                 continue
-            try:
-                data = ensure_fresh_detections(entry, detector_objs)
-            except json.JSONDecodeError as e:
-                return jsonify({"error": f"Corrupt detections.json in {entry.name}: {e}"}), 500
-            except (FileNotFoundError, ValueError) as e:
-                # Detector setup failure (e.g. missing/invalid roster) — fail
-                # loud, but with the actionable message instead of a bare 500.
-                return jsonify({"error": f"Detector failed on {entry.name}: {e}"}), 500
-            results = {}
-            for det_id, section in data["detectors"].items():
+            data = _read_detections(entry)  # may raise JSONDecodeError -> caller handles
+            results, stale = {}, False
+            for det_id, section in (data["detectors"].items() if data else []):
                 results[det_id] = {
                     "n_flags": section["n_flags"],
                     "run_at": section["run_at"],
                     "detector_version": section["detector_version"],
                 }
                 totals[det_id] = totals.get(det_id, 0) + section["n_flags"]
+                if section_is_stale(section, entry):
+                    stale = True
             facts = _read_transcript_facts(entry)
             sessions.append({
                 "session_id": entry.name,
                 "duration_seconds": facts["duration_seconds"],
                 "results": results,
+                "stale": stale,
             })
-    return jsonify({"detectors": detectors, "sessions": sessions, "totals": totals})
+    return {"detectors": detectors, "sessions": sessions, "totals": totals}
 
 
-@bp.route("/sessions/<session_id>/detections")
-def session_detections(session_id: str):
-    """Full flag detail for one session, refreshed first, then joined to
-    transcript segments."""
-    from detectors.base import ensure_fresh_detections
-
-    try:
-        session_dir = get_session_dir(current_app.config["SESSIONS_DIR"], session_id)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-    except FileNotFoundError as e:
-        return jsonify({"error": str(e)}), 404
-
-    # Whether the per-flag "play around this clip" control can be shown.
+def _session_detail(session_dir, session_id):
+    from detectors.base import section_is_stale
     has_audio = next(session_dir.glob("audio.*"), None) is not None
+    data = _read_detections(session_dir)
+    if data is None:
+        return {"session_id": session_id, "has_audio": has_audio, "detectors": {}}
 
     transcript_path = session_dir / "transcript-rich.json"
-    if transcript_path.exists():
-        # Detector errors get their own handler — the get_session_dir
-        # try/except above must stay narrow (its FileNotFoundError means 404).
-        try:
-            data = ensure_fresh_detections(session_dir, _detectors())
-        except (FileNotFoundError, ValueError) as e:
-            return jsonify({"error": f"Detector failed on {session_id}: {e}"}), 500
-    else:
-        # No transcript to scan — serve whatever exists (join fields null)
-        data = _read_detections(session_dir)
-        if data is None:
-            return jsonify({"session_id": session_id, "has_audio": has_audio,
-                            "detectors": {}})
-
-    # Join flags to segments server-side so the UI never ships the transcript.
     seg_by_id = {}
     if transcript_path.exists():
         with open(transcript_path) as f:
@@ -131,7 +110,83 @@ def session_detections(session_id: str):
                 "segment_end": seg["end"] if seg else None,
                 "segment_speaker": speaker.get("label"),
             })
-        detectors[det_id] = {**section, "flags": flags}
+        stale = transcript_path.exists() and section_is_stale(section, session_dir)
+        detectors[det_id] = {**section, "flags": flags, "stale": stale}
 
-    return jsonify({"session_id": session_id, "has_audio": has_audio,
-                    "detectors": detectors})
+    return {"session_id": session_id, "has_audio": has_audio, "detectors": detectors}
+
+
+# --- GET (read-only) ----------------------------------------------------------
+
+@bp.route("/detections")
+def detections_rollup():
+    """System-wide rollup — reads the last scan; never runs a detector."""
+    try:
+        return jsonify(_rollup(current_app.config["SESSIONS_DIR"], _detectors()))
+    except json.JSONDecodeError as e:
+        return jsonify({"error": f"Corrupt detections.json: {e}"}), 500
+
+
+@bp.route("/sessions/<session_id>/detections")
+def session_detections(session_id: str):
+    """Full flag detail for one session, joined to transcript segments. Read-only."""
+    try:
+        session_dir = get_session_dir(current_app.config["SESSIONS_DIR"], session_id)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    return jsonify(_session_detail(session_dir, session_id))
+
+
+# --- POST (scan) --------------------------------------------------------------
+
+@bp.route("/sessions/<session_id>/detections/scan", methods=["POST"])
+def scan_one(session_id: str):
+    """Force a full re-scan of one session (code detectors + the M9b LLM judge),
+    then return its fresh detail. Slow — the judge loads a model."""
+    from detectors.base import scan_session
+
+    try:
+        session_dir = get_session_dir(current_app.config["SESSIONS_DIR"], session_id)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    if not (session_dir / "transcript-rich.json").exists():
+        return jsonify({"error": "Session has no transcript to scan"}), 400
+
+    judge, warning = _make_judge()
+    try:
+        scan_session(session_dir, _detectors(), force=True, judge=judge)
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        return jsonify({"error": f"Scan failed on {session_id}: {e}"}), 500
+    detail = _session_detail(session_dir, session_id)
+    if warning:
+        detail["warning"] = warning
+    return jsonify(detail)
+
+
+@bp.route("/detections/scan", methods=["POST"])
+def scan_all():
+    """Re-scan every session whose results are missing or stale (full pass).
+    Fresh sessions are skipped, so this is usually cheap."""
+    from detectors.base import scan_session
+
+    sessions_dir = current_app.config["SESSIONS_DIR"]
+    detector_objs = _detectors()
+    judge, warning = _make_judge()
+    if sessions_dir.exists():
+        for entry in sorted(sessions_dir.iterdir()):
+            if not entry.is_dir() or not validate_session_id(entry.name):
+                continue
+            if not (entry / "transcript-rich.json").exists():
+                continue
+            try:
+                scan_session(entry, detector_objs, force=False, judge=judge)
+            except (FileNotFoundError, ValueError, RuntimeError) as e:
+                return jsonify({"error": f"Scan failed on {entry.name}: {e}"}), 500
+    rollup = _rollup(sessions_dir, detector_objs)
+    if warning:
+        rollup["warning"] = warning
+    return jsonify(rollup)

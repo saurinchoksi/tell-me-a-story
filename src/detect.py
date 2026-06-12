@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from detectors import DETECTORS, get_detector
-from detectors.base import write_detections
+from detectors.base import scan_session
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SESSIONS_DIR = PROJECT_ROOT / "sessions"
@@ -72,16 +72,13 @@ def main():
     print(f"Running {len(detectors)} detector(s) over {len(session_ids)} session(s):\n")
     for sid in session_ids:
         session_dir = SESSIONS_DIR / sid
+        data = scan_session(session_dir, detectors, force=True, judge=m9b_judge)
         for det in detectors:
-            if m9b_judge and det.id == "m9b-name-consistency":
-                result = det.run(session_dir, judge=m9b_judge)
-            else:
-                result = det.run(session_dir)
-            section = write_detections(session_dir, det, result)
-            judged = "  +judge" if (m9b_judge and det.id == "m9b-name-consistency") else ""
+            sec = data["detectors"][det.id]
+            judged = "  +judge" if sec.get("judge_applied") else ""
             print(
                 f"  {sid}  {det.id:<20} "
-                f"{section['n_flags']:>3} flags / {section['n_word_tokens']} tokens{judged}"
+                f"{sec['n_flags']:>3} flags / {sec['n_word_tokens']} tokens{judged}"
             )
 
 

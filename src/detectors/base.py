@@ -33,6 +33,7 @@ class Detector:
     label: str
     failure_mode: str
     version: str
+    accepts_judge: bool = False  # True if run() takes an optional `judge` (M9b)
 
     def run(self, session_dir: Path) -> dict:
         raise NotImplementedError
@@ -106,10 +107,22 @@ def write_detections(session_dir: Path, detector: Detector, result: dict) -> dic
     return section
 
 
-def ensure_fresh_detections(session_dir: Path, detectors: list) -> dict:
-    """Run any detector whose section is missing or was produced from a
-    different transcript version OR detector configuration; return the
-    (now fresh) detections data.
+def section_is_stale(section: dict, session_dir: Path) -> bool:
+    """True if a saved section was produced from a different transcript than the
+    one on disk now (e.g. after --re-enrich). Read-only — used to surface a
+    're-scan' prompt; viewing never re-runs anything."""
+    return section.get("transcript_fingerprint") != transcript_fingerprint(session_dir)
+
+
+def scan_session(session_dir: Path, detectors: list, *, force: bool = False,
+                 judge=None) -> dict:
+    """Run detectors and persist detections.json. THE scan entry point — used
+    after transcription (process_inbox), by detect.py, and by the manual re-scan
+    API. Viewing never calls this.
+
+    Skips a detector whose section is already fresh (matching transcript + config
+    fingerprints) unless `force`. `judge` (a callable) is passed only to detectors
+    that accept it (the M9b LLM layer); a configless code detector ignores it.
 
     Sections from unregistered detectors are left untouched. Corrupt
     detections.json propagates json.JSONDecodeError (fail loud).
@@ -121,13 +134,17 @@ def ensure_fresh_detections(session_dir: Path, detectors: list) -> dict:
         config_fp = det.config_fingerprint()
         section = data["detectors"].get(det.id)
         if (
-            section is not None
+            not force
+            and section is not None
             and section.get("transcript_fingerprint") == fingerprint
             and section.get("config_fingerprint") == config_fp
         ):
             continue
-        data["detectors"][det.id] = build_section(det, det.run(session_dir),
-                                                  fingerprint, config_fp)
+        use_judge = judge if det.accepts_judge else None
+        result = det.run(session_dir, judge=use_judge) if use_judge else det.run(session_dir)
+        sec = build_section(det, result, fingerprint, config_fp)
+        sec["judge_applied"] = bool(use_judge)
+        data["detectors"][det.id] = sec
         dirty = True
     if dirty:
         _save_detections(session_dir, data)

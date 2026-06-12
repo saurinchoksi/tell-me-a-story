@@ -125,22 +125,17 @@ def test_rollup_lists_injected_detectors(client):
                                   "failure_mode": "M0", "version": "0.1.0"}]
 
 
-def test_rollup_auto_scans_unscanned_sessions(client, fake_detector, sessions_dir):
+def test_rollup_is_read_only(client, fake_detector):
     data = client.get("/api/detections").get_json()
     by_id = {s["session_id"]: s for s in data["sessions"]}
     # Untranscribed session excluded; newest first
     assert list(by_id) == ["20260102-120000", "20260101-120000"]
-    # Only the unscanned session ran (the scanned one's fingerprint matched)
-    assert fake_detector.run_count == 1
-    assert by_id["20260102-120000"]["results"]["fake-detector"]["n_flags"] == 1
-    assert by_id["20260101-120000"]["results"]["fake-detector"]["n_flags"] == 1
+    assert fake_detector.run_count == 0                  # viewing never runs a detector
+    assert by_id["20260101-120000"]["results"]["fake-detector"]["n_flags"] == 1  # canned
+    assert by_id["20260102-120000"]["results"] == {}     # unscanned: empty, not auto-run
     assert by_id["20260101-120000"]["duration_seconds"] == 60.0
-    assert data["totals"]["fake-detector"] == 2
-    # ...and the scan was persisted
-    on_disk = json.loads(
-        (sessions_dir / "20260102-120000" / "detections.json").read_text()
-    )
-    assert on_disk["detectors"]["fake-detector"]["n_flags"] == 1
+    assert by_id["20260101-120000"]["stale"] is False
+    assert data["totals"]["fake-detector"] == 1
 
 
 def test_rollup_second_view_runs_nothing(client, fake_detector):
@@ -150,18 +145,13 @@ def test_rollup_second_view_runs_nothing(client, fake_detector):
     assert fake_detector.run_count == runs_after_first
 
 
-def test_rollup_reruns_when_transcript_changes(client, fake_detector, sessions_dir):
-    client.get("/api/detections")
-    assert fake_detector.run_count == 1
-
-    transcript = (sessions_dir / "20260101-120000" / "transcript-rich.json")
-    transcript.write_text(json.dumps({**TRANSCRIPT, "_changed": True}))
+def test_rollup_marks_stale_on_transcript_change(client, fake_detector, sessions_dir):
+    (sessions_dir / "20260101-120000" / "transcript-rich.json").write_text(
+        json.dumps({**TRANSCRIPT, "_changed": True}))
     data = client.get("/api/detections").get_json()
-    assert fake_detector.run_count == 2
-    # The canned section was replaced by a fresh run
+    assert fake_detector.run_count == 0     # surfaced, not recomputed on view
     by_id = {s["session_id"]: s for s in data["sessions"]}
-    assert by_id["20260101-120000"]["results"]["fake-detector"]["run_at"] != \
-        "2026-06-11T12:00:00+00:00"
+    assert by_id["20260101-120000"]["stale"] is True
 
 
 def test_rollup_empty_sessions_dir(tmp_path, fake_detector):
@@ -197,20 +187,47 @@ def _broken_client(sessions_dir, tmp_path):
     return app.test_client()
 
 
-def test_rollup_detector_failure_is_legible_500(sessions_dir, tmp_path):
-    # The unscanned session forces a run; the broken detector raises
-    resp = _broken_client(sessions_dir, tmp_path).get("/api/detections")
+# Detector failures now surface during a SCAN (POST), never a view (GET).
+
+def test_scan_all_detector_failure_is_legible_500(sessions_dir, tmp_path):
+    resp = _broken_client(sessions_dir, tmp_path).post("/api/detections/scan")
     assert resp.status_code == 500
     error = resp.get_json()["error"]
-    assert "Detector failed on 20260102-120000" in error
-    assert "roster not found" in error
+    assert "Scan failed on 20260102-120000" in error and "roster not found" in error
 
 
-def test_session_detector_failure_is_legible_500(sessions_dir, tmp_path):
-    resp = _broken_client(sessions_dir, tmp_path).get(
-        "/api/sessions/20260102-120000/detections")
+def test_scan_one_detector_failure_is_legible_500(sessions_dir, tmp_path):
+    resp = _broken_client(sessions_dir, tmp_path).post(
+        "/api/sessions/20260102-120000/detections/scan")
     assert resp.status_code == 500
     assert "roster not found" in resp.get_json()["error"]
+
+
+# --- Scan (POST) --------------------------------------------------------------
+
+def test_scan_one_runs_and_returns_detail(client, fake_detector):
+    resp = client.post("/api/sessions/20260102-120000/detections/scan")
+    assert resp.status_code == 200
+    assert fake_detector.run_count == 1
+    flag = resp.get_json()["detectors"]["fake-detector"]["flags"][0]
+    assert flag["token"] == "Marda"                            # fresh run
+    assert flag["segment_text"] == "And then Martha smiled."   # joined
+
+
+def test_scan_one_force_reruns_fresh_session(client, fake_detector):
+    client.post("/api/sessions/20260101-120000/detections/scan")
+    assert fake_detector.run_count == 1   # force=True re-runs even the fresh canned session
+
+
+def test_scan_all_runs_missing_skips_fresh(client, fake_detector):
+    client.post("/api/detections/scan")
+    # unscanned session ran; the canned (fresh) one was skipped
+    assert fake_detector.run_count == 1
+
+
+def test_scan_one_no_transcript_400(client):
+    resp = client.post("/api/sessions/20260103-120000/detections/scan")
+    assert resp.status_code == 400
 
 
 # --- Per-session detail ---------------------------------------------------------
@@ -223,21 +240,20 @@ def test_session_detections_unknown_session(client):
     assert client.get("/api/sessions/20269999-000000/detections").status_code == 404
 
 
-def test_session_detections_auto_scans_on_view(client, fake_detector):
+def test_session_detections_unscanned_reads_empty(client, fake_detector):
     resp = client.get("/api/sessions/20260102-120000/detections")
     assert resp.status_code == 200
-    assert fake_detector.run_count == 1
-    flag = resp.get_json()["detectors"]["fake-detector"]["flags"][0]
-    assert flag["token"] == "Marda"            # fresh run, not canned
-    assert flag["segment_text"] == "And then Martha smiled."   # joined
+    assert fake_detector.run_count == 0                       # viewing never runs
+    assert resp.get_json()["detectors"] == {}                # never scanned → empty
 
 
-def test_session_detections_fresh_section_not_rerun(client, fake_detector):
+def test_session_detections_reads_canned_with_stale_flag(client, fake_detector):
     data = client.get("/api/sessions/20260101-120000/detections").get_json()
-    assert fake_detector.run_count == 0        # fingerprint matched — no run
+    assert fake_detector.run_count == 0
     section = data["detectors"]["fake-detector"]
-    assert section["run_at"] == "2026-06-11T12:00:00+00:00"
-    assert section["flags"][0]["token"] == "Martha"   # canned section served
+    assert section["run_at"] == "2026-06-11T12:00:00+00:00"   # canned, read as-is
+    assert section["flags"][0]["token"] == "Martha"
+    assert section["stale"] is False
 
 
 def test_session_detections_joins_segment_context(client):

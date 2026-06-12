@@ -267,12 +267,16 @@ export interface DetectionsRollupSession {
   duration_seconds: number | null;
   /** Keyed by detector id. A missing key means "never scanned" — distinct from 0 flags. */
   results: Record<string, DetectionRunSummary>;
+  /** The transcript changed since this session was scanned — re-scan to refresh. */
+  stale: boolean;
 }
 
 export interface DetectionsRollup {
   detectors: DetectorInfo[];
   sessions: DetectionsRollupSession[];
   totals: Record<string, number>;
+  /** Set when a scan ran code-only because the LLM judge's venv was absent. */
+  warning?: string;
 }
 
 /** Fields every detector's flag carries — the anchor + the server-side join. */
@@ -315,6 +319,10 @@ export interface SessionDetectorResult {
   n_word_tokens: number;
   n_flags: number;
   flags: DetectionFlag[];
+  /** The transcript changed since this section was scanned. */
+  stale: boolean;
+  /** Whether the LLM judge ran on this section (M9b full pass). */
+  judge_applied?: boolean;
 }
 
 export interface SessionDetectionsData {
@@ -323,6 +331,8 @@ export interface SessionDetectionsData {
   has_audio: boolean;
   /** Keyed by detector id; {} when the session was never scanned. */
   detectors: Record<string, SessionDetectorResult>;
+  /** Set when a scan ran code-only because the LLM judge's venv was absent. */
+  warning?: string;
 }
 
 // --- Speaker confirmation (Task 6) ---

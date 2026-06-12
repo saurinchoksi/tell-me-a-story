@@ -102,15 +102,20 @@ def process_inbox(target_file: str | None = None):
                         str(SESSIONS_DIR / session_id / "identifications.json"),
                     )
 
-            # Run failure-mode detectors (detection only — writes detections.json).
-            # Separate try: a detector problem must not report the session as a
-            # pipeline failure — the transcription artifacts above are already
-            # saved and usable, and the Monitor re-scans automatically anyway.
+            # Run the full monitor pass (code detectors + the M9b LLM judge) on
+            # the new session. Separate try: a detector problem must not report
+            # the session as a pipeline failure — the transcription artifacts are
+            # already saved and usable. The judge falls back to code-only if its
+            # mlx-vlm venv isn't set up.
             try:
                 from detectors import DETECTORS
-                from detectors.base import write_detections
-                for det in DETECTORS:
-                    write_detections(SESSIONS_DIR / session_id, det, det.run(SESSIONS_DIR / session_id))
+                from detectors.base import scan_session
+                from detectors.name_consistency_judge import make_judge
+                try:
+                    judge = make_judge()
+                except FileNotFoundError:
+                    judge = None
+                scan_session(SESSIONS_DIR / session_id, DETECTORS, force=True, judge=judge)
             except Exception as e:
                 print(f"  ⚠ Detectors failed (transcript saved): {e}")
                 detector_failed.append((session_id, str(e)))

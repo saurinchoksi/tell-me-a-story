@@ -63,6 +63,7 @@ class NameConsistencyDetector(Detector):
     label = "Inconsistent name spelling"
     failure_mode = "M9b"
     version = "1.0.0"
+    accepts_judge = True  # run(session_dir, judge=...) enables the offline LLM layer
 
     def __init__(self, wordlist_path=DEFAULT_WORDLIST):
         # wordlist_path=None → stoplist-only (degraded, used by tests).
