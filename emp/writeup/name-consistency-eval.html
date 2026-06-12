@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where code stops and a model earns its place</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,560;0,9..144,640;1,9..144,420;1,9..144,520&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --cream:#FBF8F3; --paper:#FFFFFF;
+    --maroon:#6A3843; --maroon-deep:#4f2932;
+    --gold:#BFA265; --gold-deep:#977c41;
+    --rose:#F2E6E8;
+    --ink:#352B2D; --read:#4A4042; --muted:#8C8081; --faint:#A99FA0;
+    --rule:#E9DFD9;
+    --serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:"DM Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;color:var(--read);background:var(--cream);
+    font-family:var(--sans);font-size:18px;line-height:1.68;font-weight:400;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    counter-reset:sec;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(1200px 600px at 78% -8%, rgba(191,162,101,.10), transparent 60%),
+      radial-gradient(900px 500px at 0% 4%, rgba(106,56,67,.05), transparent 55%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap{position:relative;z-index:1;max-width:716px;margin:0 auto;padding:5.5rem 1.4rem 7rem}
+
+  .eyebrow{
+    display:flex;align-items:center;gap:.7rem;
+    font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
+    color:var(--gold-deep);margin:0 0 1.4rem;
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--gold);display:inline-block}
+
+  h1{
+    font-family:var(--serif);font-weight:640;font-optical-sizing:auto;
+    font-variation-settings:"opsz" 120;
+    font-size:clamp(2.3rem,6vw,3.25rem);line-height:1.04;letter-spacing:-.018em;
+    color:var(--maroon);margin:0 0 2.2rem;
+  }
+
+  h2{
+    font-family:var(--sans);font-size:.76rem;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--maroon);
+    margin:3.4rem 0 .4rem;display:flex;align-items:baseline;gap:.7rem;
+  }
+  h2::before{
+    counter-increment:sec;content:counter(sec,decimal-leading-zero);
+    font-family:var(--serif);font-style:italic;font-weight:420;font-size:1.5rem;
+    letter-spacing:0;text-transform:none;color:var(--gold);line-height:1;
+  }
+
+  p{margin:1rem 0}
+  strong{font-weight:600;color:var(--ink)}
+  .nm{font-family:var(--mono);font-size:.92em;color:var(--maroon)}
+
+  a{color:var(--maroon);text-decoration:none;
+    background-image:linear-gradient(var(--gold),var(--gold));
+    background-size:100% 1px;background-repeat:no-repeat;background-position:0 95%;
+    padding-bottom:1px;transition:background-size .25s ease}
+  a:hover{background-size:100% 2px}
+
+  /* name figure */
+  .namefig{display:flex;align-items:center;flex-wrap:wrap;gap:.85rem 1.15rem;
+    margin:1.5rem 0 .4rem;padding:1.15rem 1.3rem;background:var(--paper);
+    border:1px solid var(--rule);border-radius:10px}
+  .namefig .correct{display:flex;flex-direction:column;gap:.2rem}
+  .namefig .lab{font-size:.6rem;letter-spacing:.17em;text-transform:uppercase;color:var(--gold-deep);font-weight:600}
+  .namefig .val{font-family:var(--serif);font-weight:560;font-size:1.7rem;color:var(--maroon);line-height:1}
+  .namefig .arrow{font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);font-weight:600;white-space:nowrap}
+  .namefig .heard{display:flex;flex-wrap:wrap;gap:.45rem}
+  .namefig .chip{font-family:var(--mono);font-size:.82rem;color:var(--muted);
+    background:#FBF7F2;border:1px solid var(--rule);border-radius:5px;padding:.2em .55em}
+
+  .edgefig{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin:1.6rem 0 .4rem}
+  .edgefig .case{background:var(--paper);border:1px solid var(--rule);border-radius:10px;
+    padding:1.05rem 1.1rem;display:flex;flex-direction:column;gap:.55rem}
+  .edgefig .lab{font-size:.6rem;letter-spacing:.17em;text-transform:uppercase;
+    color:var(--gold-deep);font-weight:600}
+  .edgefig .path{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem}
+  .edgefig .from{font-family:var(--serif);font-weight:560;font-size:1.15rem;color:var(--maroon)}
+  .edgefig .arr{color:var(--faint);font-size:.85rem}
+  .edgefig .chip{font-family:var(--mono);font-size:.82rem;color:var(--muted);
+    background:#FBF7F2;border:1px solid var(--rule);border-radius:5px;padding:.2em .55em}
+  .edgefig .who{font-size:.78rem;color:var(--muted);line-height:1.5;margin-top:auto}
+  sup.fn{font-family:var(--sans);font-size:.62em;font-weight:600;color:var(--gold-deep);line-height:0}
+  @media (max-width:560px){.edgefig{grid-template-columns:1fr}}
+
+  /* results table */
+  figure.tbl{margin:2.4rem 0 1.2rem;overflow-x:auto}
+  figcaption{font-size:.82rem;color:var(--muted);line-height:1.5;margin-top:1rem;max-width:64ch}
+  table.d{border-collapse:collapse;width:100%;min-width:30rem;background:var(--paper);
+    border:1px solid var(--rule);border-radius:10px;overflow:hidden;
+    box-shadow:0 1px 0 rgba(106,56,67,.04),0 18px 40px -28px rgba(106,56,67,.28)}
+  table.d thead th{
+    font-family:var(--sans);font-size:.66rem;font-weight:600;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--faint);text-align:left;
+    padding:.85rem .95rem;border-bottom:1px solid var(--rule);background:#FCFAF6}
+  table.d td{padding:.78rem .95rem;border-bottom:1px solid var(--rule);vertical-align:top;font-size:.92rem}
+  table.d tbody tr:last-child td{border-bottom:none}
+  table.d td:first-child{font-family:var(--mono);font-size:.84rem;color:var(--ink);white-space:nowrap}
+  table.d tr.win td{background:rgba(191,162,101,.11)}
+  table.d tr.win td:first-child{color:var(--maroon);font-weight:500;box-shadow:inset 3px 0 0 var(--gold)}
+  .ok{color:var(--maroon);font-weight:500}
+  .nope{color:var(--faint);font-style:italic}
+  .metric{font-family:var(--mono);font-size:.86em;color:var(--maroon-deep);white-space:nowrap}
+
+  .close{font-family:var(--serif);font-variation-settings:"opsz" 32;font-size:1.18rem;
+    line-height:1.5;color:var(--ink);margin-top:2.4rem}
+
+  hr{border:none;height:1px;background:var(--rule);margin:3rem 0 0}
+  .footnote{font-size:.82rem;color:var(--muted);line-height:1.6;margin-top:1.4rem}
+
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .reveal{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .reveal:nth-child(1){animation-delay:.04s}
+  .reveal:nth-child(2){animation-delay:.12s}
+  .reveal:nth-child(3){animation-delay:.22s}
+  .reveal:nth-child(4){animation-delay:.32s}
+  .reveal:nth-child(5){animation-delay:.42s}
+  .reveal:nth-child(n+6){animation-delay:.5s}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;animation:none}}
+
+  @media (max-width:560px){
+    body{font-size:16px}
+    .wrap{padding:3.5rem 1.2rem 5rem}
+    figure.tbl{overflow-x:visible}
+    table.d{min-width:0;font-size:.8rem}
+    table.d th,table.d td{padding:.55rem .55rem}
+    table.d td:first-child{white-space:normal}
+  }
+
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="eyebrow reveal">AI model evaluation</p>
+  <h1 class="reveal">Where code stops and a model earns its place</h1>
+
+  <div class="reveal">
+    <h2>Problem</h2>
+    <p>I built a <a href="https://saurinchoksi.com/tell-me-a-story">pipeline</a> to transcribe made-up bedtime stories and label who said what, with one constraint: nothing leaves my local machine, for family privacy. In a companion piece I showed that for <em>real</em> names &mdash; ones I could check against a known roster &mdash; plain code beat every AI model I tried. This is the other half of the story, and it ends the opposite way.</p>
+    <p>The hard case is the names a parent invents on the spot. A train engine gets christened mid-sentence; a sidekick is named and renamed three lines later. There is no roster, because the names don't exist until they're spoken. So the only thing that can go wrong is <strong>inconsistency</strong>: the same invented name spelled several ways inside one story. That breaks the thing I'm building toward &mdash; charting a character across a story &mdash; because the tool no longer knows it's the same character. Here is one engine, named once and spelled four ways:</p>
+    <figure class="namefig">
+      <div class="correct"><span class="lab">One invented engine</span><span class="val">Jiraki</span></div>
+      <div class="arrow">spelled as &rarr;</div>
+      <div class="heard"><span class="chip">Jiraki</span><span class="chip">Jameis</span><span class="chip">Jammus</span><span class="chip">Jaraqui</span></div>
+    </figure>
+    <p>With no correct spelling to match against, I couldn't ask &ldquo;is this name wrong?&rdquo; I could only ask &ldquo;is this one name wearing four faces?&rdquo; So I ran an evaluation to find the most reliable way to catch that.</p>
+  </div>
+
+  <div class="reveal">
+    <h2>Action</h2>
+    <p>I built the detector in three stages, each one cleaning up after the last.</p>
+    <p><strong>Stage one is plain code.</strong> It groups every capitalized word by how it sounds, then flags any group that shows up spelled more than one way. This catches the inconsistencies, but it's loud: it also snags ordinary capitalized words that happen to rhyme, so most of what it flags is noise.</p>
+    <p><strong>Stage two is a dictionary filter.</strong> If every spelling in a group is just an ordinary English word, drop the group &mdash; it's almost certainly not a name. This cleans out most of the noise. But it has a blind spot: invented names that <em>are</em> also real words. A character called <span class="nm">Bibi</span> or <span class="nm">Bacchus</span> gets thrown out with the trash, because a dictionary can't tell &ldquo;Bibi the character&rdquo; from &ldquo;bibi the word.&rdquo;</p>
+    <p><strong>Stage three is where a small local AI model earns its place.</strong> I hand it exactly the residue the dictionary couldn't judge &mdash; the groups where every spelling is an ordinary word &mdash; with a few example lines, and ask one question: character name, or just ordinary words? Unlike the roster project, where I deliberately held the prompt fixed across all models, here I tuned the prompt to each model, because the whole point was to find the best the small models could do.</p>
+  </div>
+
+  <div class="reveal">
+    <h2>Result</h2>
+    <p>I swept 4 local models over the ambiguous groups, 3 runs each. Every one of them was perfectly stable &mdash; zero crashes &mdash; for a simple reason: the model only ever judges a handful of groups per story, not the whole transcript. (In the roster project, where models read the entire transcript, several of them crashed.) Here, the work fits in memory every time, so the question is purely who judges best.</p>
+    <figure class="tbl">
+      <table class="d">
+        <thead><tr><th>Model</th><th>Runs on device?</th><th>Result on the ambiguous groups</th></tr></thead>
+        <tbody>
+          <tr><td>Gemma, ~2B</td><td><span class="ok">yes</span></td><td>Deployable, but a coin-flip on the keep/drop call <span class="metric">(0.50 precision)</span></td></tr>
+          <tr class="win"><td>Gemma, ~4B</td><td><span class="ok">yes</span></td><td>With a few worked examples in the prompt, a clean sweep<sup class="fn">1</sup> <span class="metric">(1.00 precision, 1.00 recall)</span></td></tr>
+          <tr><td>Qwen, ~8B</td><td><span class="ok">yes</span></td><td>Over-eager &mdash; kept almost everything, and the tuning made it worse <span class="metric">(0.29 precision)</span></td></tr>
+          <tr><td>Gemma, ~12B</td><td><span class="ok">yes</span></td><td>Needed tuning just to reach a coin-flip; the examples that fixed the 4B confused it<sup class="fn">2</sup> <span class="metric">(0.50 precision)</span></td></tr>
+        </tbody>
+      </table>
+      <figcaption>Gemma and Qwen are AI models; the numbers (~2B to ~12B) are their sizes in billions of parameters &mdash; bigger usually means more capable but heavier. Precision is the share of the model's <em>keep</em> decisions that were right; recall is the share of the real names it kept.</figcaption>
+    </figure>
+    <p>The headline writes itself: the small, easily deployable <strong>4-billion-parameter</strong> model won outright &mdash; and beat the <strong>12-billion</strong> one three times its size. That's the mirror of the roster project, where bigger models also failed to justify their weight. The difference this time is that a small model didn't just survive the comparison &mdash; it clearly earned its keep.</p>
+    <p>And it earns it where it counts: end to end. Stacking the model's judgment on top of the code recovers the invented names the dictionary had been quietly discarding. The share of inconsistent names the system catches rose from <strong>46% to 86%</strong>, while <strong>88%</strong> of what it flags is still correct. The model isn't doing the heavy lifting &mdash; the code does that &mdash; but it closes a gap the code alone never could.</p>
+    <p>The choice has honest costs, and they live in 3 cases:</p>
+    <figure class="edgefig">
+      <div class="case">
+        <span class="lab">Spelled the same every time</span>
+        <span class="path"><span class="from">Khadija</span><span class="arr">stays</span><span class="chip">Khadija</span></span>
+        <span class="who">When a name is rendered consistently, there is no inconsistency to detect, so no inconsistency-checker can ever surface it. This is what sets the ceiling near 86% &mdash; a fact about the problem, not a bug in the tool.</span>
+      </div>
+      <div class="case">
+        <span class="lab">Tangled with a real word<sup class="fn">3</sup></span>
+        <span class="path"><span class="from">Bibi</span><span class="arr">merges with</span><span class="chip">Baby</span></span>
+        <span class="who">An invented name gets grouped with an ordinary word it sounds like &mdash; Bibi with &ldquo;Baby,&rdquo; Bacchus with &ldquo;Because.&rdquo; The model still calls it a name from context, but this tangle is exactly why a dictionary alone fails.</span>
+      </div>
+      <div class="case">
+        <span class="lab">No universal prompt<sup class="fn">2</sup></span>
+        <span class="path"><span class="chip">few-shot</span><span class="arr">helps 4B, hurts 12B</span></span>
+        <span class="who">The worked examples that pushed the 4B model to a clean sweep actively degraded the 12B. Prompt tuning is model-specific; there's no single phrasing that's best for all of them.</span>
+      </div>
+    </figure>
+    <p>The first cost is the real ceiling: a tool that finds inconsistencies is blind to names that were never inconsistent. The honest read is that 86% isn't 100% because some of the missing names were spelled right all along.</p>
+    <p>The next step is to give the model the audio and let it listen, not just read the page.</p>
+    <p class="close">In the companion project, the honest result of the evaluation was that plain code won and the model wasn't worth its weight. This time the same kind of careful measuring landed the other way: the code carries the load, but a small local model earns its keep on the one slice the code can't resolve &mdash; and you only learn which way it falls by measuring, not by guessing in advance.</p>
+  </div>
+
+  <div class="reveal">
+    <hr>
+    <p class="footnote">The code behind this (the clustering, the dictionary filter, the model judge, and its scorer) is on <a href="https://github.com/saurinchoksi/tell-me-a-story/tree/main/emp">GitHub</a>. Written with AI assistance, reviewed and edited by me.</p>
+  </div>
+</main>
+</body>
+</html>
