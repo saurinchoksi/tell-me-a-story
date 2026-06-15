@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-15 — Splitting a recording into its separate stories
+
+Bedtime recordings often hold more than one story, and the per-story name checks can't begin until we know where each one starts and stops. Built a splitter: cheap text-and-timing signals propose likely boundaries, a small on-device model reads the recording in order to confirm them and name each story's world, and a second pass folds back together any story a milk break had split in two. Against the hand-marked answer key it gets the number of stories right on all five recordings — including the one with three — without wrongly splitting the four single-story ones. The lesson that shaped it: the second pass may only merge, never delete — the one time it was allowed to delete, it threw away a real story that happened to open with collaborative chatter.
+
 ## 2026-06-15 — A drag-to-mark tool for setting where each bedtime story starts and ends
 
 One recording often holds several stories with wandering, milk-break gaps between them, and the name checks have to run per story — a made-up name can differ across stories, and which show or book world applies is a per-story fact — so that split must be marked by hand before it can be automated. The new tool shows a recording as a column of lines with each story drawn as a colored bar whose top and bottom you drag to the exact start and end; anything outside a bar counts as not-story and is skipped, and any line can be played to pin a fuzzy start by ear. A small direct-manipulation lesson surfaced along the way: the drag first hunted for the line under the cursor at a fixed spot near the left edge, which is empty margin on a centered page, so it had to find the line by height instead.
