@@ -4,6 +4,14 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-15 — A drag-to-mark tool for setting where each bedtime story starts and ends
+
+One recording often holds several stories with wandering, milk-break gaps between them, and the name checks have to run per story — a made-up name can differ across stories, and which show or book world applies is a per-story fact — so that split must be marked by hand before it can be automated. The new tool shows a recording as a column of lines with each story drawn as a colored bar whose top and bottom you drag to the exact start and end; anything outside a bar counts as not-story and is skipped, and any line can be played to pin a fuzzy start by ear. A small direct-manipulation lesson surfaced along the way: the drag first hunted for the line under the cursor at a fixed spot near the left edge, which is empty margin on a centered page, so it had to find the line by height instead.
+
+## 2026-06-15 — A by-ear review split name errors into four kinds, one of them invisible
+
+Going through one recording's flagged names against the audio — with a small tool that plays each word and lets the real name be typed in — surfaced a failure no text check can catch: a made-up character was sometimes transcribed as a real, similar-sounding character from a TV show, a confident wrong name that reads as perfectly correct. That sits alongside three kinds already known — the family's own names, names invented on the spot, and names with an outside source like a show or book — so the project's name map now tracks four cases. It also corrected a long-standing example that had been filed as a simple inconsistent spelling, when it was really one of these silent swaps. The lesson that keeps surfacing: when a wrong name happens to be another valid name, only an ear or a model that follows the story can catch it; spelling, roster, and consistency checks all pass it through.
+
 ## 2026-06-12 — The Monitor now scans and views as separate steps
 
 The Monitor used to re-run its checkers quietly every time you opened the page, which was clever but wonky: it forced every checker to be fast enough to finish inside a page load, which is why the slow AI model had to be bolted on as an awkward special case. Now scanning and viewing are split cleanly. Checkers run when there's a reason to — right after a recording is transcribed, and on demand from a "Re-scan" button — and run the full pass including the model. Opening the page just reads the last results; if a transcript changed since its scan, the row shows a small "re-scan" mark instead of silently recomputing. The same shape now fits every checker, including future slow ones, with no per-checker special-casing.

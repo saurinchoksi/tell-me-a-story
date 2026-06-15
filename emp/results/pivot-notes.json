@@ -30,12 +30,16 @@
         "jammus",
         "jammes",
         "jamis",
-        "james",
         "bibi",
         "foxy",
         "squishy",
         "boggle",
         "boo-boo",
+        "boggobogo",
+        "biffy",
+        "michael",
+        "strawberry",
+        "baby",
         "khadija",
         "khadijah",
         "longer",
@@ -43,7 +47,7 @@
         "pataki",
         "bacchus"
       ],
-      "notes": "Names the storyteller invents on the spot (Portal's engines Jiraki/Jameis/Jaraqui, Pataki, Bibi, Foxy, Squishy Baby; Cruel Baby's Khadija/Longer/Yummy). No external truth -- the only defect is inconsistency: the same made-up name spelled several ways. Pataki is a clean example: Whisper also rendered it 'Bacchus', so Pataki/Bacchus is one improvised name with two spellings -- exactly this case. Detect by clustering phonetically-similar name tokens within a story and flagging any cluster with more than one spelling (an LLM does this well; phonetic clustering is the cheaper code version). Per the project owner: this must run AFTER the session is split into stories, because a name can differ legitimately across stories -- so story-splitting is a prerequisite. Detection only flags the inconsistency; choosing the winning spelling is a separate fix decision. (Caveat: 'longer'/'yummy'/'james' are also common words, so their counts are soft.)"
+      "notes": "Names the storyteller invents on the spot. Portal has two engines Whisper spells several ways -- Jiraki (Jiraki/Jaraqui) and Jammus (Jameis/Jammus/Jammes/Jamis) -- plus Pataki, Biffy (Bibi), Boggobogo (Boggle/Boo-boo), Foxy, Squishy Baby, Michael, Strawberry; Cruel Baby's Khadija/Longer/Yummy. No external truth -- the defect is that one made-up name is written several ways. A by-ear review of Portal (emp/results/visuals/<id>/name-truth.json) showed phonetic clustering only catches the variants that actually sound alike (Jiraki/Jaraqui); it misses the ones whose spellings sound nothing alike -- Pataki/Bacchus, Biffy/Bibi/Bessie -- because those are not variants at all but substitutions (see M9d). So the real detector reads the story (an LLM), with phonetic clustering as only a cheap pre-filter. Per the project owner: run this AFTER splitting the session into stories, since a name can differ legitimately across stories. Detection only flags the problem; choosing the winning spelling is a separate fix. (james moved to M9c -- it is the canon engine, not an improvised name.)"
     },
     "M9c": {
       "label": "sourced canon (external reference)",
@@ -60,9 +64,18 @@
         "thomas",
         "topham",
         "hatt",
-        "percy"
+        "percy",
+        "james",
+        "gordon",
+        "knapford"
       ],
-      "notes": "Names with an authoritative external source: Mahabharata (Duryodhan, Yudhisthir, Pandavas) and, in Portal, Thomas & Friends (Thomas, Sir Topham Hatt). Two canons in the data is the real lesson -- the system must know WHICH source applies to a given session. Today's dictionary.py is exact-match against one hand-built Mahabharata list: it misses unforeseen variants (Dhrashtra slipped through) and every non-Mahabharata domain. But a hand-built dictionary per domain may be the wrong frame -- an LLM already holds Thomas & Friends and Mahabharata canon in its training, so the real detector is likely an LLM that recognizes a known entity and returns its canonical spelling, with a cached dictionary only as an optimization. (Confirmed: Pataki/Bacchus are improvised -> M9b; only Thomas & Sir Topham Hatt are true canon here.)"
+      "notes": "Names with an authoritative external source: Mahabharata (Duryodhan, Yudhisthir, Pandavas) and, in Portal, Thomas & Friends. A by-ear review of Portal confirmed more canon than first logged -- Thomas, Gordon, Percy, James, Sir Topham Hatt (Topham/Hatt) and the location Knapford are all real Thomas & Friends names Whisper mostly spelled right. Two canons in the data is the real lesson -- the system must know WHICH source applies to a given session. Today's dictionary.py is exact-match against one hand-built Mahabharata list: it misses unforeseen variants (Dhrashtra slipped through) and every non-Mahabharata domain. A hand-built dictionary per domain may be the wrong frame -- an LLM already holds Thomas & Friends and Mahabharata canon in its training, so the real detector is likely an LLM that recognizes a known entity and returns its canonical spelling, with a cached dictionary only as an optimization. (Note: James the engine is canon here, but 7 'Thomas' tokens are really the improvised Jammus -- a substitution, see M9d.)"
+    },
+    "M9d": {
+      "label": "silent substitution (improvised name written as a valid name)",
+      "detection": "ears",
+      "variants": [],
+      "notes": "Surfaced in the Portal by-ear review (emp/results/visuals/<id>/name-truth.json): an improvised name Whisper writes as a real, known word or name, so it passes every text check. Counted per OCCURRENCE, not per token, because the written form is also used legitimately -- 'Thomas' is the real canon engine 35x but stands in for the made-up Jammus 7x. Portal cases: Bacchus -> Pataki (6x; the word 'Bacchus' never actually occurs), Thomas -> Jammus (7x), Bibi -> Biffy (8x). The give-away is sound: the written word's Double Metaphone code differs from the true name's (Bacchus PKS vs Pataki PTK), so it is not a spelling variant clustering could catch -- it is a swap onto an unrelated valid word. No spelling/roster/canon/consistency check sees it; only audio or a story-reading model can. (This is why the old M9b 'Pataki/Bacchus inconsistency' example was wrong -- it is an M9d substitution.) variants is empty by design: the counts above come from the human review, not a token sweep."
     }
   },
   "notes": {
