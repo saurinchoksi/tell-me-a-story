@@ -22,8 +22,12 @@ def truth_boundary_positions(stories, order):
     pos = {x: i for i, x in enumerate(order)}
     out = []
     for k, st in enumerate(stories):
-        out.append((pos[st["start"]], "start", k))
-        out.append((pos[st["end"]], "end", k))
+        sp, ep = pos.get(st["start"]), pos.get(st["end"])
+        if sp is None or ep is None:  # stale truth vs current transcript — surface it, don't crash
+            print(f"  WARNING: truth story {k+1} ids {st['start']}-{st['end']} absent from the current transcript — skipped")
+            continue
+        out.append((sp, "start", k))
+        out.append((ep, "end", k))
     return out
 
 

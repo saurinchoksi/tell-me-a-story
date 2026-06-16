@@ -27,7 +27,8 @@ def to_pos(stories, order, start_key, end_key):
     out = []
     for st in stories:
         s, e = pos.get(st[start_key]), pos.get(st[end_key])
-        if s is None or e is None:
+        if s is None or e is None:  # stale truth/pred vs current transcript — surface it, don't skew the count silently
+            print(f"  WARNING: story ids {st.get(start_key)}-{st.get(end_key)} absent from the current transcript — skipped (count/IoU affected)")
             continue
         out.append({"start_pos": min(s, e), "end_pos": max(s, e),
                     "title": st.get("title", ""), "world": st.get("world", "")})
@@ -66,7 +67,7 @@ def greedy_match(gt, pred):
 
 def fmt_t(segs, pos, which):
     t = segs[pos][which]
-    return "—" if t is None else f"{t/60:.0f}:{t%60:04.1f}"
+    return "—" if t is None else f"{int(t // 60)}:{t % 60:04.1f}"
 
 
 def main():

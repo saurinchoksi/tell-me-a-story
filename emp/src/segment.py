@@ -323,8 +323,10 @@ def _state_line(open_story):
 
 def _mkregion(open_story, end_id, end_quote, pos_of):
     sp, ep = pos_of[open_story["segment_id"]], pos_of[end_id]
+    if ep < sp:  # a backwards end collapses to a one-segment region; keep id and pos in sync
+        end_id, ep = open_story["segment_id"], sp
     return {"start_id": open_story["segment_id"], "end_id": end_id,
-            "start_pos": sp, "end_pos": max(ep, sp),
+            "start_pos": sp, "end_pos": ep,
             "start_quote": open_story.get("quote", ""), "end_quote": end_quote}
 
 
@@ -369,8 +371,10 @@ def global_consolidate(gen, segs, regions, raw_log, winddown_thresh=0.34):
           into one story but can NEVER delete a story (that protects the genuinely
           distinct multi-story case). Degrades safely — an omitted/odd group stays its
           own story. Only ever reduces the count."""
-    # (1) deterministic wind-down drop
+    # (1) deterministic wind-down drop — but never drop the last region (a session keeps >=1 story)
     kept = [r for r in regions if _winddown_fraction(segs, r) < winddown_thresh]
+    if not kept:
+        kept = regions
     n = len(kept)
     if n <= 1:
         return kept
@@ -475,13 +479,19 @@ def segment_session(sid, gen, show_only=False, use_global=True, use_refine=False
             raw_log.append({"pass": 1, "error": repr(ex)[:200], "zone": z["positions"]})
             evs = []
         n_events += len(evs)
-        for e in sorted(evs, key=lambda e: pos_of[e["segment_id"]]):  # ends before starts, by position
+        # sort by position; at an equal position an end sorts before a start, so a same-line
+        # close-then-open pairs in the right order
+        for e in sorted(evs, key=lambda e: (pos_of[e["segment_id"]], 0 if e["type"] == "story_end" else 1)):
             ep = pos_of[e["segment_id"]]
             if e["type"] == "story_start":
-                if open_story is not None:  # new start while open -> close the open one just before it
-                    if ep - 1 >= pos_of[open_story["segment_id"]]:
-                        regions.append(_mkregion(open_story, order[ep - 1], "<next story starts>", pos_of))
-                open_story = e
+                if open_story is None:
+                    open_story = e
+                elif ep - 1 >= pos_of[open_story["segment_id"]]:  # room: close the open story just before it
+                    regions.append(_mkregion(open_story, order[ep - 1], "<next story starts>", pos_of))
+                    open_story = e
+                else:  # new start at/before the open start: spurious -> keep the open story, never lose it
+                    raw_log.append({"pass": 1, "note": "skipped backward story_start",
+                                    "skipped_id": e["segment_id"], "kept_open_id": open_story["segment_id"]})
             else:  # story_end
                 if open_story is None:  # end with nothing open -> recording opened mid-story
                     sp = min((regions[-1]["end_pos"] + 1) if regions else 0, ep)

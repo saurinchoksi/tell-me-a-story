@@ -39,7 +39,8 @@ def bars_for(stories, order, start_key, end_key):
     cover = {}
     for k, st in enumerate(stories):
         s, e = pos.get(st[start_key]), pos.get(st[end_key])
-        if s is None or e is None:
+        if s is None or e is None:  # stale story ids vs current transcript — surface it
+            print(f"WARNING: story ids {st.get(start_key)}-{st.get(end_key)} absent from the transcript — skipped")
             continue
         s, e = min(s, e), max(s, e)
         for p in range(s, e + 1):
