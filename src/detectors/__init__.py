@@ -6,8 +6,12 @@ never transcript edits. Register new detectors here explicitly.
 
 from detectors.family_names import FamilyNameDetector
 from detectors.name_consistency import NameConsistencyDetector
+from detectors.story_names import StoryNameDetector
 
-DETECTORS = [FamilyNameDetector(), NameConsistencyDetector()]
+# StoryNameDetector is offline_only — scan_session skips it unless a caller passes
+# run_offline=True (the CLI --story-names / process_inbox), so registering it here is
+# safe: it never runs in a web request, but it auto-surfaces in the Monitor.
+DETECTORS = [FamilyNameDetector(), NameConsistencyDetector(), StoryNameDetector()]
 
 
 def get_detector(detector_id: str):

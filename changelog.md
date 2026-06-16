@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-16 — The story-name auditor now runs in the Monitor
+
+The per-story reader that catches a misheard name — built and scored on the eval side this week — now runs as a standing check in the Monitor, beside the family-name and inconsistency detectors. For each recording it splits the stories, reads each one with a small on-device model, and flags an invented name spelled several ways or a real character spelled wrong, while leaving correctly-spelled real names — a show's actual engine — alone. On the five test recordings it caught every clear mistake and stayed silent on the two clean ones, even where the older word-by-word checks fired dozens of false alarms. Because reading a whole recording takes minutes, it runs when a recording is added and on demand, never during a page view — a new "offline-only" setting keeps any slow model out of every web request — and it ships experimental until it has been checked against recordings it hasn't seen.
+
 ## 2026-06-16 — Auditing each story's names with a small on-device reader
 
 With the recordings now split into their separate tales, built the reader that checks the names in each one — catching a well-known character whose name was misspelled, and an invented name the transcriber spelled several different ways. Tried three ways of feeding it the material and scored each against the by-ear answer keys: handing it a tidy list of the names with example lines beat making it read everything, which found one extra mistake but raised far more false alarms. A follow-up pass got the best of both — it now catches every misspelling (even one hiding in lowercase) while leaving correctly-spelled real names alone, by asking itself which names in a look-alike group are genuine before flagging. It also confirmed a hard limit worth being honest about — when a made-up name is written as a different real name that sounds like it, reading the text can't catch it; only the audio can.

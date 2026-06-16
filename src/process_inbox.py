@@ -102,11 +102,12 @@ def process_inbox(target_file: str | None = None):
                         str(SESSIONS_DIR / session_id / "identifications.json"),
                     )
 
-            # Run the full monitor pass (code detectors + the M9b LLM judge) on
-            # the new session. Separate try: a detector problem must not report
-            # the session as a pipeline failure — the transcription artifacts are
-            # already saved and usable. The judge falls back to code-only if its
-            # mlx-vlm venv isn't set up.
+            # Run the full monitor pass on the new session: the code detectors, the
+            # M9b LLM judge, AND the offline per-story name auditor (run_offline=True).
+            # Separate try: a detector problem must not report the session as a
+            # pipeline failure — the transcription artifacts are already saved and
+            # usable. The judge falls back to code-only if its mlx-vlm venv isn't set
+            # up; the name auditor (also mlx-vlm) adds minutes + a second model load.
             try:
                 from detectors import DETECTORS
                 from detectors.base import scan_session
@@ -115,7 +116,8 @@ def process_inbox(target_file: str | None = None):
                     judge = make_judge()
                 except FileNotFoundError:
                     judge = None
-                scan_session(SESSIONS_DIR / session_id, DETECTORS, force=True, judge=judge)
+                scan_session(SESSIONS_DIR / session_id, DETECTORS, force=True,
+                             judge=judge, run_offline=True)
             except Exception as e:
                 print(f"  ⚠ Detectors failed (transcript saved): {e}")
                 detector_failed.append((session_id, str(e)))

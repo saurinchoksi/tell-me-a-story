@@ -48,6 +48,12 @@ def main():
     ap.add_argument("--judge", action="store_true",
                     help="apply the offline LLM judge to m9b-name-consistency "
                          "(recovers dictionary-word names; needs the mlx-vlm venv)")
+    ap.add_argument("--story-names", action="store_true",
+                    help="run the offline per-story name auditor (m9bc-story-names): "
+                         "segments each session then audits names with local Gemma-4 "
+                         "(needs the mlx-vlm venv; slow — minutes/session). Skipped by "
+                         "default and never in a web request. Loads the model separately "
+                         "from --judge if both are given.")
     args = ap.parse_args()
 
     detectors = [get_detector(args.detector)] if args.detector else DETECTORS
@@ -57,6 +63,10 @@ def main():
     if args.judge:
         from detectors.name_consistency_judge import make_judge
         m9b_judge = make_judge()
+
+    # Offline detectors (the per-story name auditor) run only when asked: the
+    # --story-names flag, or an explicit --detector that names one. A bare run stays fast.
+    run_offline = args.story_names or (bool(args.detector) and detectors[0].offline_only)
 
     if args.sessions:
         session_ids = args.sessions
@@ -72,9 +82,12 @@ def main():
     print(f"Running {len(detectors)} detector(s) over {len(session_ids)} session(s):\n")
     for sid in session_ids:
         session_dir = SESSIONS_DIR / sid
-        data = scan_session(session_dir, detectors, force=True, judge=m9b_judge)
+        data = scan_session(session_dir, detectors, force=True, judge=m9b_judge,
+                            run_offline=run_offline)
         for det in detectors:
-            sec = data["detectors"][det.id]
+            sec = data["detectors"].get(det.id)
+            if sec is None:
+                continue  # e.g. an offline_only detector skipped without --story-names
             judged = "  +judge" if sec.get("judge_applied") else ""
             print(
                 f"  {sid}  {det.id:<20} "

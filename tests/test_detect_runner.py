@@ -198,6 +198,37 @@ def test_scan_withholds_judge_from_plain_detector(session_dir):
     assert data["detectors"]["fake-detector"]["judge_applied"] is False
 
 
+# --- offline_only gate (keeps the slow per-story name auditor out of web requests) ---
+
+class OfflineDetector(FakeDetector):
+    id = "offline-detector"
+    offline_only = True
+
+
+def test_scan_skips_offline_only_without_run_offline(session_dir):
+    det = OfflineDetector()
+    data = scan_session(session_dir, [det])        # default run_offline=False
+    assert det.run_count == 0                       # never invoked
+    assert "offline-detector" not in data["detectors"]  # no section written
+
+
+def test_scan_runs_offline_only_with_run_offline(session_dir):
+    det = OfflineDetector()
+    data = scan_session(session_dir, [det], run_offline=True)
+    assert det.run_count == 1
+    assert data["detectors"]["offline-detector"]["n_flags"] == 1
+
+
+def test_scan_mixed_runs_normal_skips_offline(session_dir):
+    # Mirrors the production registry: code detectors run, the offline auditor is
+    # skipped unless explicitly opted into (the API scan routes never opt in).
+    normal, offline = FakeDetector(), OfflineDetector()
+    data = scan_session(session_dir, [normal, offline])
+    assert normal.run_count == 1 and offline.run_count == 0
+    assert "fake-detector" in data["detectors"]
+    assert "offline-detector" not in data["detectors"]
+
+
 def test_section_is_stale(session_dir):
     det = FakeDetector()
     scan_session(session_dir, [det])

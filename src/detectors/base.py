@@ -34,6 +34,10 @@ class Detector:
     failure_mode: str
     version: str
     accepts_judge: bool = False  # True if run() takes an optional `judge` (M9b)
+    offline_only: bool = False   # True = an expensive offline detector; scan_session
+    #                              skips it unless the caller passes run_offline=True
+    #                              (the CLI --story-names / process_inbox). Keeps a
+    #                              multi-minute model load out of every web request.
 
     def run(self, session_dir: Path) -> dict:
         raise NotImplementedError
@@ -115,7 +119,7 @@ def section_is_stale(section: dict, session_dir: Path) -> bool:
 
 
 def scan_session(session_dir: Path, detectors: list, *, force: bool = False,
-                 judge=None) -> dict:
+                 judge=None, run_offline: bool = False) -> dict:
     """Run detectors and persist detections.json. THE scan entry point — used
     after transcription (process_inbox), by detect.py, and by the manual re-scan
     API. Viewing never calls this.
@@ -124,6 +128,11 @@ def scan_session(session_dir: Path, detectors: list, *, force: bool = False,
     fingerprints) unless `force`. `judge` (a callable) is passed only to detectors
     that accept it (the M9b LLM layer); a configless code detector ignores it.
 
+    `run_offline` opts into the expensive `offline_only` detectors (the per-story
+    name auditor). Without it they are skipped entirely — never even fingerprint-
+    compared — so a slow model load can't enter a web request. Only the CLI
+    (--story-names) and process_inbox pass it; the API scan routes never do.
+
     Sections from unregistered detectors are left untouched. Corrupt
     detections.json propagates json.JSONDecodeError (fail loud).
     """
@@ -131,6 +140,8 @@ def scan_session(session_dir: Path, detectors: list, *, force: bool = False,
     data = _load_detections(session_dir)
     dirty = False
     for det in detectors:
+        if det.offline_only and not run_offline:
+            continue  # expensive offline detector — only when the caller opts in
         config_fp = det.config_fingerprint()
         section = data["detectors"].get(det.id)
         if (
