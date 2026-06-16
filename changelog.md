@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-16 — Auditing each story's names with a small on-device reader
+
+With the recordings now split into their separate tales, built the reader that checks the names in each one — catching a well-known character whose name was misspelled, and an invented name the transcriber spelled several different ways. Tried three ways of feeding it the material and scored each against the by-ear answer keys: handing it a tidy list of the names with example lines beat making it read everything, which found one extra mistake but raised far more false alarms. It also confirmed a hard limit worth being honest about — when a made-up name is written as a different real name that sounds like it, reading the text can't catch it; only the audio can.
+
 ## 2026-06-15 — Splitting a recording into its separate stories
 
 Bedtime recordings often hold more than one story, and the per-story name checks can't begin until we know where each one starts and stops. Built a splitter: cheap text-and-timing signals propose likely boundaries, a small on-device model reads the recording in order to confirm them and name each story's world, and a second pass folds back together any story a milk break had split in two. Against the hand-marked answer key it gets the number of stories right on all five recordings — including the one with three — without wrongly splitting the four single-story ones. The lesson that shaped it: the second pass may only merge, never delete — the one time it was allowed to delete, it threw away a real story that happened to open with collaborative chatter.
