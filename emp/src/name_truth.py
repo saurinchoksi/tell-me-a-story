@@ -30,7 +30,7 @@ import html
 import json
 import re
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -46,7 +46,9 @@ from detectors.phonetics import clean, is_capitalized  # noqa: E402
 CATEGORIES = [
     ("", "— unset —"),
     ("roster", "Roster (family)"),
-    ("tv-canon", "TV canon (Thomas & Friends)"),
+    # value stays "tv-canon" for back-compat (downstream treats it as generic M9c canon);
+    # label is source-neutral so it fits any external canon (Thomas, Mahabharata, …)
+    ("tv-canon", "Sourced canon (external — Thomas, Mahabharata, …)"),
     ("improvised", "Improvised (no canon)"),
     ("place-other", "Place / other real word"),
     ("not-a-name", "Not a name"),
@@ -122,6 +124,25 @@ def clip_window(seg_start, seg_end, w_start, w_end):
     return None
 
 
+def m9_coded_segments(sd, segments):
+    """Segment ids (rich 'id' space) the human coded M9* during axial coding — the
+    verified FLOOR of 'a name error is here'. Used to guarantee the review covers every
+    hand-marked name error, and to badge those occurrences. Empty if uncoded."""
+    p = sd / "axial-labels.json"
+    if not p.exists():
+        return set()
+    by_id = {s["id"] for s in segments}
+    out = set()
+    for lab in json.loads(p.read_text()).get("labels", []):
+        if any(str(c).startswith("M9") for c in (lab.get("codes") or [])):
+            x = lab.get("segmentId")
+            if x in by_id:
+                out.add(x)
+            elif isinstance(x, int) and 0 <= x < len(segments):  # axial id may be a list index
+                out.add(segments[x]["id"])
+    return out
+
+
 def proper_name_candidates(segments, min_len=MIN_NAME_LEN):
     """Cleaned tokens that appear Capitalized in a NON-sentence-initial position at
     least once — a strong proper-noun signal, since English only capitalizes
@@ -141,6 +162,50 @@ def proper_name_candidates(segments, min_len=MIN_NAME_LEN):
     return cands
 
 
+# Function words that should never begin or end a NAME phrase — kills "the ducky",
+# "ducky said" while keeping content-modifier names like "rubber ducky" / "cruel kid".
+PHRASE_STOP = {"the", "a", "an", "my", "your", "his", "her", "their", "our", "its", "that",
+               "this", "these", "those", "said", "says", "and", "but", "or", "to", "of", "in",
+               "on", "at", "with", "is", "was", "are", "were", "it", "he", "she", "they", "you",
+               "i", "we", "me", "him", "them", "there", "here", "what", "who", "when", "then",
+               "so", "no", "not", "do", "does", "did", "had", "have", "for", "from", "be"}
+
+
+def detect_phrases(segments, single_cands, min_count=2, dominance=0.5):
+    """Recurring within-segment BIGRAMS that form a multi-word name: a non-function-word
+    MODIFIER followed by a name-candidate HEAD that is *dominantly* preceded by that
+    modifier (>= `dominance` of the head's occurrences). The collocation test is what keeps
+    'rubber ducky' / 'cruel kid' (the pair sticks together) while dropping loose fragments
+    like 'magic rubber' or 'artie mom' (rubber/mom appear in many other contexts). Returns
+    {phrase_cleaned: [occ dicts]}."""
+    unigram, bigram = Counter(), Counter()
+    for s in segments:
+        cl = [clean(w["word"].strip()) for w in s.get("words", [])]
+        for c in cl:
+            if c:
+                unigram[c] += 1
+        for i in range(len(cl) - 1):
+            a, b = cl[i], cl[i + 1]
+            if a and b and a not in PHRASE_STOP and b in single_cands:
+                bigram[(a, b)] += 1
+    keep = {bg for bg, n in bigram.items()
+            if n >= min_count and unigram[bg[1]] and n / unigram[bg[1]] >= dominance}
+    out = defaultdict(list)
+    for s in segments:
+        ws = s.get("words", [])
+        cl = [clean(w["word"].strip()) for w in ws]
+        for i in range(len(ws) - 1):
+            if (cl[i], cl[i + 1]) in keep:
+                w0, w1 = ws[i], ws[i + 1]
+                out[f"{cl[i]} {cl[i + 1]}"].append({
+                    "seg_id": s["id"], "wi": i,
+                    "surface": (w0["word"].strip() + " " + w1["word"].strip()).strip(),
+                    "w_start": w0.get("start"), "w_end": w1.get("end"),
+                    "cap": is_capitalized(w0["word"].strip()) or is_capitalized(w1["word"].strip()),
+                })
+    return out
+
+
 def collect_flags(sid, watch=()):
     """Per-spelling records with every occurrence (timed, with its sentence),
     grouped: each M9b cluster, the roster names M9b never clustered, then EVERY
@@ -149,6 +214,7 @@ def collect_flags(sid, watch=()):
     sd = ROOT / "sessions" / sid
     rich = json.loads((sd / "transcript-rich.json").read_text())
     seg = {s["id"]: s for s in rich["segments"]}
+    m9_segs = m9_coded_segments(sd, rich["segments"])  # human's hand-coded M9 segments
 
     m9a = FamilyNameDetector().run(sd)
     m9b = NameConsistencyDetector().run(sd)  # code-only
@@ -167,10 +233,19 @@ def collect_flags(sid, watch=()):
         if det:
             r["detectors"].add(det)
         s = seg.get(seg_id, {})
+        # Build the context sentence from the (corrected) WORD tokens, not the segment
+        # `text` field: LLM-normalization rewrites the words but does NOT rebuild `text`,
+        # so `text` can still show the pre-correction mishearing (Whisper's "fondos")
+        # while the words — and this card — show the corrected "Pandavas". Joining the
+        # words keeps the context line consistent with the card and the audio.
+        sw = s.get("words") or []
+        sent = " ".join(w["word"].strip() for w in sw) if sw else (s.get("text") or "")
         r["occ"][(seg_id, wi)] = {
             "occ_id": f"{seg_id}:{wi}",
             "start": w_start,
-            "text": (s.get("text") or "").strip(),
+            "text": sent.strip(),
+            "cap": is_capitalized(raw),       # False = a lowercase rendering (M9d hiding spot)
+            "m9_coded": seg_id in m9_segs,     # the human coded a name error in this segment
             "window": clip_window(s.get("start"), s.get("end"), w_start, w_end),
         }
 
@@ -187,18 +262,57 @@ def collect_flags(sid, watch=()):
     # valid name (Jammus -> Thomas) never flags, so the review must start from all
     # names — surface every occurrence here for an ear check.
     watch_set = (proper_name_candidates(rich["segments"]) | set(watch)) - set(rec)
-    if watch_set:
-        for s in rich["segments"]:
-            for wi, w in enumerate(s.get("words", [])):
-                raw = w["word"].strip()
-                if clean(raw) in watch_set and is_capitalized(raw):
-                    r = get(clean(raw)); r["watch"] = True
-                    add_occ(r, s["id"], wi, raw, w.get("start"), w.get("end"), None)
+    # Surface EVERY occurrence of every name of interest — capitalized AND lowercase — so a
+    # substitution or inconsistency hiding in a lowercase rendering (the worst-case M9d) can't
+    # escape the ear. Identification still needs capitalization (proper_name_candidates above);
+    # occurrence collection does not. Re-adding an already-flagged occurrence is idempotent.
+    interest = set(rec) | watch_set
+    for s in rich["segments"]:
+        for wi, w in enumerate(s.get("words", [])):
+            raw = w["word"].strip()
+            c = clean(raw)
+            if c in interest:
+                r = get(c)
+                if c in watch_set:
+                    r["watch"] = True
+                add_occ(r, s["id"], wi, raw, w.get("start"), w.get("end"), None)
 
-    clusters, roster_only, watch_rows = defaultdict(list), [], []
+    # ---- multi-word name phrases: surface recurring name bigrams as their own cards, then
+    # HARD-dedup their member tokens out of the single-word cards, so 'rubber'+'ducky' collapse
+    # into one clean 'rubber ducky' card instead of confusing per-word cards. ----
+    single_cands = proper_name_candidates(rich["segments"]) | set(watch)
+    covered = {}  # (seg_id, wi) -> the phrase cleaned-key covering it
+    for phrase, occs in detect_phrases(rich["segments"], single_cands).items():
+        r = get(phrase); r["phrase"] = True
+        for o in occs:
+            r["surface"].add(o["surface"])
+            s = seg.get(o["seg_id"], {})
+            sw = s.get("words") or []
+            sent = " ".join(w["word"].strip() for w in sw) if sw else (s.get("text") or "")
+            r["occ"][(o["seg_id"], o["wi"])] = {
+                "occ_id": f'{o["seg_id"]}:{o["wi"]}',
+                "start": o["w_start"], "text": sent.strip(),
+                "cap": o["cap"], "m9_coded": o["seg_id"] in m9_segs,
+                "window": clip_window(s.get("start"), s.get("end"), o["w_start"], o["w_end"]),
+            }
+            covered[(o["seg_id"], o["wi"])] = phrase
+            covered[(o["seg_id"], o["wi"] + 1)] = phrase
+    for cleaned, r in list(rec.items()):
+        if r.get("phrase"):
+            continue
+        for key in list(r["occ"]):
+            if key in covered:
+                rec[covered[key]]["detectors"] |= r["detectors"]  # carry M9a/M9b provenance to the phrase
+                del r["occ"][key]
+        if not r["occ"]:  # token fully absorbed into phrase(s) -> drop the confusing per-word card
+            del rec[cleaned]
+
+    clusters, roster_only, watch_rows, phrase_rows = defaultdict(list), [], [], []
     for cleaned, r in rec.items():
         r["occ_list"] = sorted(r["occ"].values(), key=lambda o: (o["start"] is None, o["start"]))
-        if r["watch"]:
+        if r.get("phrase"):
+            phrase_rows.append(r)
+        elif r["watch"]:
             watch_rows.append(r)
         elif r["cluster"] is not None:
             clusters[r["cluster"]].append(r)
@@ -206,6 +320,9 @@ def collect_flags(sid, watch=()):
             roster_only.append(r)
 
     groups = []
+    if phrase_rows:
+        groups.append(("Multi-word names — review the whole phrase (one card per name, not per word)",
+                       sorted(phrase_rows, key=lambda r: -len(r["occ"]))))
     for cid in sorted(clusters):
         groups.append((f"M9b cluster · {cid}", sorted(clusters[cid], key=lambda r: r["cleaned"])))
     if roster_only:
@@ -214,7 +331,11 @@ def collect_flags(sid, watch=()):
     if watch_rows:
         groups.append(("Unflagged proper names — review by ear (every name no detector checks)",
                        sorted(watch_rows, key=lambda r: -len(r["occ"]))))
-    return groups
+    # M9-coverage guarantee: which hand-coded M9 segments did NO surfaced name land in?
+    covered = {sid_ for r in rec.values() for (sid_, _wi) in r["occ"]}
+    m9_meta = {"coded": m9_segs,
+               "uncovered": sorted((s for s in m9_segs if s not in covered), key=str)}
+    return groups, m9_meta
 
 
 def highlight(text, surfaces):
@@ -235,7 +356,7 @@ def fmt_time(s):
 def render_html(sid):
     nd = load_notes(sid)
     notes, occ_notes = nd["items"], nd["occurrences"]
-    groups = collect_flags(sid, nd.get("_watch", []))
+    groups, m9_meta = collect_flags(sid, nd.get("_watch", []))
     has_audio = audio_file(sid) is not None
 
     n_items = sum(len(rows) for _, rows in groups)
@@ -258,11 +379,19 @@ def render_html(sid):
                         else '<span class="play disabled" title="no audio">▷</span>')
                 oid = html.escape(o["occ_id"])
                 tn = html.escape(occ_notes.get(o["occ_id"], {}).get("true_name", ""))
+                low = not o.get("cap", True)
+                badges = ""
+                if o.get("m9_coded"):
+                    badges += ('<span style="font:600 .58rem monospace;color:#c97;border:1px solid #c97;'
+                               'border-radius:3px;padding:0 .25rem;margin-left:.3rem">M9 coded</span>')
+                if low:
+                    badges += ('<span style="font:600 .58rem monospace;color:#88a;border:1px solid #88a;'
+                               'border-radius:3px;padding:0 .25rem;margin-left:.3rem">lowercase</span>')
                 occ_html.append(f"""
-                <div class="occ">
+                <div class="occ"{' style="opacity:.72"' if low else ''}>
                   {play}
                   <span class="ts">{fmt_time(o['start'])}</span>
-                  <span class="line">“{highlight(o['text'], r['surface'])}”</span>
+                  <span class="line">“{highlight(o['text'], r['surface'])}”{badges}</span>
                   <input class="tn" data-id="{oid}" placeholder="this one is…" value="{tn}">
                   <span class="stat occstat" data-id="{oid}"></span>
                 </div>""")
@@ -290,6 +419,12 @@ def render_html(sid):
               <div class="occs">{''.join(occ_html)}</div>
             </div>""")
         blocks.append(f'<section class="group"><h2>{html.escape(title)}</h2>{"".join(cards)}</section>')
+
+    if m9_meta["uncovered"]:  # hand-coded M9 segments with no detected name — the recall guarantee
+        ids = ", ".join(str(x) for x in m9_meta["uncovered"][:25])
+        blocks.insert(0, f'<p class="tally" style="color:#e89">⚠ {len(m9_meta["uncovered"])} segment(s) '
+                         f'you coded M9 have no detected name — likely a lowercase or dropped name not in the '
+                         f'sweep; check by ear: seg {ids}.</p>')
 
     audio_el = '<audio id="player" src="/audio" preload="metadata"></audio>' if has_audio else ''
     audio_note = ('' if has_audio else
