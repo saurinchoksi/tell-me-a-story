@@ -35,19 +35,38 @@ from audit_common import (SESSIONS, ROOT, clean, load_rich, load_regions,
 from name_truth import proper_name_candidates, detect_phrases
 from segment import make_reader, extract_json, MODEL_ID
 from detectors.phonetics import codes
+from detectors.name_consistency import NameConsistencyDetector, MIN_NAME_LEN
 
-ARCHS = ("worksheet", "fulltext", "hybrid")
+ARCHS = ("worksheet", "fulltext", "hybrid", "v2")
 CARD_CHUNK = 16        # worksheet cards per model call (keeps each generation bounded)
 FULLTEXT_WIN = 24      # non-empty story lines per fulltext window
 
+# One shared dictionary instance for the v2 recall recovery (wordlist loads lazily, once).
+_NCD = NameConsistencyDetector()
+
+
+def _plain_word(c):
+    """Exact dictionary membership — recovery's filter. The M9b detector's _is_common
+    also strips a trailing 's', which wrongly reads 'jamis' as a plural of the archaic
+    'jami' and would drop a real misspelled name. For folding name-spellings we want
+    EXACT membership only: 'jamis' isn't a word (kept); 'today'/'work'/'that' are (dropped)."""
+    _NCD._is_common("_warmup_")          # force the wordlist to load onto _NCD._common
+    return c in (_NCD._common or set())
+
 
 # ============================ candidate worksheet =============================
-def story_name_cards(segs):
+def story_name_cards(segs, recover=False):
     """Per-story name cards (transcript-only). A card is a phonetic cluster of the
     capitalized name candidates (Double Metaphone union-find) OR a multi-word phrase
     card, each with its distinct spellings, occurrence count, up to 3 example lines,
     and occurrence positions. Phrase members are folded out of the single-word cards
-    (the 'names are spans' rule)."""
+    (the 'names are spans' rule).
+
+    recover=True (v2): also fold in tokens that the capitalization gate skips — a
+    misspelling that only ever appears lowercase or sentence-initial (e.g. "Jamis") —
+    but ONLY when it sounds like an existing name cluster AND is not an ordinary
+    dictionary word. That dictionary filter is what lets "Jamis" in while keeping
+    "today"/"work" out (they share a sound-code with a name but are real words)."""
     singles = proper_name_candidates(segs)
     phrases = detect_phrases(segs, singles)
     phrase_members = {tok for ph in phrases for tok in ph.split(" ")}
@@ -75,6 +94,24 @@ def story_name_cards(segs):
     for forms in code_to_forms.values():
         for o in forms[1:]:
             union(forms[0], o)
+
+    if recover:  # fold sound-alike, non-dictionary tokens the cap-gate skipped into their cluster
+        code_root = {}
+        for c in cluster_singles:
+            r = find(c)
+            for code in codes(c):
+                code_root.setdefault(code, r)
+        for s in segs:
+            for w in s.get("words", []):
+                c = clean(w["word"].strip())
+                if (not c) or len(c) < MIN_NAME_LEN or c in cluster_singles or c in phrase_members:
+                    continue
+                if _plain_word(c):          # an ordinary word that merely rhymes — skip
+                    continue
+                root = next((code_root[code] for code in codes(c) if code in code_root), None)
+                if root is not None:
+                    parent[c] = root         # join the name cluster it sounds like
+                    cluster_singles.add(c)
 
     surf, cln, cnt, occ = defaultdict(set), defaultdict(set), defaultdict(int), defaultdict(list)
     ex = defaultdict(list)
@@ -261,6 +298,60 @@ def run_fulltext(gen, world, segs, raw_log):
     return list(flags.values()), []
 
 
+# ---- v2: worksheet (with recall recovery) + a canon shield over the M9b flags ----
+SHIELD_PROMPT = """This story is set in the world of "{world}". Here are some name spellings the checker thinks might be one made-up name spelled inconsistently:
+{names}
+
+Which of these (if any) are actually a CORRECTLY-SPELLED, real, well-known character or place from that world — a real name spelled right, NOT a made-up name and NOT a misspelling? (For a Thomas & Friends story, real engines like James, Thomas, Percy, Gordon count; an invented engine does not.)
+
+Return JSON only, no other text:
+{{"real_correct": ["<spelling>", ...]}}
+If none are real correctly-spelled names, return {{"real_correct": []}}.
+"""
+
+
+def recognize_real_names(gen, world, surfaces, raw_log):
+    """Ask the model which of these spellings are correctly-spelled real canon names —
+    the ones to PROTECT from an inconsistency flag (so 'James' isn't called an error)."""
+    if not surfaces:
+        return set()
+    raw = gen(SHIELD_PROMPT.format(world=world, names=", ".join(f'"{s}"' for s in sorted(surfaces))),
+              max_tokens=160)
+    raw_log.append({"pass": "shield", "raw": raw})
+    obj = extract_json(raw)
+    out = set()
+    if isinstance(obj, dict) and isinstance(obj.get("real_correct"), list):
+        for x in obj["real_correct"]:
+            c = clean(str(x))
+            if c:
+                out.add(c)
+    return out
+
+
+def run_v2(gen, world, segs, cards, raw_log):
+    """The shipping candidate: the worksheet over recall-recovered cards, then a canon
+    shield that removes correctly-spelled real names from the INCONSISTENCY (M9b) flags
+    only — never from canon-wrong (M9c) flags, so a misspelled canon name stays caught."""
+    flags, verdicts = _run_card_pass(gen, world, cards, raw_log, context="")
+    m9b_surfaces = {s for f in flags if f["case"] == "M9b" for s in f["wrong_surface"]}
+    canon = recognize_real_names(gen, world, m9b_surfaces, raw_log)
+    if not canon:
+        return flags, verdicts
+    kept = []
+    for f in flags:
+        if f["case"] != "M9b":
+            kept.append(f); continue
+        ws = [s for s in f["wrong_surface"] if clean(s) not in canon]
+        if not ws:
+            continue  # the whole flag was a protected real name -> drop it
+        shielded = sorted({clean(s) for s in f["wrong_surface"]} & canon)
+        f.update({"wrong_surface": sorted(set(ws)),
+                  "wrong_cleaned": sorted({clean(s) for s in ws if clean(s)}),
+                  "shielded": shielded})
+        kept.append(f)
+    return kept, verdicts
+
+
 _RUNNERS = {"worksheet": run_worksheet, "fulltext": None, "hybrid": run_hybrid}
 
 
@@ -274,6 +365,7 @@ def audit_session(sid, gen, archs, show_cards=False):
     for r in regions:
         segs = story_segments(rich, r, pos_of)
         cards = story_name_cards(segs)
+        cards_v2 = story_name_cards(segs, recover=True) if "v2" in archs else None
         story_meta = {"idx": r["idx"], "start_id": r["start_id"], "end_id": r["end_id"],
                       "world": r["world"], "title": r["title"]}
         if show_cards:
@@ -284,9 +376,12 @@ def audit_session(sid, gen, archs, show_cards=False):
         for a in archs:
             if a == "fulltext":
                 flags, verdicts = run_fulltext(gen, r["world"], segs, raws[a])
+            elif a == "v2":
+                flags, verdicts = run_v2(gen, r["world"], segs, cards_v2, raws[a])
             else:
                 flags, verdicts = _RUNNERS[a](gen, r["world"], segs, cards, raws[a])
-            out[a]["stories"].append({"story": story_meta, "n_cards": len(cards),
+            n_used = len(cards_v2) if a == "v2" else len(cards)
+            out[a]["stories"].append({"story": story_meta, "n_cards": n_used,
                                       "flags": flags, "verdicts": verdicts})
             print(f"  {SESSIONS[sid]:11s} story {r['idx']} [{a:9s}]: "
                   f"{len(cards)} cards -> {len(flags)} flag(s) "

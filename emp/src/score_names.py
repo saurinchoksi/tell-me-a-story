@@ -194,7 +194,7 @@ def scout():
 
 
 # ============================ scoring the audit ===============================
-ARCHS = ("worksheet", "fulltext", "hybrid")
+ARCHS = ("worksheet", "fulltext", "hybrid", "v2")
 GOLD_ROWS = ["M9c", "M9b", "M9d", "M9a", "no-error"]
 DET_COLS = ["M9c", "M9b", "M9d", "none"]
 # The two Pandavas canon names that are minor TRANSLITERATION variants, not clear
@@ -232,10 +232,29 @@ def predictions(audit):
     return preds
 
 
+# Which real architectures the ensemble unions. We take worksheet (precise) ∪ fulltext
+# (reaches the lowercase names the cap-gate hides): a name is "detected" if EITHER flags
+# it — maximum recall, the goal for a detection-only monitor. (hybrid added nothing unique.)
+ENSEMBLE_OF = ("worksheet", "fulltext")
+
+
+def predictions_for(sid, arch):
+    """Predictions for one architecture, or the union for the synthetic 'ensemble'."""
+    if arch == "ensemble":
+        merged = {}
+        for a in ENSEMBLE_OF:
+            au = load_audit(sid, a)
+            if au:
+                for k, case in predictions(au).items():
+                    merged.setdefault(k, case)
+        return merged
+    au = load_audit(sid, arch)
+    return predictions(au) if au else {}
+
+
 def score_session(sid, arch):
     gm, g = gold_map(sid)
-    audit = load_audit(sid, arch)
-    preds = predictions(audit) if audit else {}
+    preds = predictions_for(sid, arch)
     matrix = {r: Counter() for r in GOLD_ROWS + ["phantom"]}
     fps, misses, caught = [], [], []
     for key, gcls in gm.items():
@@ -286,8 +305,9 @@ def run_scoring(sids):
     print("  M9a = inconsistent family names (out of Stage-1 scope, shown); M9d = audio-only.")
     print("=" * 80)
 
+    score_archs = list(ARCHS) + ["ensemble"]
     summary = {}
-    for arch in ARCHS:
+    for arch in score_archs:
         pooled = {r: Counter() for r in GOLD_ROWS + ["phantom"]}
         all_fps, all_miss, all_caught = [], [], []
         for sid in sids:
@@ -349,7 +369,7 @@ def run_scoring(sids):
 
     print(f"\n{'=' * 80}\nSIDE-BY-SIDE (the 'which architecture' deliverable)\n{'=' * 80}")
     print(f"  {'arch':10s} | M9c rec (strict/lenient) | M9b rec | flags | false-pos")
-    for a in ARCHS:
+    for a in score_archs:
         s = summary[a]
         print(f"  {a:10s} | {s['m9c_strict'][0]}/{s['m9c_strict'][1]} "
               f"/ {s['m9c_lenient'][0]}/{s['m9c_lenient'][1]}            "
