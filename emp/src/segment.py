@@ -13,8 +13,20 @@
      fuzzy start on the cue line.
   3. ASSEMBLY (deterministic code) — pair start/end events into story regions,
      handling in-medias-res openings, dangling ends, and duplicate "the end".
-  4. READER pass 2 (local LLM) — per assembled region, name the world (inferred
-     from the story's own content, never a pre-supplied canon list) + a title.
+  4. GLOBAL MERGE (local LLM, on by default) — re-read the regions together (the
+     lookahead the left-to-right walk lacks) and merge interruption-split halves
+     into one story; a deterministic check drops a wind-down-only region. This is
+     what fixed the long-interruption over-split (Cruel Baby 4 -> 1).
+  5. READER pass 2 (local LLM) — per region, name the world (inferred from the
+     story's own content, never a pre-supplied canon list) + a title.
+
+Optional START-REFINEMENT (--refine, OFF by default): re-examines each story's
+start against the lines before it and pulls it earlier when the lead-in is already
+the same story. Built for the dialogic-open under-capture (Pandavas), but on the
+current 5 sessions it is a no-op — the model defensibly reads the story as starting
+at the narration, and the under-capture is harmless anyway (the canon names recur
+inside the captured span). Kept as dormant, proven-safe infra to re-evaluate once a
+larger session batch is loaded, where a late start might drop a name that does NOT recur.
 
 Output per session: stories = [{start_id, end_id, title, world, evidence}].
 LOCAL-ONLY: the reader is Gemma-4 E4B via MLX (the M9b-judge winner), run under
@@ -23,6 +35,7 @@ quotes, so it lands in gitignored emp/results/visuals/.
 
     ./venv-mlx-vlm/bin/python emp/src/segment.py                 # segment all 5 sessions
     ./venv-mlx-vlm/bin/python emp/src/segment.py 20260129-204404 # one session
+    ./venv-mlx-vlm/bin/python emp/src/segment.py --refine        # + start-refinement (opt-in)
     ./venv/bin/python         emp/src/segment.py --show-worksheet # no model: inspect the windows
 """
 import argparse
@@ -215,6 +228,20 @@ Return JSON only, no other text — the letters for each distinct story, in orde
 Every letter from A to {last_letter} must appear in exactly one group.
 """
 
+PASS_REFINE_PROMPT = """A bedtime story was detected as STARTING at this line:
+  [{start_id}] "{start_quote}"
+
+Here are the lines LEADING UP TO it (earliest first; the detected start line is last):
+{lines}
+
+Does the SAME story actually begin EARLIER than that line? Judge only whether the earlier lines are ALREADY part of THIS story — its opening question, its characters or setting being introduced, its first events, the question the story then answers. Some stories open as a question-and-answer ("why did they want to be king?" -> the parent explaining) rather than "once upon a time"; that opening question and its answer ARE the story.
+
+The earlier lines are NOT the story if they are: chit-chat, deciding WHICH story to tell, repeated filler, or talk about something else (names, the day, getting settled). When unsure, keep the detected start.
+
+Return JSON only: {{"start_id": <segment id of the true first line of this story>}}
+Return the SAME id you were given if it is already the right start; only move earlier to a line that is clearly already this story.
+"""
+
 
 def make_reader(model_id=MODEL_ID):
     """Load Gemma-4 E4B once; return generate(prompt, max_tokens) -> raw string."""
@@ -388,7 +415,39 @@ def global_consolidate(gen, segs, regions, raw_log, winddown_thresh=0.34):
              "end_quote": kept[c["last"]].get("end_quote", "")} for c in runs]
 
 
-def segment_session(sid, gen, show_only=False, use_global=True):
+def refine_starts(gen, segs, regions, raw_log, max_lookback=40):
+    """Pull each story's START earlier when the lines before it are already the same
+    story (the lookahead the left-to-right walk lacks). Only ever moves a start EARLIER,
+    bounded below by the previous story's end — so it can't create an over-split or eat a
+    neighbour. Targets the under-capture case: a dialogic opening (a question the parent
+    answers) the walk skipped because it was primed for narration or a launch cue."""
+    valid_ids = {s["id"] for s in segs}
+    pos_of = {s["id"]: s["pos"] for s in segs}
+    for i, r in enumerate(regions):
+        lower = 0 if i == 0 else regions[i - 1]["end_pos"] + 1
+        cur = r["start_pos"]
+        if cur <= lower:
+            continue  # no earlier room
+        win_lo = max(lower, cur - max_lookback)
+        lines = "\n".join(f'[{segs[p]["id"]}] "{segs[p]["text"]}"'
+                          for p in range(win_lo, cur + 1) if segs[p]["text"])
+        try:
+            raw = gen(PASS_REFINE_PROMPT.format(start_id=r["start_id"],
+                                                start_quote=r.get("start_quote", ""),
+                                                lines=lines), max_tokens=64)
+        except Exception as ex:
+            raw_log.append({"pass": "refine", "error": repr(ex)[:200]})
+            continue
+        raw_log.append({"pass": "refine", "raw": raw})
+        obj = extract_json(raw)
+        new_id = coerce_id(obj.get("start_id"), valid_ids) if isinstance(obj, dict) else None
+        if new_id is not None and new_id in pos_of and win_lo <= pos_of[new_id] < cur:
+            np = pos_of[new_id]
+            r["start_id"], r["start_pos"], r["start_quote"] = new_id, np, segs[np]["text"]
+    return regions
+
+
+def segment_session(sid, gen, show_only=False, use_global=True, use_refine=False):
     segs = load_segments(sid)
     order = [s["id"] for s in segs]
     pos_of = {x: i for i, x in enumerate(order)}
@@ -435,6 +494,8 @@ def segment_session(sid, gen, show_only=False, use_global=True):
     n_pre = len(regions)
     if use_global:  # global lookahead pass: merge interrupted halves, drop non-stories
         regions = global_consolidate(gen, segs, regions, raw_log)
+    if use_refine:  # pull each story's start earlier when the lead-in is already the story
+        regions = refine_starts(gen, segs, regions, raw_log)
 
     stories = []
     for r in regions:
@@ -460,24 +521,29 @@ def main():
     ap.add_argument("--show-worksheet", action="store_true", help="print windows, no model")
     ap.add_argument("--no-global", action="store_true",
                     help="skip the global consolidation pass (reproduce the pre-merge result)")
+    ap.add_argument("--refine", action="store_true",
+                    help="run the start-refinement pass (OFF by default; opt-in dormant "
+                         "infra — a no-op on the current 5 sessions, kept for expanded sets)")
     args = ap.parse_args()
     sids = [args.session] if args.session else list(SESSIONS)
     use_global = not args.no_global
+    use_refine = args.refine
 
     if args.show_worksheet:
         for sid in sids:
             segment_session(sid, gen=None, show_only=True)
         return
 
-    print(f"loading {args.model} ...  (global consolidation: {'on' if use_global else 'OFF'})")
+    print(f"loading {args.model} ...  (global merge: {'on' if use_global else 'OFF'}, "
+          f"start-refine: {'on' if use_refine else 'OFF'})")
     gen = make_reader(args.model)
     print("loaded.\n")
     pred = {"_about": "Stage-0 segmenter predictions (code pre-filter + local Gemma-4 E4B reader). "
                       "Carries transcript quotes -> gitignored.", "_model": args.model,
-            "_global_pass": use_global, "sessions": {}}
+            "_global_pass": use_global, "_refine_pass": use_refine, "sessions": {}}
     raws = {}
     for sid in sids:
-        out, raw_log = segment_session(sid, gen, use_global=use_global)
+        out, raw_log = segment_session(sid, gen, use_global=use_global, use_refine=use_refine)
         pred["sessions"][sid] = out
         raws[sid] = raw_log
     PRED_OUT.parent.mkdir(parents=True, exist_ok=True)
