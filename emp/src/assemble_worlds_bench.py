@@ -95,9 +95,8 @@ def main():
                     errors.append(f"{tag}: {st['bucket']} must name a world_gold")
                 if st["difficulty"] in ("medium", "subtle"):
                     wg = st["world_gold"].lower()
-                    leaked = [part.strip() for part in wg.replace("/", " ").split()
-                              if len(part.strip()) >= 4 and part.strip() in lines_lc]
-                    # whole-name leak is the real concern (e.g. "star wars", "harry potter")
+                    # whole-name leak is the real concern (e.g. "star wars", "harry potter");
+                    # partial-token matching would false-alarm on words like "star".
                     if wg in lines_lc:
                         warnings.append(f"{tag}: {st['difficulty']} story names its world "
                                         f"{st['world_gold']!r} aloud (giveaway)")

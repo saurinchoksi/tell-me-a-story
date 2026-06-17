@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>I blamed the prompt. A held-out test blamed the sampling.</title>
+<style>
+
+  :root{
+    --cream:#FBF8F3; --paper:#FFFFFF;
+    --maroon:#6A3843; --maroon-deep:#4f2932;
+    --gold:#BFA265; --gold-deep:#977c41;
+    --rose:#F2E6E8;
+    --ink:#352B2D; --read:#4A4042; --muted:#8C8081; --faint:#A99FA0;
+    --rule:#E9DFD9;
+    --serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:"DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;color:var(--read);background:var(--cream);
+    font-family:var(--sans);font-size:18px;line-height:1.68;font-weight:400;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    counter-reset:sec;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(1200px 600px at 78% -8%, rgba(191,162,101,.10), transparent 60%),
+      radial-gradient(900px 500px at 0% 4%, rgba(106,56,67,.05), transparent 55%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap{position:relative;z-index:1;max-width:716px;margin:0 auto;padding:5.5rem 1.4rem 7rem}
+
+  .eyebrow{
+    display:flex;align-items:center;gap:.7rem;
+    font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
+    color:var(--gold-deep);margin:0 0 1.4rem;
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--gold);display:inline-block}
+
+  h1{
+    font-family:var(--serif);font-weight:640;font-optical-sizing:auto;
+    font-variation-settings:"opsz" 120;
+    font-size:clamp(2.2rem,5.6vw,3.1rem);line-height:1.05;letter-spacing:-.018em;
+    color:var(--maroon);margin:0 0 1.4rem;
+  }
+  .dek{font-family:var(--serif);font-variation-settings:"opsz" 40;font-style:italic;
+    font-weight:420;font-size:1.22rem;line-height:1.5;color:var(--read);margin:0 0 2.2rem}
+
+  h2{
+    font-family:var(--sans);font-size:.76rem;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--maroon);
+    margin:3.4rem 0 .4rem;display:flex;align-items:baseline;gap:.7rem;
+  }
+  h2::before{
+    counter-increment:sec;content:counter(sec,decimal-leading-zero);
+    font-family:var(--serif);font-style:italic;font-weight:420;font-size:1.5rem;
+    letter-spacing:0;text-transform:none;color:var(--gold);line-height:1;
+  }
+
+  p{margin:1rem 0}
+  strong{font-weight:600;color:var(--ink)}
+  .nm{font-family:var(--mono);font-size:.92em;color:var(--maroon)}
+
+  a{color:var(--maroon);text-decoration:none;
+    background-image:linear-gradient(var(--gold),var(--gold));
+    background-size:100% 1px;background-repeat:no-repeat;background-position:0 95%;
+    padding-bottom:1px;transition:background-size .25s ease}
+  a:hover{background-size:100% 2px}
+
+  /* garble figure */
+  .namefig{display:flex;align-items:center;flex-wrap:wrap;gap:.85rem 1.15rem;
+    margin:1.5rem 0 .4rem;padding:1.15rem 1.3rem;background:var(--paper);
+    border:1px solid var(--rule);border-radius:10px}
+  .namefig .correct{display:flex;flex-direction:column;gap:.2rem}
+  .namefig .lab{font-size:.6rem;letter-spacing:.17em;text-transform:uppercase;color:var(--gold-deep);font-weight:600}
+  .namefig .val{font-family:var(--serif);font-weight:560;font-size:1.7rem;color:var(--maroon);line-height:1}
+  .namefig .arrow{font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);font-weight:600;white-space:nowrap}
+  .namefig .heard{display:flex;flex-wrap:wrap;gap:.45rem}
+  .namefig .chip{font-family:var(--mono);font-size:.82rem;color:var(--muted);
+    background:#FBF7F2;border:1px solid var(--rule);border-radius:5px;padding:.2em .55em}
+
+  /* the switch */
+  .switch{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:1.6rem 0 .4rem}
+  .switch .s{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:1.05rem 1.15rem}
+  .switch .lab{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600;margin-bottom:.45rem}
+  .switch .on .lab{color:var(--gold-deep)}
+  .switch .off .lab{color:var(--faint)}
+  .switch .said{font-family:var(--mono);font-size:.92rem;color:var(--maroon);margin-bottom:.3rem}
+  .switch .off .said{color:var(--muted)}
+  .switch .eff{font-size:.84rem;color:var(--read);line-height:1.5}
+  @media(max-width:560px){.switch{grid-template-columns:1fr}}
+
+  /* mix breakdown */
+  .mix{display:flex;gap:.6rem;margin:1.5rem 0 .5rem;flex-wrap:wrap}
+  .mix .seg{flex:1;min-width:8.5rem;background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:.9rem 1rem}
+  .mix .n{font-family:var(--serif);font-weight:560;font-size:1.7rem;color:var(--maroon);line-height:1}
+  .mix .t{font-size:.78rem;color:var(--muted);margin-top:.4rem;line-height:1.45}
+
+  /* horizontal bar chart */
+  .bars{margin:1.7rem 0 .5rem;display:flex;flex-direction:column;gap:.65rem}
+  .bar{display:grid;grid-template-columns:9.5rem 1fr auto;align-items:center;gap:.85rem}
+  .bar .blab{font-size:.82rem;color:var(--read);text-align:right;line-height:1.25}
+  .bar .track{background:#F0E7DF;border-radius:6px;height:1.3rem;overflow:hidden}
+  .bar .fill{height:100%;border-radius:6px;min-width:2px;
+    animation:grow 1s cubic-bezier(.2,.7,.2,1) both}
+  .bar .bval{font-family:var(--mono);font-size:.79rem;color:var(--muted);white-space:nowrap}
+  .fill.hi{background:linear-gradient(90deg,var(--maroon-deep),var(--maroon))}
+  .fill.mid{background:linear-gradient(90deg,var(--gold-deep),var(--gold))}
+  .fill.lo{background:#D8C4C9}
+  @keyframes grow{from{transform:scaleX(.02);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
+  @media(prefers-reduced-motion:reduce){.bar .fill{animation:none}}
+  @media(max-width:560px){.bar{grid-template-columns:6.6rem 1fr auto;gap:.5rem}.bar .blab{font-size:.72rem}.bar .bval{font-size:.72rem}}
+
+  /* cold before/after */
+  .cold{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:1.7rem 0 .5rem}
+  .cold .pane{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:1.15rem 1.2rem}
+  .cold .lab{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600;margin-bottom:.55rem}
+  .cold .before{border-style:dashed}
+  .cold .before .lab{color:var(--faint)}
+  .cold .after .lab{color:var(--gold-deep)}
+  .cold .after{box-shadow:inset 3px 0 0 var(--gold)}
+  .cold .val{font-family:var(--serif);font-weight:560;font-size:1.45rem;line-height:1.12}
+  .cold .before .val{color:var(--muted)}
+  .cold .after .val{color:var(--maroon)}
+  .cold .sub{font-size:.8rem;color:var(--muted);margin-top:.45rem;line-height:1.45}
+  @media(max-width:560px){.cold{grid-template-columns:1fr}}
+
+  /* results table */
+  figure.tbl{margin:2.2rem 0 1.1rem;overflow-x:auto}
+  figcaption{font-size:.82rem;color:var(--muted);line-height:1.5;margin-top:1rem;max-width:64ch}
+  table.d{border-collapse:collapse;width:100%;min-width:33rem;background:var(--paper);
+    border:1px solid var(--rule);border-radius:10px;overflow:hidden;
+    box-shadow:0 1px 0 rgba(106,56,67,.04),0 18px 40px -28px rgba(106,56,67,.28)}
+  table.d thead th{
+    font-family:var(--sans);font-size:.64rem;font-weight:600;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--faint);text-align:left;
+    padding:.8rem .85rem;border-bottom:1px solid var(--rule);background:#FCFAF6}
+  table.d thead th.num{text-align:right}
+  table.d td{padding:.72rem .85rem;border-bottom:1px solid var(--rule);vertical-align:middle;font-size:.9rem}
+  table.d td.num{font-family:var(--mono);font-size:.84rem;text-align:right;white-space:nowrap}
+  table.d tbody tr:last-child td{border-bottom:none}
+  table.d td:first-child{color:var(--ink)}
+  table.d td .inp{display:block;font-size:.72rem;color:var(--faint);margin-top:.12rem}
+  table.d tr.win td{background:rgba(191,162,101,.13)}
+  table.d tr.win td:first-child{color:var(--maroon);font-weight:600;box-shadow:inset 3px 0 0 var(--gold)}
+  table.d .bad{color:var(--maroon-deep);font-weight:600}
+  table.d .good{color:var(--gold-deep)}
+  .tag{display:inline-block;font-family:var(--sans);font-size:.58rem;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--gold-deep);background:rgba(191,162,101,.16);
+    border-radius:4px;padding:.12em .45em;margin-left:.4em;vertical-align:.08em}
+
+  .pull{font-family:var(--serif);font-variation-settings:"opsz" 40;font-weight:520;
+    font-size:1.32rem;line-height:1.42;color:var(--maroon-deep);
+    border-left:2px solid var(--gold);padding-left:1.15rem;margin:2.2rem 0}
+
+  .find{margin:1.5rem 0;padding-left:1.15rem;border-left:1px solid var(--rule)}
+  .find .h{font-family:var(--sans);font-weight:600;color:var(--ink);font-size:.95rem;display:block;margin-bottom:.25rem}
+
+  .close{font-family:var(--serif);font-variation-settings:"opsz" 32;font-size:1.18rem;
+    line-height:1.5;color:var(--ink);margin-top:2.4rem}
+
+  hr{border:none;height:1px;background:var(--rule);margin:3rem 0 0}
+  .footnote{font-size:.82rem;color:var(--muted);line-height:1.6;margin-top:1.4rem}
+
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .reveal{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .reveal:nth-child(1){animation-delay:.04s}
+  .reveal:nth-child(2){animation-delay:.12s}
+  .reveal:nth-child(3){animation-delay:.22s}
+  .reveal:nth-child(4){animation-delay:.32s}
+  .reveal:nth-child(5){animation-delay:.42s}
+  .reveal:nth-child(n+6){animation-delay:.5s}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;animation:none}}
+
+  @media (max-width:560px){
+    body{font-size:16px}
+    .wrap{padding:3.5rem 1.2rem 5rem}
+    figure.tbl{overflow-x:auto}
+    table.d{min-width:30rem;font-size:.8rem}
+    table.d th,table.d td{padding:.5rem .5rem}
+  }
+
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="eyebrow reveal">Prompt evaluation</p>
+  <h1 class="reveal">I blamed the prompt.<br>A held-out test blamed the sampling.</h1>
+  <p class="dek reveal">How a hundred fake bedtime stories caught me misdiagnosing my own bug &mdash; and fixed it anyway.</p>
+
+  <div class="reveal">
+    <h2>Problem</h2>
+    <p>My local <a href="https://saurinchoksi.com/tell-me-a-story">bedtime-story pipeline</a> has a small step that reads each story and names the <strong>world</strong> it&rsquo;s set in &mdash; Star&nbsp;Wars, the Mahabharata, or &ldquo;made up.&rdquo; That one label is a switch. Name a real world and the pipeline holds its characters to their real spellings; say &ldquo;made up&rdquo; and that check quietly turns off.</p>
+    <div class="switch">
+      <div class="s on"><div class="lab">Names a real world</div><div class="said">world: &ldquo;Mahabharata&rdquo;</div><div class="eff">Canon spell-check <strong>ON</strong> &mdash; &ldquo;Bishma&rdquo; gets caught and corrected to Bhishma.</div></div>
+      <div class="s off"><div class="lab">Says made-up</div><div class="said">world: &ldquo;&rdquo;</div><div class="eff">Canon spell-check <strong>OFF</strong> &mdash; every misspelled name sails through.</div></div>
+    </div>
+    <p>On a real, held-out Mahabharata recording, the step called the story <strong>&ldquo;made up&rdquo;</strong> &mdash; and silently caught <strong>zero</strong> of its misspelled canon names. The transcriber had heard the epic&rsquo;s characters as garble:</p>
+    <figure class="namefig">
+      <div class="correct"><span class="lab">The epic&rsquo;s names</span><span class="val">Bhishma &middot; Karna</span></div>
+      <div class="arrow">transcribed as &rarr;</div>
+      <div class="heard"><span class="chip">Bishma</span><span class="chip">Bushma</span><span class="chip">Garn</span></div>
+    </figure>
+    <p>I had two suspects. The step read only about <strong>a dozen scattered, sampled lines</strong> of each story, not the whole thing. And its prompt named <em>my own recordings&rsquo;</em> worlds as the examples (&ldquo;Thomas&nbsp;&amp; Friends,&rdquo; &ldquo;Mahabharata&rdquo;) while flatly telling the model not to use outside knowledge. My money was on the prompt.</p>
+  </div>
+
+  <div class="reveal">
+    <h2>Action</h2>
+    <p>Rather than trust the hunch, I built a benchmark to measure it: <strong>100 fabricated bedtime stories with known answers</strong>, each written like a real transcript &mdash; rambling, spoken, with the proper names deliberately mis-heard.</p>
+    <div class="mix">
+      <div class="seg"><div class="n">35</div><div class="t">from <strong>real worlds</strong>, ranging obvious &rarr; barely&#8209;hinted</div></div>
+      <div class="seg"><div class="n">15</div><div class="t"><strong>hybrids</strong> &mdash; a real world plus invented characters</div></div>
+      <div class="seg"><div class="n">50</div><div class="t"><strong>made&#8209;up</strong>, including traps that <em>sound</em> canonical</div></div>
+    </div>
+    <p>The worlds spanned a deliberate range of fame &mdash; Star&nbsp;Wars, He&#8209;Man, Harry&nbsp;Potter, Paw&nbsp;Patrol, Octonauts, and on down to lesser&#8209;known ones (Hilda, Redwall, the Moomins, Earthsea, Tintin). Crucially, I <strong>held out my own real worlds</strong> (the Mahabharata and Thomas&nbsp;&amp; Friends) entirely &mdash; the benchmark never saw them, so they could serve as a cold final test.</p>
+    <p>A firewall kept the eval honest: the program that ran the model saw only each story&rsquo;s text, never the answer key &mdash; a separate scorer reads the answers. Then I ran an <strong>ablation</strong> (whole story vs. the old 12&#8209;line sample), tuned the prompt across several candidates, and scored each on a confusion matrix that breaks out the two mistakes that actually cost something:</p>
+    <p><span class="nm">missed a world</span> &mdash; called a real world &ldquo;made up&rdquo; (the switch&#8209;off error), and <span class="nm">invented a world</span> &mdash; named a world for a story that was genuinely made up.</p>
+  </div>
+
+  <div class="reveal">
+    <h2>Result</h2>
+    <p>Across the 100 stories, here&rsquo;s every candidate I tried. The first two rows change <em>only the input</em> (same old prompt); the rest change the prompt, all on the whole story.</p>
+    <figure class="tbl">
+      <table class="d">
+        <thead><tr>
+          <th>Prompt &amp; input</th>
+          <th class="num">Accuracy</th>
+          <th class="num">Missed a world</th>
+          <th class="num">Invented one</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Old prompt<span class="inp">12-line sample</span></td><td class="num">0.64</td><td class="num bad">25</td><td class="num">7</td></tr>
+          <tr><td>Old prompt<span class="inp">whole story</span></td><td class="num">0.67</td><td class="num">17</td><td class="num">7</td></tr>
+          <tr><td>&ldquo;Abstain&rdquo; rewrite<span class="inp">whole story</span></td><td class="num">0.78</td><td class="num">19</td><td class="num good">0</td></tr>
+          <tr><td>&ldquo;Examples&rdquo; rewrite<span class="inp">whole story</span></td><td class="num">0.80</td><td class="num">14</td><td class="num">1</td></tr>
+          <tr class="win"><td>Reasoned rewrite<span class="tag">shipped</span><span class="inp">whole story</span></td><td class="num">0.82</td><td class="num">13</td><td class="num">1</td></tr>
+          <tr><td>Reasoned v2<span class="inp">whole story</span></td><td class="num">0.78</td><td class="num">12</td><td class="num">6</td></tr>
+          <tr><td>&ldquo;Always commit&rdquo;<span class="inp">whole story</span></td><td class="num">0.68</td><td class="num good">5</td><td class="num bad">17</td></tr>
+        </tbody>
+      </table>
+      <figcaption>100 stories. &ldquo;Missed a world&rdquo; is the costly error that switches the canon check off; &ldquo;invented one&rdquo; is the opposite false alarm. The shipped prompt (highlighted) is the best balance of the two.</figcaption>
+    </figure>
+
+    <p>Then the cold test on the recordings the tuning never touched &mdash; and the result that reset my whole diagnosis. <strong>Even the old prompt names the Mahabharata correctly, the moment it reads the whole story.</strong></p>
+    <div class="cold">
+      <div class="pane before"><div class="lab">Before &mdash; 12-line sample</div><div class="val">&ldquo;made up&rdquo;</div><div class="sub">0 canon names caught. The dozen sampled lines never included the ones that name the epic.</div></div>
+      <div class="pane after"><div class="lab">After &mdash; whole story</div><div class="val">&ldquo;Mahabharata&rdquo;</div><div class="sub">Verified through the real production pipeline. The canon spell-check switches back on.</div></div>
+    </div>
+    <p>The ablation said the same thing in numbers: feeding the whole story instead of the sample &mdash; <em>with no change to the prompt at all</em> &mdash; cut &ldquo;missed a world&rdquo; from <strong>25 to 17</strong>. I&rsquo;d been about to rewrite my way out of a problem that was mostly about <em>how much the model got to read.</em></p>
+
+    <div class="find">
+      <span class="h">1 &nbsp;&middot;&nbsp; The held-out test corrected me.</span>
+      The dominant cause of the original miss was the sampling, not the wording. A benchmark you tune against can&rsquo;t tell you that &mdash; only data you held back can. The whole-story fix is the high-confidence win.
+    </div>
+    <div class="find">
+      <span class="h">2 &nbsp;&middot;&nbsp; The new prompt&rsquo;s real value is breadth.</span>
+      Dropping my own worlds as examples and letting the model use its knowledge lifted accuracy 0.67 &rarr; 0.82, and &mdash; mostly &mdash; stopped it inventing worlds for made-up stories (7 &rarr; 1 false alarms). A separate win, stacked on the first.
+    </div>
+    <div class="find">
+      <span class="h">3 &nbsp;&middot;&nbsp; And a real wall, honestly bounded.</span>
+      The shipped prompt is reliable where the model has knowledge to lean on, and degrades exactly where it doesn&rsquo;t &mdash; as the canonical names thin out, and as the world gets less famous.
+    </div>
+
+    <p>Accuracy decays cleanly with how hard the world is to spot (real-world stories, shipped prompt):</p>
+    <div class="bars">
+      <div class="bar"><span class="blab">Obvious</span><span class="track"><span class="fill hi" style="width:100%"></span></span><span class="bval">15/15 &middot; 1.00</span></div>
+      <div class="bar"><span class="blab">Medium</span><span class="track"><span class="fill mid" style="width:67%"></span></span><span class="bval">12/18 &middot; 0.67</span></div>
+      <div class="bar"><span class="blab">Subtle</span><span class="track"><span class="fill lo" style="width:35%"></span></span><span class="bval">6/17 &middot; 0.35</span></div>
+    </div>
+    <p>&hellip;and it tracks fame. The small on-device model knows the blockbusters cold and can pull them through garbled names; the less-famous worlds, it simply doesn&rsquo;t know:</p>
+    <div class="bars">
+      <div class="bar"><span class="blab">Star Wars</span><span class="track"><span class="fill hi" style="width:100%"></span></span><span class="bval">11/11 &middot; 1.00</span></div>
+      <div class="bar"><span class="blab">Harry Potter</span><span class="track"><span class="fill hi" style="width:100%"></span></span><span class="bval">8/8 &middot; 1.00</span></div>
+      <div class="bar"><span class="blab">He-Man</span><span class="track"><span class="fill mid" style="width:67%"></span></span><span class="bval">6/9 &middot; 0.67</span></div>
+      <div class="bar"><span class="blab">Paw Patrol</span><span class="track"><span class="fill mid" style="width:56%"></span></span><span class="bval">5/9 &middot; 0.56</span></div>
+      <div class="bar"><span class="blab">Octonauts</span><span class="track"><span class="fill lo" style="width:25%"></span></span><span class="bval">2/8 &middot; 0.25</span></div>
+      <div class="bar"><span class="blab">Lesser-known</span><span class="track"><span class="fill lo" style="width:20%"></span></span><span class="bval">1/5 &middot; 0.20</span></div>
+    </div>
+    <p class="footnote">Lesser-known = Hilda, Earthsea, Redwall, the Moomins, Tintin (one story each); only Hilda landed.</p>
+
+    <p class="pull">There&rsquo;s no free lunch here. The &ldquo;always commit&rdquo; prompt cut misses to 5 &mdash; but then hallucinated a world onto 17 made-up stories. You can buy recall on real worlds only by paying in false alarms on invented ones.</p>
+    <p>So the shipped prompt sits at the balance point, and the remaining gap isn&rsquo;t a wording problem &mdash; it&rsquo;s a knowledge problem. Closing it needs a bigger model or a short reference list of the worlds I actually tell, not another rewrite.</p>
+
+    <p class="close">The detector got better, but the benchmark is the real artifact. It&rsquo;s what turned &ldquo;I think it&rsquo;s the prompt&rdquo; into a number that said otherwise &mdash; and it&rsquo;ll still be there, with its firewall and its held-out worlds, the next time I&rsquo;m sure I know what&rsquo;s broken.</p>
+  </div>
+
+  <div class="reveal">
+    <hr>
+    <p class="footnote">Built and measured locally on an Apple-silicon Mac with a ~4B on-device model; nothing leaves the machine, for family privacy. The benchmark, the firewalled runner, and the scorer are on <a href="https://github.com/saurinchoksi/tell-me-a-story/tree/main/emp">GitHub</a>. Written with AI assistance, reviewed and edited by me.</p>
+  </div>
+</main>
+</body>
+</html>
