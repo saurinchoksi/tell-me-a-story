@@ -22,6 +22,9 @@ from mutagen import File as MutagenFile
 from normalize import llm_normalize, MODEL as LLM_MODEL
 from dictionary import load_library, build_variant_map, normalize_variants, make_processing_entry as make_dictionary_entry
 from corrections import extract_text, apply_corrections
+from story_segment import segment_transcript, MODEL_ID as SEGMENT_MODEL_ID, SEGMENT_CONFIG_VERSION
+from stories import enrich_with_stories
+from model_cache import cached_or_run, fingerprint
 
 _DEFAULT_LIBRARY_PATH = None
 
@@ -153,6 +156,46 @@ def enrich_transcript(
             processing.append({
                 "stage": "dictionary_normalization",
                 "library": lib_path,
+                "status": "error",
+                "error": str(e),
+                "started_at": started_at,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+
+    # Pass 5: Story segmentation (cached — re-enrich reuses stories when the segment
+    # structure/text and the segmenter config are unchanged). Runs only when a session
+    # dir to cache into is given; production (run_pipeline + --re-enrich) always provides
+    # one. Degrade-safe — a failure here must not sink the saved transcript.
+    if cache_dir is not None:
+        try:
+            started_at = datetime.now(timezone.utc).isoformat()
+            t0 = time.monotonic()
+            seg_input = "".join(
+                f"{s['id']}|{s.get('start')}|{s.get('end')}|{s.get('text', '')}\n"
+                for s in transcript["segments"])
+            stories, was_cached = cached_or_run(
+                cache_dir, "story_segmentation",
+                fingerprint(seg_input), fingerprint(SEGMENT_CONFIG_VERSION),
+                lambda: segment_transcript(transcript))
+            transcript = enrich_with_stories(transcript, stories)
+            processing.append({
+                "stage": "story_segmentation",
+                "model": SEGMENT_MODEL_ID,
+                "status": "success",
+                "stories_found": len(stories),
+                "from_cache": was_cached,
+                "started_at": started_at,
+                "duration_seconds": round(time.monotonic() - t0, 2),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+            if verbose:
+                logger.info(f"Story segmentation: {len(stories)} stories"
+                            + (" (cached)" if was_cached else ""))
+        except Exception as e:
+            logger.warning(f"Story segmentation failed: {e}")
+            processing.append({
+                "stage": "story_segmentation",
+                "model": SEGMENT_MODEL_ID,
                 "status": "error",
                 "error": str(e),
                 "started_at": started_at,
@@ -362,6 +405,7 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
         "segments": len(segments),
         "words": total_words,
         "speakers": len(speakers),
+        "stories": len(transcript.get("_stories", [])),
     }
 
     return {
@@ -508,6 +552,7 @@ if __name__ == "__main__":
             "segments": len(segments),
             "words": total_words,
             "speakers": len(speakers),
+            "stories": len(transcript.get("_stories", [])),
         }
 
         # Save enriched transcript

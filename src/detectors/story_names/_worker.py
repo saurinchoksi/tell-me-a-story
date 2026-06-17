@@ -3,15 +3,16 @@
 
 `run(session_dir)` is invoked via model_runner.run_model from StoryNameDetector: a
 spawned subprocess of this venv, so its Gemma load gets a clean GPU process and frees
-it on exit. In ONE model load it (1) segments the session into stories (live Stage 0),
-(2) per story builds recall-recovered name cards and runs the v2 audit (+ canon shield),
-(3) EXPANDS each per-spelling verdict to the standard per-occurrence flag schema
-(segment_id/word_index/...), and RETURNS {n_word_tokens, flags}. Diagnostics go to
-stderr; a __main__ block prints the JSON for standalone debugging.
+it on exit. In ONE model load it (1) takes the pipeline's saved story regions
+(`_stories`), or segments live as a fallback for older sessions, (2) per story builds
+recall-recovered name cards and runs the v2 audit (+ canon shield), (3) EXPANDS each
+per-spelling verdict to the standard per-occurrence flag schema (segment_id/word_index/
+...), and RETURNS {n_word_tokens, flags}. Diagnostics go to stderr; a __main__ block
+prints the JSON for standalone debugging.
 
-The flag-expansion (the one production-specific adaptation) and the live-segmentation
-region adapter live here; the validated logic is imported, verbatim, from the ported
-_segment/_audit/_names modules.
+The flag-expansion (the one production-specific adaptation) and the region adapter live
+here; the validated logic is imported from story_segment and the ported _audit/_names
+modules.
 """
 import json
 import sys
@@ -23,7 +24,7 @@ SRC = Path(__file__).resolve().parents[2]
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from detectors.story_names._segment import segment_session, make_reader, load_segments
+from story_segment import segment_session, make_reader
 from detectors.story_names._audit import story_name_cards, run_v2
 from detectors.story_names._names import story_segments
 from detectors.phonetics import clean, codes
@@ -119,11 +120,17 @@ def run(session_dir):
     session_dir = Path(session_dir)
     rich = json.loads((session_dir / "transcript-rich.json").read_text())
     seg_by_id = {s["id"]: s for s in rich["segments"]}
+    pos_of = {s["id"]: i for i, s in enumerate(rich["segments"])}
 
-    gen = make_reader()                                   # one model load
-    seg_result, _ = segment_session(session_dir, gen)    # live Stage 0 (returns a tuple)
-    pos_of = {s["id"]: s["pos"] for s in load_segments(session_dir)}
-    regions = build_regions(seg_result["stories"], pos_of)
+    gen = make_reader()  # one model load — the per-story audit (run_v2) needs it
+
+    stories = rich.get("_stories")
+    if stories:  # segmentation already saved by the pipeline — no live re-split
+        print(f"  using {len(stories)} saved story region(s)", file=sys.stderr)
+    else:        # fallback for sessions processed before story segmentation shipped
+        seg_result, _ = segment_session(session_dir, gen)
+        stories = seg_result["stories"]
+    regions = build_regions(stories, pos_of)
     print(f"  auditing names across {len(regions)} story region(s)", file=sys.stderr)
 
     flags = []

@@ -19,7 +19,7 @@ from collections import defaultdict
 
 from detectors.story_names._names import (proper_name_candidates, detect_phrases,
                                           seg_word_text)
-from detectors.story_names._segment import extract_json
+from story_segment import extract_json
 from detectors.phonetics import codes, clean
 from detectors.name_consistency import NameConsistencyDetector, MIN_NAME_LEN
 

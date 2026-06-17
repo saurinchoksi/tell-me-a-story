@@ -7,14 +7,15 @@
  * (binary search for current segment, class toggle on the card element).
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, Fragment } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getSession, getNotes, saveNotes, getAxialLabels, saveAxialLabels, audioURL, listSessions } from '../api/client';
-import type { ValidatorSegment, Note, ContextTarget, SegmentId, AxialCode } from '../types';
+import type { ValidatorSegment, Note, ContextTarget, SegmentId, AxialCode, StoryRegion } from '../types';
 import { formatTime } from '../utils/time';
 import { buildSpeakerColorMap } from '../utils/filters';
 import WaveformPlayer, { type WaveformPlayerHandle } from '../components/WaveformPlayer';
 import SegmentCard from '../components/SegmentCard';
+import StoryDivider from '../components/StoryDivider';
 import ContextMenu from '../components/ContextMenu';
 import NoteModal from '../components/NoteModal';
 import NotesDrawer from '../components/NotesDrawer';
@@ -73,6 +74,8 @@ export default function ValidatorPage() {
   const segmentsContainerRef = useRef<HTMLDivElement>(null);
   // Ref to segments for 60fps callback (avoids closing over state)
   const segmentsRef = useRef<ValidatorSegment[]>([]);
+  // Top-level story regions (title/world per story) for the divider; set on load.
+  const [stories, setStories] = useState<StoryRegion[]>([]);
 
   // Throttle SET_TIME dispatches (~4fps for display only)
   const lastDispatchRef = useRef(0);
@@ -100,6 +103,7 @@ export default function ValidatorPage() {
     Promise.all([getSession(id), getNotes(id), getAxialLabels(id)])
       .then(([session, notes, axialLabels]) => {
         const segments = (session.transcript?.segments ?? []) as ValidatorSegment[];
+        setStories(session.transcript?._stories ?? []);
         const speakerNames = new Map<string, string>();
         const identifications = session.identifications?.identifications ?? [];
         for (const ident of identifications) {
@@ -508,25 +512,33 @@ export default function ValidatorPage() {
           const activeReasons = derived.segmentFilterReasons.get(seg.id) ?? [];
           const allReasons = derived.segmentAllFilterReasons.get(seg.id) ?? [];
           const label = derived.labelsBySegment.get(seg.id);
+          // Show a divider at the first segment of each story (where _story changes).
+          const prevStory = i > 0 ? state.segments[i - 1]._story : undefined;
+          const story =
+            seg._story !== undefined && seg._story !== prevStory
+              ? stories[seg._story]
+              : undefined;
           return (
-            <SegmentCard
-              key={seg.id}
-              segment={seg}
-              index={i}
-              isFiltered={activeReasons.length > 0}
-              filterReasons={activeReasons}
-              allFilterReasons={allReasons}
-              hasNotes={derived.notesBySegment.has(seg.id)}
-              axialCodes={label?.codes ?? []}
-              onToggleAxialLabel={handleToggleAxialLabel}
-              speakerNames={state.speakerNames}
-              speakerColorMap={state.speakerColorMap}
-              onSeek={handleSeek}
-              onContextMenu={handleContextMenu}
-              onHoverRange={handleHoverRange}
-              onHoverEnd={handleHoverEnd}
-              cardRef={getCardRef(seg.id)}
-            />
+            <Fragment key={seg.id}>
+              {story && <StoryDivider title={story.title} world={story.world} />}
+              <SegmentCard
+                segment={seg}
+                index={i}
+                isFiltered={activeReasons.length > 0}
+                filterReasons={activeReasons}
+                allFilterReasons={allReasons}
+                hasNotes={derived.notesBySegment.has(seg.id)}
+                axialCodes={label?.codes ?? []}
+                onToggleAxialLabel={handleToggleAxialLabel}
+                speakerNames={state.speakerNames}
+                speakerColorMap={state.speakerColorMap}
+                onSeek={handleSeek}
+                onContextMenu={handleContextMenu}
+                onHoverRange={handleHoverRange}
+                onHoverEnd={handleHoverEnd}
+                cardRef={getCardRef(seg.id)}
+              />
+            </Fragment>
           );
         })}
       </div>

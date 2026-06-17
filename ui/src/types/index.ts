@@ -38,8 +38,17 @@ export interface SessionDetail {
   identifications: IdentificationData | null;
 }
 
+export interface StoryRegion {
+  index: number;
+  start_id: SegmentId;
+  end_id: SegmentId;
+  title: string;
+  world: string;
+}
+
 export interface TranscriptData {
   segments: TranscriptSegment[];
+  _stories?: StoryRegion[];
   [key: string]: unknown;
 }
 
@@ -193,6 +202,7 @@ export interface ValidatorSegment {
     coverage: number;
   };
   _source?: string;
+  _story?: number;
 }
 
 export interface Note {

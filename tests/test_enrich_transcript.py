@@ -198,8 +198,62 @@ def test_enrich_passes_cache_dir_to_llm_normalize(tmp_path):
     with patch("pipeline.llm_normalize", return_value=([], llm_entry)) as mock_llm, \
          patch("pipeline.extract_text", return_value="hello world"), \
          patch("pipeline.apply_corrections", return_value=(transcript, 0)), \
+         patch("pipeline.segment_transcript", return_value=[]), \
+         patch("pipeline.enrich_with_stories", side_effect=lambda t, s: t), \
          patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)), \
          patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
         enrich_transcript(transcript, diarization, cache_dir=tmp_path, verbose=False)
 
     assert mock_llm.call_args.kwargs.get("cache_dir") == tmp_path
+
+
+def test_enrich_pass5_segmentation_success(tmp_path):
+    """With a cache_dir, Pass 5 runs and records a story_segmentation processing entry."""
+    transcript = {"segments": [{"id": 0, "text": " a", "words": [{"word": " a"}]}]}
+    diarization = {"segments": []}
+    diar_entry = {"stage": "diarization_enrichment"}
+    gap_entry = {"stage": "gap_detection", "gaps_found": 0}
+    llm_entry = {"stage": "llm_normalization", "model": "m", "status": "success",
+                 "from_cache": False, "timestamp": "t"}
+    stories = [{"start_id": 0, "end_id": 0, "title": "A", "world": "W"}]
+
+    with patch("pipeline.llm_normalize", return_value=([], llm_entry)), \
+         patch("pipeline.extract_text", return_value="a"), \
+         patch("pipeline.apply_corrections", return_value=(transcript, 0)), \
+         patch("pipeline.segment_transcript", return_value=stories) as mock_seg, \
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)), \
+         patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
+        result, processing, _ = enrich_transcript(
+            transcript, diarization, cache_dir=tmp_path, verbose=False)
+
+    seg_entries = [p for p in processing if p["stage"] == "story_segmentation"]
+    assert len(seg_entries) == 1
+    assert seg_entries[0]["status"] == "success"
+    assert seg_entries[0]["stories_found"] == 1
+    assert result["_stories"][0]["title"] == "A"  # enrich_with_stories ran for real
+    mock_seg.assert_called_once()
+
+
+def test_enrich_pass5_degrades_safely(tmp_path):
+    """A segmentation failure records an error entry but does not sink the pass."""
+    transcript = {"segments": [{"id": 0, "text": " a", "words": [{"word": " a"}]}]}
+    diarization = {"segments": []}
+    diar_entry = {"stage": "diarization_enrichment"}
+    gap_entry = {"stage": "gap_detection", "gaps_found": 0}
+    llm_entry = {"stage": "llm_normalization", "model": "m", "status": "success",
+                 "from_cache": False, "timestamp": "t"}
+
+    with patch("pipeline.llm_normalize", return_value=([], llm_entry)), \
+         patch("pipeline.extract_text", return_value="a"), \
+         patch("pipeline.apply_corrections", return_value=(transcript, 0)), \
+         patch("pipeline.segment_transcript", side_effect=RuntimeError("model down")), \
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)), \
+         patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
+        result, processing, _ = enrich_transcript(
+            transcript, diarization, cache_dir=tmp_path, verbose=False)
+
+    seg = [p for p in processing if p["stage"] == "story_segmentation"][0]
+    assert seg["status"] == "error" and "model down" in seg["error"]
+    # the other passes still ran
+    assert any(p["stage"] == "llm_normalization" for p in processing)
+    assert "_stories" not in result  # segmentation failed, nothing tagged

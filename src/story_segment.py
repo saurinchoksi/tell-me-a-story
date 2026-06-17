@@ -31,6 +31,10 @@ from pathlib import Path
 
 MODEL_ID = "mlx-community/gemma-4-e4b-it-4bit"
 
+# Cache config fingerprint for story segmentation: bump the tag when the segmenter
+# prompts or walk logic change, so cached stories are recomputed on the next re-enrich.
+SEGMENT_CONFIG_VERSION = MODEL_ID + "|prompts-v1"
+
 # window construction
 CTX = 3        # context lines on each side of a candidate cluster
 MAX_WIN = 22   # if a window exceeds this, show head+tail with an elision
@@ -57,17 +61,24 @@ COMPILED = {k: [re.compile(p, re.I) for p in pats] for k, pats in CUES.items()}
 
 
 # ============================ pre-filter (code) ===============================
-def load_segments(session_dir):
-    # PROD: read the session dir we're handed instead of ROOT/"sessions"/sid.
-    segs = json.loads((Path(session_dir) / "transcript-rich.json").read_text())["segments"]
+def load_segments_from_list(rich_segments):
+    """Build the segmenter's per-segment meta-list from an IN-MEMORY transcript's
+    `segments` (each has id/start/end/text/words). Used by the pipeline pass, which
+    holds the transcript before it's written to disk — never re-read the stale file."""
     out = []
-    for i, s in enumerate(segs):
+    for i, s in enumerate(rich_segments):
         out.append({"pos": i, "id": s["id"], "start": s.get("start"), "end": s.get("end"),
                     "text": (s.get("text") or "").strip(), "is_gap": not isinstance(s["id"], int)})
     for i, s in enumerate(out):
         prev = out[i - 1] if i > 0 else None
         s["gap_before"] = (s["start"] - prev["end"]) if (prev and s["start"] is not None and prev["end"] is not None) else None
     return out
+
+
+def load_segments(session_dir):
+    # PROD: read the session dir we're handed (the detector fallback path).
+    rich_segments = json.loads((Path(session_dir) / "transcript-rich.json").read_text())["segments"]
+    return load_segments_from_list(rich_segments)
 
 
 def cue_hits(text):
@@ -419,9 +430,16 @@ def refine_starts(gen, segs, regions, raw_log, max_lookback=40):
 
 
 def segment_session(session_dir, gen, show_only=False, use_global=True, use_refine=False):
-    # PROD: take a session_dir (sid is just its name, used only for the stderr log line).
-    sid = Path(session_dir).name
+    """Disk-based entry (the detector's fallback path): read the session's transcript
+    from disk, then run the segmentation walk. Returns (result_dict, raw_log)."""
     segs = load_segments(session_dir)
+    return segment_segments(segs, gen, name=Path(session_dir).name, show_only=show_only,
+                            use_global=use_global, use_refine=use_refine)
+
+
+def segment_segments(segs, gen, name="session", show_only=False, use_global=True, use_refine=False):
+    # `segs` is the pre-built meta-list (from load_segments or load_segments_from_list);
+    # `name` only labels the stderr log line.
     order = [s["id"] for s in segs]
     pos_of = {x: i for i, x in enumerate(order)}
     zones = cluster(propose(segs))
@@ -429,7 +447,7 @@ def segment_session(session_dir, gen, show_only=False, use_global=True, use_refi
     raw_log = []
 
     if show_only:
-        print(f"\n===== {sid} — {len(zones)} zones =====", file=sys.stderr)
+        print(f"\n===== {name} — {len(zones)} zones =====", file=sys.stderr)
         for z in zones:
             positions, elide = build_window(segs, z)
             print(f"\n--- zone pos {z['positions'][0]}-{z['positions'][-1]}  [{', '.join(sorted(z['signals']))}] ---", file=sys.stderr)
@@ -488,8 +506,26 @@ def segment_session(session_dir, gen, show_only=False, use_global=True, use_refi
                         "evidence": {"start_quote": r["start_quote"], "end_quote": r["end_quote"]}})
     merge_note = f"{n_pre}->{len(stories)} after merge" if use_global else f"{len(stories)} (no merge)"
     # PROD: diagnostics to stderr so the worker's stdout stays clean JSON.
-    print(f"  {sid:12s}: {len(zones):2d} zones -> {n_events:2d} events -> {merge_note} stories  "
+    print(f"  {name:12s}: {len(zones):2d} zones -> {n_events:2d} events -> {merge_note} stories  "
           + " | ".join(f'{s["start_id"]}-{s["end_id"]} [{s["world"]}]' for s in stories),
           file=sys.stderr)
-    return {"name": sid, "n_zones": len(zones), "n_events": n_events,
+    return {"name": name, "n_zones": len(zones), "n_events": n_events,
             "n_regions_pre_merge": n_pre, "stories": stories}, raw_log
+
+
+# ============================ in-memory caller (pipeline) ======================
+def _segment_in_subprocess(transcript):
+    """Module-level (picklable for the spawned subprocess). Segment an IN-MEMORY
+    transcript and return its stories list. Loads Gemma once; the process exits after,
+    freeing the GPU memory."""
+    segs = load_segments_from_list(transcript["segments"])
+    gen = make_reader()
+    result, _ = segment_segments(segs, gen)
+    return result["stories"]
+
+
+def segment_transcript(transcript, timeout=1800):
+    """Segment the given in-memory transcript via a fresh subprocess (model_runner),
+    returning the stories list [{start_id, end_id, title, world, evidence}]."""
+    from model_runner import run_model
+    return run_model(_segment_in_subprocess, transcript, timeout=timeout)
