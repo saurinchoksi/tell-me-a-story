@@ -107,7 +107,7 @@ def process_inbox(target_file: str | None = None):
             # Separate try: a detector problem must not report the session as a
             # pipeline failure — the transcription artifacts are already saved and
             # usable. The judge falls back to code-only if mlx-vlm isn't installed; the
-            # up; the name auditor (also mlx-vlm) adds minutes + a second model load.
+            # name auditor (also mlx-vlm) adds minutes + a second model load per session.
             try:
                 from detectors import DETECTORS
                 from detectors.base import scan_session

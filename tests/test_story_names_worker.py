@@ -43,3 +43,14 @@ def test_worker_falls_back_to_live_segmentation(tmp_path):
         result = _worker.run(str(sd))
     mock_seg.assert_called_once()  # no saved stories → fell back to live segmentation
     assert result == {"n_word_tokens": 0, "flags": []}
+
+
+def test_worker_uses_empty_saved_stories_without_resegmenting(tmp_path):
+    """A session the pipeline segmented to ZERO stories (_stories == []) uses the saved
+    empty list — it must NOT fall back to a wasteful live re-split (the falsy-[] bug)."""
+    sd = _write_rich(tmp_path, _SEGS, stories=[])  # segmented, found none
+    with patch("detectors.story_names._worker.make_reader", return_value=lambda *a, **k: ""), \
+         patch("detectors.story_names._worker.segment_session") as mock_seg:
+        result = _worker.run(str(sd))
+    mock_seg.assert_not_called()  # empty saved list is still "segmented" — no re-split
+    assert result == {"n_word_tokens": 0, "flags": []}

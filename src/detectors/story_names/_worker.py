@@ -125,9 +125,9 @@ def run(session_dir):
     gen = make_reader()  # one model load — the per-story audit (run_v2) needs it
 
     stories = rich.get("_stories")
-    if stories:  # segmentation already saved by the pipeline — no live re-split
+    if stories is not None:  # pipeline already segmented (even to zero stories) — no re-split
         print(f"  using {len(stories)} saved story region(s)", file=sys.stderr)
-    else:        # fallback for sessions processed before story segmentation shipped
+    else:  # fallback: a session processed before story segmentation shipped (key absent)
         seg_result, _ = segment_session(session_dir, gen)
         stories = seg_result["stories"]
     regions = build_regions(stories, pos_of)

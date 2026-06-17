@@ -24,16 +24,13 @@ module is imported, never run standalone.
 Output per session: stories = [{start_id, end_id, title, world, evidence}].
 LOCAL-ONLY: the reader is Gemma-4 E4B via MLX, run in a fresh subprocess.
 """
+import hashlib
 import json
 import re
 import sys
 from pathlib import Path
 
 MODEL_ID = "mlx-community/gemma-4-e4b-it-4bit"
-
-# Cache config fingerprint for story segmentation: bump the tag when the segmenter
-# prompts or walk logic change, so cached stories are recomputed on the next re-enrich.
-SEGMENT_CONFIG_VERSION = MODEL_ID + "|prompts-v1"
 
 # window construction
 CTX = 3        # context lines on each side of a candidate cluster
@@ -529,3 +526,15 @@ def segment_transcript(transcript, timeout=1800):
     returning the stories list [{start_id, end_id, title, world, evidence}]."""
     from model_runner import run_model
     return run_model(_segment_in_subprocess, transcript, timeout=timeout)
+
+
+# Cache config fingerprint: a hash of everything that drives the segmenter's output, so
+# editing any prompt / cue / window constant invalidates cached stories on the next
+# re-enrich automatically (no manual version bump to forget) — mirroring how the
+# normalizer cache hashes its prompt. The few numeric thresholds that live as function
+# defaults (gap_threshold, max_gap, winddown_thresh) are NOT folded in; if you change
+# one, bump the literal tag below.
+SEGMENT_CONFIG_VERSION = MODEL_ID + "|" + hashlib.sha256("".join([
+    "v1", PASS1_PROMPT, PASS2_PROMPT, PASS_MERGE_PROMPT, PASS_REFINE_PROMPT,
+    repr(sorted(CUES.items())), repr((CTX, MAX_WIN, HEAD, TAIL)),
+]).encode()).hexdigest()[:16]

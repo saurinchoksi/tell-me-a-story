@@ -73,9 +73,16 @@ def _judge_clusters(candidates):
 
 
 def make_judge():
-    """Return judge(candidates) -> set[cluster_id]. Runs Gemma in a fresh subprocess
-    (via model_runner) so the ~30s model load gets a clean GPU process and frees it on
-    exit. Each candidate: {cluster_id, spellings: [...], examples: [...]}."""
+    """Return judge(candidates) -> set[cluster_id], or raise FileNotFoundError if mlx-vlm
+    isn't installed (callers degrade to code-only on that). Runs Gemma in a fresh
+    subprocess (via model_runner) so the ~30s model load gets a clean GPU process and
+    frees it on exit. Each candidate: {cluster_id, spellings: [...], examples: [...]}."""
+    import importlib.util
+    if importlib.util.find_spec("mlx_vlm") is None:
+        raise FileNotFoundError(
+            "mlx-vlm is not installed in this venv; the M9b judge needs it "
+            "(pip install 'mlx-vlm==0.5.0'). Caller falls back to code-only.")
+
     def judge(candidates):
         return set(run_model(_judge_clusters, candidates, timeout=600))
 

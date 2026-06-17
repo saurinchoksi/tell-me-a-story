@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-16 — A faster, tidier pipeline that splits each recording into its stories
+
+Reworked how the recording pipeline runs its AI steps and added story-splitting on top. Each recording is now split into its separate bedtime stories — saved right in the transcript and shown as labelled dividers on the screen — and the name-checker reads those instead of re-splitting every time. Re-cleaning a recording no longer redoes the slow AI steps when nothing they depend on changed; each heavy step runs as its own short-lived helper that frees the Mac's memory when done; and a long-standing glitch where a fixed-up name didn't reach the transcript line is gone. Every piece landed as its own tested step, and a multi-angle code review caught a real bug — a stuck AI step could hang forever instead of timing out — which is now fixed and guarded by a test.
+
 ## 2026-06-16 — One AI setup instead of two
 
 The project kept two separate Python setups — one for most of the work, a second only for the Gemma model the name tools use — because an old library clash stopped them sharing one. That clash is gone: an experiment confirmed all four AI pieces (transcription, the speaker model, the word-fixer, and Gemma) now run together in a single setup, producing the very same results. Merged them into one, so there's one thing to install and keep current instead of two. The heavy steps still each run as their own short-lived helper process to keep the Mac's graphics memory clean — that isolation was never about having two setups, only about giving each model a fresh process.

@@ -257,3 +257,32 @@ def test_enrich_pass5_degrades_safely(tmp_path):
     # the other passes still ran
     assert any(p["stage"] == "llm_normalization" for p in processing)
     assert "_stories" not in result  # segmentation failed, nothing tagged
+
+
+def test_enrich_reuses_cache_across_runs(tmp_path):
+    """Two enrich runs with the same cache_dir hit the cache: the expensive model computes
+    (normalize + segmentation) each run ONCE, the second run is from_cache. The headline
+    're-enrich doesn't reload the model' behavior, wired through the in-memory transcript
+    fingerprints — mocks only the model COMPUTES, so the real cache/fingerprints run."""
+    base = {"segments": [
+        {"id": 0, "start": 0.0, "end": 1.0, "text": " hello",
+         "words": [{"word": " hello", "start": 0.0, "end": 1.0}]},
+        {"id": 1, "start": 1.0, "end": 2.0, "text": " world",
+         "words": [{"word": " world", "start": 1.0, "end": 2.0}]},
+    ]}
+    diarization = {"segments": []}
+    stories = [{"start_id": 0, "end_id": 1, "title": "T", "world": "W"}]
+
+    with patch("normalize._call_mlx", return_value='{"corrections": []}') as mock_mlx, \
+         patch("pipeline.segment_transcript", return_value=stories) as mock_seg, \
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, {"stage": "diarization_enrichment"})), \
+         patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, {"stage": "gap_detection", "gaps_found": 0})):
+        _, p1, _ = enrich_transcript(copy.deepcopy(base), diarization, cache_dir=tmp_path, verbose=False)
+        r2, p2, _ = enrich_transcript(copy.deepcopy(base), diarization, cache_dir=tmp_path, verbose=False)
+
+    assert mock_mlx.call_count == 1   # normalization computed once, reused on the 2nd run
+    assert mock_seg.call_count == 1   # segmentation computed once, reused on the 2nd run
+    assert [e for e in p1 if e["stage"] == "llm_normalization"][0]["from_cache"] is False
+    assert [e for e in p2 if e["stage"] == "llm_normalization"][0]["from_cache"] is True
+    assert [e for e in p2 if e["stage"] == "story_segmentation"][0]["from_cache"] is True
+    assert r2["_stories"][0]["title"] == "T"  # stories still enriched in on the cached run

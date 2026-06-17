@@ -13,21 +13,42 @@ and return value must be picklable. This is the single primitive behind the word
 (normalize.py), the M9b name judge, and the story-name auditor.
 """
 import multiprocessing
-from concurrent.futures import ProcessPoolExecutor, TimeoutError as FuturesTimeoutError
+import queue as _queue
+
+
+def _worker_wrapper(result_queue, fn, args, kwargs):
+    """Run fn in the child and ship (ok, value-or-exception) back through the queue."""
+    try:
+        result_queue.put((True, fn(*args, **kwargs)))
+    except Exception as e:  # propagate the worker's failure to the parent
+        try:
+            result_queue.put((False, e))
+        except Exception:  # exception itself isn't picklable — send a stand-in
+            result_queue.put((False, RuntimeError(repr(e))))
 
 
 def run_model(fn, /, *args, timeout: int = 600, **kwargs):
     """Run fn(*args, **kwargs) in a fresh spawned subprocess and return its result.
 
-    The subprocess exits when fn returns, releasing all of its GPU memory before the
-    next model loads. fn must be a module-level callable; its args/kwargs and return
-    value must be picklable. Raises TimeoutError if fn does not finish within `timeout`
-    seconds; any exception fn raises propagates to the caller.
+    The subprocess is KILLED if it doesn't finish within `timeout` seconds — bounding
+    wall-clock time and freeing its GPU memory at the cap — and exits normally otherwise,
+    so the next model loads into a clean GPU slate. fn must be a module-level callable;
+    its args/kwargs and return value must be picklable. Raises TimeoutError on overrun;
+    any exception fn raised is re-raised in the caller.
     """
     ctx = multiprocessing.get_context("spawn")
-    with ProcessPoolExecutor(max_workers=1, mp_context=ctx) as executor:
-        future = executor.submit(fn, *args, **kwargs)
-        try:
-            return future.result(timeout=timeout)
-        except FuturesTimeoutError:
-            raise TimeoutError(f"model subprocess timed out after {timeout}s")
+    result_queue = ctx.Queue()
+    proc = ctx.Process(target=_worker_wrapper, args=(result_queue, fn, args, kwargs))
+    proc.start()
+    try:
+        # get() (not join()) drains the result pipe, so a large return can't deadlock,
+        # and it bounds the wait: a hung worker raises Empty here and is killed below.
+        ok, payload = result_queue.get(timeout=timeout)
+    except _queue.Empty:
+        proc.kill()
+        raise TimeoutError(f"model subprocess timed out after {timeout}s")
+    finally:
+        proc.join()  # reap the child (it has exited normally or been killed)
+    if not ok:
+        raise payload
+    return payload
