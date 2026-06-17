@@ -1,22 +1,17 @@
 #!/usr/bin/env python3
 """Offline worker for the per-story name auditor — runs in a fresh subprocess.
 
-Invoked by detector.py (the main-venv caller) as a subprocess:
+`run(session_dir)` is invoked via model_runner.run_model from StoryNameDetector: a
+spawned subprocess of this venv, so its Gemma load gets a clean GPU process and frees
+it on exit. In ONE model load it (1) segments the session into stories (live Stage 0),
+(2) per story builds recall-recovered name cards and runs the v2 audit (+ canon shield),
+(3) EXPANDS each per-spelling verdict to the standard per-occurrence flag schema
+(segment_id/word_index/...), and RETURNS {n_word_tokens, flags}. Diagnostics go to
+stderr; a __main__ block prints the JSON for standalone debugging.
 
-    venv/bin/python  src/detectors/story_names/_worker.py  <session_dir>
-
-In ONE model load it: (1) segments the session into stories (live Stage 0),
-(2) per story builds recall-recovered name cards and runs the v2 audit (+ canon
-shield), (3) EXPANDS each per-spelling verdict to the standard per-occurrence flag
-schema (segment_id/word_index/...), and prints {n_word_tokens, flags} as JSON on
-stdout. ALL diagnostics go to stderr so stdout stays clean JSON for the caller.
-
-This module mirrors the design of name_consistency_judge.py's worker, but where the
-M9b judge crosses only a tiny judge() callable into the venv, here the WHOLE
-detection lives in the worker because segmentation + audit + shield all need the
-model. The flag-expansion (the one production-specific adaptation) and the
-live-segmentation region adapter live here; the validated logic is imported,
-verbatim, from the ported _segment/_audit/_names modules.
+The flag-expansion (the one production-specific adaptation) and the live-segmentation
+region adapter live here; the validated logic is imported, verbatim, from the ported
+_segment/_audit/_names modules.
 """
 import json
 import sys
@@ -145,11 +140,11 @@ def run(session_dir):
                 continue
             flags.extend(expand_flag(f, card, seg_by_id, r["idx"], r["world"]))
 
-    print(json.dumps({"n_word_tokens": count_word_tokens(rich), "flags": flags}))
+    return {"n_word_tokens": count_word_tokens(rich), "flags": flags}
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # standalone debugging; production calls run() via model_runner
     if len(sys.argv) < 2:
         print("usage: _worker.py <session_dir>", file=sys.stderr)
         sys.exit(2)
-    run(sys.argv[1])
+    print(json.dumps(run(sys.argv[1])))

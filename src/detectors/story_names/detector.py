@@ -1,25 +1,19 @@
 """Offline per-story name auditor (M9b/M9c) — the main-venv caller.
 
-Mirrors name_consistency_judge.make_judge's subprocess pattern: run() spawns the
-worker in a fresh subprocess of this venv (a clean process for the Gemma load), passing the session
-dir on argv and reading {n_word_tokens, flags} back as JSON on stdout. The caller
-imports no model code and no ported audit logic — all of that lives in the worker.
+run() invokes the worker via model_runner.run_model: a fresh subprocess of this venv
+that segments + audits with Gemma and returns {n_word_tokens, flags}. The subprocess
+exits when done, freeing its GPU memory; the caller stays model-free.
 
 offline_only=True keeps it out of every web request and every non-offline scan; only
 `detect.py --story-names` and process_inbox (run_offline=True) trigger it. NEVER call
 it from a live API GET/POST — a multi-minute segment+audit can't sit in a web request.
 """
-import json
-import subprocess
-import sys
 from pathlib import Path
 
 from detectors.base import Detector
 
-# One merged venv: spawn the worker as a fresh subprocess of THIS interpreter so a
-# pyannote MPS allocation can't block the Gemma load (finish-and-free for GPU memory).
-VLM_PYTHON = Path(sys.executable)
-WORKER = Path(__file__).resolve().parent / "_worker.py"
+# Generous cap: a long session segments + audits across several model calls.
+WORKER_TIMEOUT = 1800
 
 
 class StoryNameDetector(Detector):
@@ -31,11 +25,6 @@ class StoryNameDetector(Detector):
     offline_only = True  # never runs in a web request or a non-offline scan
 
     def run(self, session_dir: Path) -> dict:
-        proc = subprocess.run(
-            [str(VLM_PYTHON), str(WORKER), str(session_dir)],
-            capture_output=True, text=True,
-        )
-        if proc.returncode != 0:
-            raise RuntimeError(f"story-names worker failed:\n{proc.stderr[-2000:]}")
-        result = json.loads(proc.stdout)
-        return {"n_word_tokens": result["n_word_tokens"], "flags": result["flags"]}
+        from model_runner import run_model
+        from detectors.story_names import _worker
+        return run_model(_worker.run, str(session_dir), timeout=WORKER_TIMEOUT)

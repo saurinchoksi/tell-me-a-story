@@ -4,6 +4,8 @@ import json
 import re
 from datetime import datetime, timezone
 
+from model_runner import run_model
+
 
 MODEL = "mlx-community/Qwen3-8B-8bit"
 MAX_TOKENS = 512
@@ -52,23 +54,10 @@ def _mlx_worker(prompt_text: str, model: str, max_tokens: int) -> str:
 
 
 def _call_mlx(prompt_text: str, model: str, timeout: int) -> str:
-    """Call MLX-LM in a spawned subprocess to avoid GPU memory conflicts.
-
-    Pyannote diarization leaves MPS allocations in the parent process that
-    prevent Qwen3-8B-8bit from loading. A spawned process has a clean GPU
-    slate — same isolation that made the previous Ollama daemon work.
-    """
-    import multiprocessing
-    from concurrent.futures import ProcessPoolExecutor
-
-    ctx = multiprocessing.get_context("spawn")
-    with ProcessPoolExecutor(max_workers=1, mp_context=ctx) as executor:
-        future = executor.submit(_mlx_worker, prompt_text, model, MAX_TOKENS)
-        try:
-            response = future.result(timeout=timeout)
-        except TimeoutError:
-            raise TimeoutError(f"MLX inference timed out after {timeout}s")
-
+    """Call MLX-LM in a fresh subprocess (clean GPU slate after pyannote) and strip the
+    model's <think> block. The finish-and-free isolation lives in model_runner.run_model;
+    pyannote's MPS allocations would otherwise block Qwen3-8B-8bit from loading."""
+    response = run_model(_mlx_worker, prompt_text, model, MAX_TOKENS, timeout=timeout)
     return _THINK_RE.sub("", response).strip()
 
 

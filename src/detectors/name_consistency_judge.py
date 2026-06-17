@@ -7,23 +7,18 @@ eval found wins at 1.00/1.00 with a few-shot prompt — see emp/src/judge_m9b.py
 and emp/writeup/name-consistency-eval.html). The judge reads a few example lines
 per cluster and decides "character name, or ordinary words?".
 
-This module is BOTH the caller and the worker:
-  - `make_judge()` returns judge(candidates) -> set[cluster_id]. It runs the model in
-    a fresh subprocess of this venv — a clean process so a pyannote MPS allocation
-    can't block the Gemma load (finish-and-free for GPU memory).
-  - run as `--worker`, it loads the model and judges clusters read as JSON on stdin,
-    emitting kept cluster_ids as JSON on stdout.
+`make_judge()` returns judge(candidates) -> set[cluster_id]. The model runs via the
+shared model_runner — a fresh subprocess of this venv, a clean process so a pyannote
+MPS allocation can't block the Gemma load, freeing GPU memory on exit.
 
 It is NEVER called from the live API (a ~30s model load can't sit in a page-view
 request). Only `detect.py --judge` supplies it; the result survives normal Monitor
 viewing and is reverted to code-only if the transcript changes (re-run to restore).
 """
-import json
-import subprocess
-import sys
-from pathlib import Path
+from collections import Counter
 
-VLM_PYTHON = Path(sys.executable)
+from model_runner import run_model
+
 MODEL = "mlx-community/gemma-4-e4b-it-4bit"
 RUNS = 3
 
@@ -54,28 +49,13 @@ PROMPT = (
 )
 
 
-def make_judge():
-    """Return judge(candidates) -> set[cluster_id]. Each candidate:
+def _judge_clusters(candidates):
+    """Module-level (picklable for the spawned subprocess). Loads Gemma-4 E4B once and
+    returns the cluster_ids that majority-vote to NAME. Each candidate:
     {cluster_id, spellings: [...], examples: [...]}."""
-    def judge(candidates):
-        proc = subprocess.run(
-            [str(VLM_PYTHON), str(Path(__file__).resolve()), "--worker"],
-            input=json.dumps(candidates), capture_output=True, text=True,
-        )
-        if proc.returncode != 0:
-            raise RuntimeError(f"judge worker failed:\n{proc.stderr[-2000:]}")
-        return set(json.loads(proc.stdout)["kept"])
-
-    return judge
-
-
-def _worker():
-    """Runs in a fresh subprocess. Reads candidates on stdin, emits kept ids."""
-    from collections import Counter
     from mlx_vlm import load, generate
     from mlx_vlm.prompt_utils import apply_chat_template
 
-    candidates = json.loads(sys.stdin.read())
     model, processor = load(MODEL)
     kept = []
     for c in candidates:
@@ -89,9 +69,14 @@ def _worker():
             verdicts.append("NAME" if ("NAME" in up and "WORD" not in up) else "WORD")
         if Counter(verdicts).most_common(1)[0][0] == "NAME":
             kept.append(c["cluster_id"])
-    print(json.dumps({"kept": kept}))
+    return kept
 
 
-if __name__ == "__main__":
-    if "--worker" in sys.argv:
-        _worker()
+def make_judge():
+    """Return judge(candidates) -> set[cluster_id]. Runs Gemma in a fresh subprocess
+    (via model_runner) so the ~30s model load gets a clean GPU process and frees it on
+    exit. Each candidate: {cluster_id, spellings: [...], examples: [...]}."""
+    def judge(candidates):
+        return set(run_model(_judge_clusters, candidates, timeout=600))
+
+    return judge
