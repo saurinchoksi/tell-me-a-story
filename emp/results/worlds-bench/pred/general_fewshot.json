@@ -1,0 +1,509 @@
+{
+  "_about": "world-classifier benchmark predictions (firewalled runner)",
+  "model": "mlx-community/gemma-4-e4b-it-4bit",
+  "candidate": "general_fewshot",
+  "input_mode": "full",
+  "n": 100,
+  "results": [
+    {
+      "id": "s001",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s002",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s003",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s004",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s005",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s006",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s007",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s008",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s009",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s010",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s011",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s012",
+      "world_pred": "",
+      "raw": "```json\n{\n{\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s013",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s014",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s015",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s016",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s017",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s018",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s019",
+      "world_pred": "Paw Patrol",
+      "raw": "{\"world\": \"Paw Patrol\"}"
+    },
+    {
+      "id": "s020",
+      "world_pred": "Paw Patrol",
+      "raw": "```json\n{\"world\": \"Paw Patrol\"}\n```"
+    },
+    {
+      "id": "s021",
+      "world_pred": "Paw Patrol",
+      "raw": "```json\n{\n\"world\": \"Paw Patrol\"\n}\n```"
+    },
+    {
+      "id": "s022",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s023",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s024",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s025",
+      "world_pred": "Octonauts",
+      "raw": "```json\n{\n\"world\": \"Octonauts\"\n}\n```"
+    },
+    {
+      "id": "s026",
+      "world_pred": "Octonauts",
+      "raw": "```json\n{\n\"world\": \"Octonauts\"\n}\n```"
+    },
+    {
+      "id": "s027",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s028",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s029",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s030",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s031",
+      "world_pred": "How to Train Your Dragon",
+      "raw": "```json\n{\"world\": \"How to Train Your Dragon\"}\n```"
+    },
+    {
+      "id": "s032",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s033",
+      "world_pred": "The Bremen Town Musicians",
+      "raw": "```json\n{\"world\": \"The Bremen Town Musicians\"}\n```"
+    },
+    {
+      "id": "s034",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s035",
+      "world_pred": "The Adventures of Sherlock Holmes",
+      "raw": "```json\n{\"world\": \"The Adventures of Sherlock Holmes\"}\n```"
+    },
+    {
+      "id": "s036",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\n\"world\": \"Star Wars\"\n}\n```"
+    },
+    {
+      "id": "s037",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s038",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\n\"world\": \"Star Wars\"\n}\n```"
+    },
+    {
+      "id": "s039",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s040",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s041",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s042",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s043",
+      "world_pred": "",
+      "raw": "```json\n{\"world\": \"{{{Dragon Egg}}}}\n```"
+    },
+    {
+      "id": "s044",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s045",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s046",
+      "world_pred": "PAW Patrol",
+      "raw": "```json\n{\n\"world\": \"PAW Patrol\"\n}\n```"
+    },
+    {
+      "id": "s047",
+      "world_pred": "Finding Nemo",
+      "raw": "```json\n{\"world\": \"Finding Nemo\"}\n```"
+    },
+    {
+      "id": "s048",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s049",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s050",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s051",
+      "world_pred": "",
+      "raw": "```json\n{\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s052",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s053",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s054",
+      "world_pred": "",
+      "raw": "```json\n{\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s055",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s056",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s057",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s058",
+      "world_pred": "",
+      "raw": "```json\n{\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s059",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s060",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s061",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s062",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s063",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s064",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s065",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s066",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s067",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s068",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s069",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s070",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s071",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s072",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s073",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s074",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s075",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s076",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s077",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s078",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s079",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s080",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s081",
+      "world_pred": "",
+      "raw": "```json\n{\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s082",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s083",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s084",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s085",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s086",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s087",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s088",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s089",
+      "world_pred": "",
+      "raw": "```json\n{\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s090",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s091",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s092",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s093",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s094",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s095",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s096",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s097",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s098",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s099",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s100",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"}\n```"
+    }
+  ]
+}

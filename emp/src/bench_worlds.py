@@ -142,6 +142,39 @@ PROMPTS = {
         '{"world": "<world name, or empty if made up>"}\n\n'
         'Transcript:\n{story}\n'
     ),
+    # Round 3 (research-driven): few-shot. 6 balanced worked examples placed FIRST
+    # (small models swing ~20pts on demo position), spanning famous/less-famous/made-up
+    # incl. a wizard-school TRAP that resolves to empty. Example worlds are DISJOINT from
+    # the benchmark and held-out worlds, so they teach the pattern, not the answers.
+    "general_fewshot": (
+        'Here are examples of reading a bedtime-story transcript and naming its world. '
+        'An empty world means an original, made-up story from no known source.\n\n'
+        'Example 1\nStory: the chubby yellow bear who loves honey gets his head stuck in '
+        'the rabbit hole, and his gloomy grey donkey friend just sighs\n'
+        'Answer: {"world": "Winnie the Pooh"}\n\n'
+        'Example 2\nStory: the two princess sisters, the older one makes ice and snow '
+        'with her hands and runs away to build a palace up the freezing mountain\n'
+        'Answer: {"world": "Frozen"}\n\n'
+        'Example 3\nStory: the naughty little bunny in the blue coat sneaks under the '
+        "fence into Mister Mac-greggor's vegetable garden and loses his jacket\n"
+        'Answer: {"world": "Peter Rabbit"}\n\n'
+        'Example 4\nStory: the strong hero in the lion skin has to do his twelve labors, '
+        'and first he fights the big snake with the many heads that grow back\n'
+        'Answer: {"world": "Greek mythology"}\n\n'
+        'Example 5\nStory: there was a little sleepy cloud named Pip who was too tired to '
+        'rain, so he floated down and napped on the tallest tree while the birds tucked '
+        'him in\nAnswer: {"world": ""}\n\n'
+        'Example 6\nStory: a boy gets a letter saying he is magic and goes to a foggy '
+        'castle school called Thornhallow to learn potions and flying\n'
+        'Answer: {"world": ""}\n\n'
+        'Now do the same for the story below. It rambles and proper names may be '
+        'mis-transcribed — judge garbled names by what they sound like, and use your own '
+        'knowledge of well-known stories. If it is an original/made-up story from no '
+        'known world, return empty; when unsure, return empty.\n\n'
+        'Return JSON only, no other text:\n'
+        '{"world": "<world name, or empty if made up>"}\n\n'
+        'Story:\n{story}\n'
+    ),
 }
 
 
