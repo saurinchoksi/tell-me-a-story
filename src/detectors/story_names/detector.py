@@ -28,7 +28,9 @@ class CanonNameDetector(Detector):
     id = "m9c-canon"
     label = "Canon-name mistranscription (Thomas / Mahabharata / known source)"
     failure_mode = "M9c"
-    version = "0.1.0-experimental"
+    # 0.2.0: dictionary-gate the canon verdicts so an ordinary word ("arrows") can't be
+    # flagged as a misspelled canon name — recall-guarded (see _audit.gate_canon_flags).
+    version = "0.2.0-experimental"
     accepts_judge = False
     offline_only = True  # never runs in a web request or a non-offline scan
 

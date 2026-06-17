@@ -215,6 +215,58 @@ def _run_card_pass(gen, world, cards, raw_log, context=""):
     return flags, verdicts
 
 
+# ----------------------- canon dictionary gate (M9c only) ---------------------
+# PRODUCTION-ONLY hardening (not in the sealed eval audit_names.py): the worksheet
+# reader sometimes dresses an ordinary word up as a misspelled canon name — on the
+# held-out Mahabharata it clustered "arrows"/"wars"/"Urzi" and called them canon_wrong
+# -> "Arrow" (24 flags, ~22 false). This gate drops those, and is recall-guarded so it
+# never removes a real canon name that merely happens to be a dictionary entry.
+def _is_ordinary_word(cleaned, singles):
+    """True when a cleaned token/canonical is an ordinary common word: the dictionary
+    knows it (trailing-'s' tolerated, via the M9b detector's _is_common) AND the story
+    never uses it as a capitalized proper name. The proper-name guard (`singles`) is the
+    whole point — names like Krishna, Drona, Dhritarashtra ARE dictionary entries, so a
+    bare dictionary test would delete real catches; but in their own story they appear
+    capitalized mid-sentence, so they sit in `singles` and are protected here."""
+    if not cleaned or cleaned in singles:
+        return False
+    return _NCD._is_common(cleaned)
+
+
+def gate_canon_flags(flags, singles):
+    """Dictionary-gate the canon (M9c) flags so an ordinary English word can't be flagged
+    as a misspelled canon name. Recall-guarded cuts (M9b/M9d pass straight through):
+      (1) WHOLE-FLAG canonical cut — drop a flag whose proposed canonical is an ordinary
+          word AND whose cluster also contains an ordinary word ("Arrow", clustered with
+          "arrows"/"wars"). The "cluster also contains an ordinary word" condition is the
+          recall guard: a real canon name spelled wrong produces NON-words
+          (Dhrashtra->Dhritarashtra), so a canon name the dictionary merely happens to list
+          is never dropped on the canonical alone.
+      (2) WRONG-SPELLING cut — drop any wrong spelling that is itself an ordinary word
+          ("arrows", "wars"); if none survive, drop the flag.
+    `dict_gated` records what each surviving flag lost, mirroring the M9b shield's
+    `shielded` audit trail."""
+    kept = []
+    for f in flags:
+        if f["case"] != "M9c":
+            kept.append(f)
+            continue
+        ordinary_wrong = [c for c in f["wrong_cleaned"] if _is_ordinary_word(c, singles)]
+        if _is_ordinary_word(clean(f["canonical"]), singles) and ordinary_wrong:
+            continue                                   # ordinary-word cluster dressed as canon
+        survive = [c for c in f["wrong_cleaned"] if not _is_ordinary_word(c, singles)]
+        if not survive:
+            continue                                   # every wrong spelling was a common word
+        gated = sorted(set(f["wrong_cleaned"]) - set(survive))
+        if gated:
+            keep_set = set(survive)
+            f["dict_gated"] = gated
+            f["wrong_cleaned"] = sorted(keep_set)
+            f["wrong_surface"] = sorted(s for s in f["wrong_surface"] if clean(s) in keep_set)
+        kept.append(f)
+    return kept
+
+
 # ---- v2: worksheet (with recall recovery) + a canon shield over the M9b flags ----
 SHIELD_PROMPT = """This story is set in the world of "{world}". Here are some name spellings the checker thinks might be one made-up name spelled inconsistently:
 {names}
@@ -250,6 +302,7 @@ def run_v2(gen, world, segs, cards, raw_log):
     shield that removes correctly-spelled real names from the INCONSISTENCY (M9b) flags
     only — never from canon-wrong (M9c) flags, so a misspelled canon name stays caught."""
     flags, verdicts = _run_card_pass(gen, world, cards, raw_log, context="")
+    flags = gate_canon_flags(flags, proper_name_candidates(segs))   # M9c dictionary gate
     m9b_surfaces = {s for f in flags if f["case"] == "M9b" for s in f["wrong_surface"]}
     canon = recognize_real_names(gen, world, m9b_surfaces, raw_log)
     if not canon:
