@@ -47,11 +47,11 @@ def main():
     ap.add_argument("--detector", help="run only this detector id")
     ap.add_argument("--judge", action="store_true",
                     help="apply the offline LLM judge to m9b-name-consistency "
-                         "(recovers dictionary-word names; needs the mlx-vlm venv)")
+                         "(recovers dictionary-word names; loads Gemma, slow)")
     ap.add_argument("--story-names", action="store_true",
                     help="run the offline per-story name auditor (m9bc-story-names): "
                          "segments each session then audits names with local Gemma-4 "
-                         "(needs the mlx-vlm venv; slow — minutes/session). Skipped by "
+                         "(loads Gemma locally; slow — minutes/session). Skipped by "
                          "default and never in a web request. Loads the model separately "
                          "from --judge if both are given.")
     args = ap.parse_args()

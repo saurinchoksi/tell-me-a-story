@@ -22,7 +22,7 @@ module is imported, never run standalone.
   5. READER pass 2 (local LLM) — per region, name the world + a title.
 
 Output per session: stories = [{start_id, end_id, title, world, evidence}].
-LOCAL-ONLY: the reader is Gemma-4 E4B via MLX, run under venv-mlx-vlm.
+LOCAL-ONLY: the reader is Gemma-4 E4B via MLX, run in a fresh subprocess.
 """
 import json
 import re

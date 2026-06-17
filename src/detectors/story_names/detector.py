@@ -1,7 +1,7 @@
 """Offline per-story name auditor (M9b/M9c) — the main-venv caller.
 
 Mirrors name_consistency_judge.make_judge's subprocess pattern: run() spawns the
-worker under venv-mlx-vlm (the Gemma-4 build only loads there), passing the session
+worker in a fresh subprocess of this venv (a clean process for the Gemma load), passing the session
 dir on argv and reading {n_word_tokens, flags} back as JSON on stdout. The caller
 imports no model code and no ported audit logic — all of that lives in the worker.
 
@@ -11,12 +11,14 @@ it from a live API GET/POST — a multi-minute segment+audit can't sit in a web 
 """
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 from detectors.base import Detector
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-VLM_PYTHON = PROJECT_ROOT / "venv-mlx-vlm" / "bin" / "python"
+# One merged venv: spawn the worker as a fresh subprocess of THIS interpreter so a
+# pyannote MPS allocation can't block the Gemma load (finish-and-free for GPU memory).
+VLM_PYTHON = Path(sys.executable)
 WORKER = Path(__file__).resolve().parent / "_worker.py"
 
 
@@ -29,12 +31,6 @@ class StoryNameDetector(Detector):
     offline_only = True  # never runs in a web request or a non-offline scan
 
     def run(self, session_dir: Path) -> dict:
-        if not VLM_PYTHON.exists():
-            raise FileNotFoundError(
-                f"mlx-vlm venv not found at {VLM_PYTHON}. Create it with: "
-                "python -m venv venv-mlx-vlm && ./venv-mlx-vlm/bin/pip install "
-                "'mlx-vlm==0.5.0' metaphone"
-            )
         proc = subprocess.run(
             [str(VLM_PYTHON), str(WORKER), str(session_dir)],
             capture_output=True, text=True,

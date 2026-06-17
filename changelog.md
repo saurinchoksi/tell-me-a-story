@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-16 — One AI setup instead of two
+
+The project kept two separate Python setups — one for most of the work, a second only for the Gemma model the name tools use — because an old library clash stopped them sharing one. That clash is gone: an experiment confirmed all four AI pieces (transcription, the speaker model, the word-fixer, and Gemma) now run together in a single setup, producing the very same results. Merged them into one, so there's one thing to install and keep current instead of two. The heavy steps still each run as their own short-lived helper process to keep the Mac's graphics memory clean — that isolation was never about having two setups, only about giving each model a fresh process.
+
 ## 2026-06-16 — The story-name auditor now runs in the Monitor
 
 The per-story reader that catches a misheard name — built and scored on the eval side this week — now runs as a standing check in the Monitor, beside the family-name and inconsistency detectors. For each recording it splits the stories, reads each one with a small on-device model, and flags an invented name spelled several ways or a real character spelled wrong, while leaving correctly-spelled real names — a show's actual engine — alone. On the five test recordings it caught every clear mistake and stayed silent on the two clean ones, even where the older word-by-word checks fired dozens of false alarms. Because reading a whole recording takes minutes, it runs when a recording is added and on demand, never during a page view — a new "offline-only" setting keeps any slow model out of every web request — and it ships experimental until it has been checked against recordings it hasn't seen.

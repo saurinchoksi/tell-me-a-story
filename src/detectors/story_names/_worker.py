@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Offline worker for the per-story name auditor — runs under venv-mlx-vlm.
+"""Offline worker for the per-story name auditor — runs in a fresh subprocess.
 
 Invoked by detector.py (the main-venv caller) as a subprocess:
 
-    venv-mlx-vlm/bin/python  src/detectors/story_names/_worker.py  <session_dir>
+    venv/bin/python  src/detectors/story_names/_worker.py  <session_dir>
 
 In ONE model load it: (1) segments the session into stories (live Stage 0),
 (2) per story builds recall-recovered name cards and runs the v2 audit (+ canon

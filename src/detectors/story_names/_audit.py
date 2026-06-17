@@ -13,7 +13,7 @@ Detects, per story, in one local-LLM pass:
   - M9b: ONE improvised name spelled SEVERAL different ways.
 
 FIREWALL: reads the transcript + the live Stage-0 regions ONLY. Never the answer key.
-LOCAL-ONLY: Gemma-4 E4B via MLX under venv-mlx-vlm; family content never leaves the machine.
+LOCAL-ONLY: Gemma-4 E4B via MLX in a fresh subprocess; family content never leaves the machine.
 """
 from collections import defaultdict
 

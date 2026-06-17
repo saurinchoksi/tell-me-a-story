@@ -106,7 +106,7 @@ def process_inbox(target_file: str | None = None):
             # M9b LLM judge, AND the offline per-story name auditor (run_offline=True).
             # Separate try: a detector problem must not report the session as a
             # pipeline failure — the transcription artifacts are already saved and
-            # usable. The judge falls back to code-only if its mlx-vlm venv isn't set
+            # usable. The judge falls back to code-only if mlx-vlm isn't installed; the
             # up; the name auditor (also mlx-vlm) adds minutes + a second model load.
             try:
                 from detectors import DETECTORS

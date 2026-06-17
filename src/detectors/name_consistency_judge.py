@@ -8,11 +8,11 @@ and emp/writeup/name-consistency-eval.html). The judge reads a few example lines
 per cluster and decides "character name, or ordinary words?".
 
 This module is BOTH the caller and the worker:
-  - `make_judge()` (main venv) returns judge(candidates) -> set[cluster_id]. It
-    subprocesses to the mlx-vlm venv because the Gemma-4 build only loads under
-    mlx-vlm, not the main venv's mlx-lm.
-  - run as `--worker` under venv-mlx-vlm, it loads the model and judges clusters
-    read as JSON on stdin, emitting kept cluster_ids as JSON on stdout.
+  - `make_judge()` returns judge(candidates) -> set[cluster_id]. It runs the model in
+    a fresh subprocess of this venv — a clean process so a pyannote MPS allocation
+    can't block the Gemma load (finish-and-free for GPU memory).
+  - run as `--worker`, it loads the model and judges clusters read as JSON on stdin,
+    emitting kept cluster_ids as JSON on stdout.
 
 It is NEVER called from the live API (a ~30s model load can't sit in a page-view
 request). Only `detect.py --judge` supplies it; the result survives normal Monitor
@@ -23,8 +23,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-VLM_PYTHON = PROJECT_ROOT / "venv-mlx-vlm" / "bin" / "python"
+VLM_PYTHON = Path(sys.executable)
 MODEL = "mlx-community/gemma-4-e4b-it-4bit"
 RUNS = 3
 
@@ -56,15 +55,8 @@ PROMPT = (
 
 
 def make_judge():
-    """Return judge(candidates) -> set[cluster_id], or raise if the mlx-vlm venv
-    isn't set up. Each candidate: {cluster_id, spellings: [...], examples: [...]}."""
-    if not VLM_PYTHON.exists():
-        raise FileNotFoundError(
-            f"mlx-vlm venv not found at {VLM_PYTHON}. Create it with: "
-            "python -m venv venv-mlx-vlm && ./venv-mlx-vlm/bin/pip install "
-            "'mlx-vlm==0.5.0' metaphone"
-        )
-
+    """Return judge(candidates) -> set[cluster_id]. Each candidate:
+    {cluster_id, spellings: [...], examples: [...]}."""
     def judge(candidates):
         proc = subprocess.run(
             [str(VLM_PYTHON), str(Path(__file__).resolve()), "--worker"],
@@ -78,7 +70,7 @@ def make_judge():
 
 
 def _worker():
-    """Runs under venv-mlx-vlm. Reads candidates on stdin, emits kept ids."""
+    """Runs in a fresh subprocess. Reads candidates on stdin, emits kept ids."""
     from collections import Counter
     from mlx_vlm import load, generate
     from mlx_vlm.prompt_utils import apply_chat_template
