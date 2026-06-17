@@ -311,11 +311,16 @@ export interface FamilyNameFlag extends DetectionFlagBase {
   matched_canonicals: string[];
 }
 
-/** M9b — a token in a name spelled inconsistently across the session. */
+/** M9b — a token in a name spelled inconsistently across the session. Only the
+ *  deviating (non-majority) spellings are flagged; `majority_spelling` is what this
+ *  recording mostly used (the odd token differs from it), or null when no spelling
+ *  dominates. It is a within-recording reference, NOT a global canonical. */
 export interface NameConsistencyFlag extends DetectionFlagBase {
   cluster_id: string;
   cluster_spellings: string[];
   n_cluster_occurrences: number;
+  majority_spelling: string | null;
+  majority_count: number | null;
 }
 
 /** M9c — a sourced-canon name (Thomas / Mahabharata) spelled wrong, from the

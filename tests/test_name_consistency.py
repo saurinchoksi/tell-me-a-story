@@ -63,6 +63,26 @@ def test_three_spellings_cluster(tmp_path):
     assert result["flags"][0]["cluster_spellings"] == ["Jarco", "Jarkko", "Jarko"]
 
 
+def test_majority_spelling_not_flagged_only_deviation(tmp_path):
+    # Zerk ×3 with one stray Zerg: only the stray is flagged. The 3 Zerks are this
+    # recording's majority (intended) spelling and are left alone — so a name spelled
+    # right dozens of times with one typo no longer floods the board.
+    result = run_on(tmp_path, ["Zerk", "Zerk", "Zerk", "Zerg"])
+    assert len(result["flags"]) == 1
+    f = result["flags"][0]
+    assert f["token"] == "Zerg"
+    assert f["majority_spelling"] == "Zerk"   # the in-recording reference (not a global canonical)
+    assert f["majority_count"] == 3
+
+
+def test_no_clear_majority_flags_all(tmp_path):
+    # Evenly split (Zerk ×2 / Zerg ×2): no winner, the name is unsettled, so every
+    # occurrence is flagged for review, with no majority reference.
+    result = run_on(tmp_path, ["Zerk", "Zerk", "Zerg", "Zerg"])
+    assert len(result["flags"]) == 4
+    assert all(f["majority_spelling"] is None for f in result["flags"])
+
+
 def test_cap_gate_drops_lowercase(tmp_path):
     # A lowercase token sharing the cluster's sound is not a name candidate, so it
     # neither gets flagged nor counts toward the cluster.

@@ -7,9 +7,15 @@ the *only* defect is inconsistency, so the detector flags it and leaves the
 choice of a winning spelling to a separate fix.
 
 Mechanism (code-only, no model): group the recording's capitalized tokens into
-phonetic clusters by shared Double Metaphone code, then flag every occurrence in
-any cluster that appears under more than one spelling. A name spelled one
-consistent way is never flagged.
+phonetic clusters by shared Double Metaphone code; a cluster spelled more than one
+way is inconsistent. We flag only the *deviating* occurrences: if one spelling is
+the recording's majority (used in more than half the occurrences), it is treated as
+the intended one and its occurrences are NOT flagged — only the odd spellings are.
+With no clear majority (spellings scattered, no winner), every occurrence is flagged
+so the unsettled name can be reviewed. A name spelled one consistent way is never
+flagged. The majority is a *within-recording* call about what to surface, never a
+global canonical — settling one spelling per character across recordings is a
+separate concern (cross-session consistency).
 
 Family-roster names are EXCLUDED (deferred to the m9a detector): a roster match —
 the child's or a parent's name and its misspellings — is dropped before clustering,
@@ -20,7 +26,7 @@ so the per-session detections.json stays under gitignored sessions/.
 """
 
 import hashlib
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 from detectors.base import Detector, load_transcript
@@ -79,7 +85,7 @@ class NameConsistencyDetector(Detector):
     id = "m9b-name-consistency"
     label = "Inconsistent name spelling"
     failure_mode = "M9b"
-    version = "1.1.0"  # 1.1.0: exclude family-roster names + drop contraction fragments
+    version = "1.2.0"  # 1.2.0: flag only deviating spellings (leave the majority alone)
     accepts_judge = True  # run(session_dir, judge=...) enables the offline LLM layer
 
     def __init__(self, wordlist_path=DEFAULT_WORDLIST, roster_path=None):
@@ -160,16 +166,20 @@ class NameConsistencyDetector(Detector):
                 uf.union(forms[0], other)
 
         # 3. A cluster is inconsistent iff it holds >1 distinct cleaned spelling.
-        cluster_forms = defaultdict(set)        # root -> {cleaned forms}
-        cluster_surface = defaultdict(set)      # root -> {raw surface forms}
-        cluster_count = defaultdict(int)        # root -> total occurrences
-        cluster_segs = defaultdict(list)        # root -> [segment ids]
+        cluster_forms = defaultdict(set)            # root -> {cleaned forms}
+        cluster_surface = defaultdict(set)          # root -> {raw surface forms}
+        cluster_count = defaultdict(int)            # root -> total occurrences
+        cluster_segs = defaultdict(list)            # root -> [segment ids]
+        cluster_form_counts = defaultdict(Counter)  # root -> Counter(cleaned form)
+        cluster_form_surface = defaultdict(dict)    # root -> {cleaned form: a surface}
         for sid, wi, start, end, raw, c in occurrences:
             root = uf.find(c)
             cluster_forms[root].add(c)
             cluster_surface[root].add(raw)
             cluster_count[root] += 1
             cluster_segs[root].append(sid)
+            cluster_form_counts[root][c] += 1
+            cluster_form_surface[root].setdefault(c, raw)
         # Split the inconsistent clusters by the dictionary filter. A cluster with
         # at least one non-ordinary spelling is a clear name (Pataki/Bacchus
         # survives via "pataki" — the misspelling is the signal). A cluster that is
@@ -196,12 +206,28 @@ class NameConsistencyDetector(Detector):
             inconsistent |= {r for r in candidate_roots
                              if min(cluster_forms[r]) in kept_ids}
 
-        # 4. One flag per occurrence inside an inconsistent cluster.
+        # 4. Per inconsistent cluster, find the in-recording majority spelling — the one
+        #    used in more than half the occurrences. It is treated as the intended spelling
+        #    *for this recording* (NOT a global canonical), so its occurrences are not
+        #    flagged. With no majority, the name is unsettled and every occurrence is.
+        cluster_majority = {}  # root -> (cleaned_form, surface, count) or None
+        for r in inconsistent:
+            top_form, top_n = cluster_form_counts[r].most_common(1)[0]
+            if top_n * 2 > cluster_count[r]:  # strict majority
+                surface = cluster_form_surface[r][top_form].rstrip(" .,?!…\"'")
+                cluster_majority[r] = (top_form, surface, top_n)
+            else:
+                cluster_majority[r] = None
+
+        # 5. Flag the deviating occurrences (everything except the majority spelling).
         flags = []
         for sid, wi, start, end, raw, c in occurrences:
             root = uf.find(c)
             if root not in inconsistent:
                 continue
+            maj = cluster_majority[root]
+            if maj is not None and c == maj[0]:
+                continue  # the in-recording majority (intended) spelling — not an error
             flags.append({
                 "segment_id": sid,
                 "word_index": wi,
@@ -213,5 +239,10 @@ class NameConsistencyDetector(Detector):
                 "cluster_id": min(cluster_forms[root]),
                 "cluster_spellings": sorted(cluster_surface[root]),
                 "n_cluster_occurrences": cluster_count[root],
+                # The recording's majority spelling this token deviates from, if any —
+                # None when no spelling dominates. A within-recording reference, NOT the
+                # character's global canonical (that is the cross-session bible's job).
+                "majority_spelling": maj[1] if maj else None,
+                "majority_count": maj[2] if maj else None,
             })
         return {"n_word_tokens": n_tokens, "flags": flags}

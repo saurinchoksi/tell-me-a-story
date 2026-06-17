@@ -188,6 +188,12 @@
   color: var(--color-text-muted);
 }
 
+/* M9b — the recording's majority spelling, shown muted as the reference the
+   flagged token deviates from */
+.spelling-dominant {
+  color: var(--color-text-muted);
+}
+
 .detection-flag-type--inconsistent {
   border-color: var(--color-warning);
   color: var(--color-warning);

@@ -53,14 +53,21 @@ function FlagCard({ flag, isPlaying, canPlay, onToggle }: FlagCardProps) {
         </button>
         <span className="detection-flag-token">{flag.token}</span>
         {'cluster_spellings' in flag ? (
-          // M9b — inconsistent spelling cluster
+          // M9b — a spelling that deviates from the recording's majority
           <>
             <span className="detection-flag-type detection-flag-type--inconsistent">
               inconsistent
             </span>
-            <span className="detection-flag-cluster">
-              spelled: {flag.cluster_spellings.join(' · ')}
-            </span>
+            {flag.majority_spelling ? (
+              <span className="detection-flag-cluster">
+                odd vs <span className="spelling-dominant">{flag.majority_spelling}</span>{' '}
+                (×{flag.majority_count} in this recording)
+              </span>
+            ) : (
+              <span className="detection-flag-cluster">
+                spelled: {flag.cluster_spellings.join(' · ')}
+              </span>
+            )}
           </>
         ) : 'matched_canonicals' in flag ? (
           // M9a — family-name roster match
