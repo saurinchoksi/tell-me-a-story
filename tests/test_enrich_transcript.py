@@ -183,3 +183,23 @@ def test_enrich_skips_dictionary_when_no_library():
     assert counts["dict_count"] == 0
     # load_library should never be called
     mock_load_lib.assert_not_called()
+
+
+def test_enrich_passes_cache_dir_to_llm_normalize(tmp_path):
+    """enrich_transcript threads cache_dir through to llm_normalize, so a re-enrich can
+    reuse the cached corrections instead of reloading the model."""
+    transcript = {"segments": []}
+    diarization = {"segments": []}
+    diar_entry = {"stage": "diarization_enrichment"}
+    gap_entry = {"stage": "gap_detection", "gaps_found": 0}
+    llm_entry = {"stage": "llm_normalization", "model": "m", "status": "success",
+                 "from_cache": False, "timestamp": "t"}
+
+    with patch("pipeline.llm_normalize", return_value=([], llm_entry)) as mock_llm, \
+         patch("pipeline.extract_text", return_value="hello world"), \
+         patch("pipeline.apply_corrections", return_value=(transcript, 0)), \
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)), \
+         patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
+        enrich_transcript(transcript, diarization, cache_dir=tmp_path, verbose=False)
+
+    assert mock_llm.call_args.kwargs.get("cache_dir") == tmp_path

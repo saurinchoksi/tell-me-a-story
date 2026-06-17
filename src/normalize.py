@@ -4,6 +4,7 @@ import json
 import re
 from datetime import datetime, timezone
 
+from model_cache import cached_or_run, fingerprint
 from model_runner import run_model
 
 
@@ -116,6 +117,7 @@ def llm_normalize(
     prompt: str = DEFAULT_PROMPT,
     model: str = MODEL,
     timeout: int = 300,
+    cache_dir=None,
 ) -> tuple[list[dict], dict]:
     """Identify phonetic mishearings in text using a local LLM.
 
@@ -127,12 +129,16 @@ def llm_normalize(
         prompt: Prompt template with {text} placeholder
         model: MLX-community model identifier
         timeout: Request timeout in seconds (passed through to backend)
+        cache_dir: If given, corrections are cached there keyed on (text + model +
+            prompt). A later call with the same input and config reuses them and skips
+            the model entirely — so a re-enrich that didn't change the transcript text
+            or this stage's config doesn't reload Qwen.
 
     Returns:
         Tuple of (corrections, processing_entry).
         corrections: List of dicts with 'transcribed' and 'correct' keys.
-        processing_entry: Dict with stage metadata (no corrections_applied —
-            pipeline adds that after apply_corrections).
+        processing_entry: Dict with stage metadata, incl. 'from_cache' (no
+            corrections_applied — pipeline adds that after apply_corrections).
 
     Raises:
         TimeoutError: If inference exceeds timeout
@@ -140,12 +146,22 @@ def llm_normalize(
         ValueError: If LLM response cannot be parsed
     """
     formatted = prompt.format(text=text)
-    response = _call_mlx(formatted, model, timeout)
-    corrections = _parse_llm_corrections(response)
+
+    def compute():
+        return _parse_llm_corrections(_call_mlx(formatted, model, timeout))
+
+    if cache_dir is not None:
+        corrections, was_cached = cached_or_run(
+            cache_dir, "llm_normalization",
+            fingerprint(text), fingerprint(model + "\n" + prompt), compute)
+    else:
+        corrections, was_cached = compute(), False
+
     entry = {
         "stage": "llm_normalization",
         "model": model,
         "status": "success",
+        "from_cache": was_cached,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     return corrections, entry

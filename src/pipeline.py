@@ -33,6 +33,7 @@ def enrich_transcript(
     diarization: dict,
     library_path: str = None,
     verbose: bool = True,
+    cache_dir=None,
 ) -> tuple[dict, list[dict], dict]:
     """Run all enrichment stages on a transcript.
 
@@ -102,7 +103,7 @@ def enrich_transcript(
         started_at = datetime.now(timezone.utc).isoformat()
         t0 = time.monotonic()
         text = extract_text(transcript)
-        llm_corrections, llm_entry = llm_normalize(text, model=LLM_MODEL)
+        llm_corrections, llm_entry = llm_normalize(text, model=LLM_MODEL, cache_dir=cache_dir)
         transcript, llm_count = apply_corrections(transcript, llm_corrections, "llm")
         llm_entry["corrections_applied"] = llm_count
         llm_entry["started_at"] = started_at
@@ -339,7 +340,8 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
 
     # Enrichment (normalization + diarization)
     transcript, enrichment_processing, _ = enrich_transcript(
-        transcript, diarization, library_path=library_path, verbose=verbose
+        transcript, diarization, library_path=library_path, verbose=verbose,
+        cache_dir=Path(audio_path).parent,
     )
 
     # Fold audio info into enriched transcript
@@ -474,7 +476,7 @@ if __name__ == "__main__":
         enrich_started_at = datetime.now(timezone.utc).isoformat()
         enrich_start = time.monotonic()
         transcript, enrichment_processing, counts = enrich_transcript(
-            transcript, diarization, library_path=args.library
+            transcript, diarization, library_path=args.library, cache_dir=session_dir
         )
         enrich_duration = round(time.monotonic() - enrich_start, 2)
 

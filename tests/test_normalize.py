@@ -165,3 +165,44 @@ def test_llm_normalize_returns_processing_entry(mock_call_mlx):
     assert entry["model"] == MODEL
     assert entry["status"] == "success"
     assert "timestamp" in entry
+
+
+# --- caching (stamp-and-skip): re-enrich shouldn't reload the model for nothing ---
+
+
+@patch("normalize._call_mlx")
+def test_llm_normalize_caches_on_repeat(mock_call_mlx, tmp_path):
+    """With a cache_dir, a repeat call (same input + config) skips the model."""
+    mock_call_mlx.return_value = '{"corrections": [{"transcribed": "fondos", "correct": "Pandavas"}]}'
+    c1, e1 = llm_normalize("fondos are here", cache_dir=tmp_path)
+    c2, e2 = llm_normalize("fondos are here", cache_dir=tmp_path)
+    assert c1 == c2 == [{"transcribed": "fondos", "correct": "Pandavas"}]
+    assert e1["from_cache"] is False and e2["from_cache"] is True
+    assert mock_call_mlx.call_count == 1  # model called once; second hit the cache
+
+
+@patch("normalize._call_mlx")
+def test_llm_normalize_recomputes_on_input_change(mock_call_mlx, tmp_path):
+    """Changed transcript text is a cache miss — the model runs again."""
+    mock_call_mlx.return_value = '{"corrections": []}'
+    llm_normalize("text one", cache_dir=tmp_path)
+    llm_normalize("text two", cache_dir=tmp_path)
+    assert mock_call_mlx.call_count == 2
+
+
+@patch("normalize._call_mlx")
+def test_llm_normalize_recomputes_on_model_change(mock_call_mlx, tmp_path):
+    """Changed config (model id) is a cache miss."""
+    mock_call_mlx.return_value = '{"corrections": []}'
+    llm_normalize("text", model="model-a", cache_dir=tmp_path)
+    llm_normalize("text", model="model-b", cache_dir=tmp_path)
+    assert mock_call_mlx.call_count == 2
+
+
+@patch("normalize._call_mlx")
+def test_llm_normalize_no_cache_dir_always_calls(mock_call_mlx, tmp_path):
+    """Without a cache_dir the model runs every time (current default behavior)."""
+    mock_call_mlx.return_value = '{"corrections": []}'
+    llm_normalize("text", cache_dir=None)
+    llm_normalize("text", cache_dir=None)
+    assert mock_call_mlx.call_count == 2
