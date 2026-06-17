@@ -1,0 +1,131 @@
+{
+  "stories": [
+    {
+      "bucket": "hybrid",
+      "difficulty": "obvious",
+      "world_gold": "Paw Patrol",
+      "world_aliases": ["paw patrol", "ryder", "adventure bay", "marshall", "skye"],
+      "lines": [
+        "Okay okay lie down, you ready? So once there was a big emergency in Adventure Bay.",
+        "And Ryder pushed the button and he called all the pups, no don't sit up.",
+        "He said no job is too big, no pup is too small!",
+        "Then what?",
+        "So Chase came zooming up in his police truck, and Marshall the fire dog right behind him.",
+        "Skye flew her little helicopter, whoosh, up in the sky.",
+        "Why did Ryder call them?",
+        "Because a kitten got stuck way up on the lighthouse, that's why.",
+        "But here's the new part, okay? There was a brand new pup named Sprocket.",
+        "Sprocket is a tiny dog who can fix anything with his magic wrench.",
+        "Is Sprocket real?",
+        "He's our pretend one, yeah, we made him up. He's the best builder pup.",
+        "So Sprocket built a little ladder right up to the kitten.",
+        "And Chase used his net and Marshall sprayed water to make it soft.",
+        "Then they all rescued the kitty and Ryder said great job!",
+        "And Sprocket got his very own pup tag, a shiny gold wrench.",
+        "The end. Drink your water.",
+        "Can Sprocket come tomorrow night too?"
+      ],
+      "tell_note": "Obvious: franchise named via Adventure Bay, Ryder, Chase, Marshall, Skye, and the catchphrase, all spelled right; Sprocket is the invented pup."
+    },
+    {
+      "bucket": "hybrid",
+      "difficulty": "medium",
+      "world_gold": "Octonauts",
+      "world_aliases": ["octonauts", "captain barnacles", "kwazii", "the octopod", "creature report"],
+      "lines": [
+        "So down in the deep deep ocean there's the team that lives in the Octopod.",
+        "What's the Octopod?",
+        "It's their underwater base, shaped like an octopus, with all the little submarines.",
+        "And the captain is a big polar bear, Captain Barnacles, he's so brave.",
+        "And there's a pirate cat with one eye, Kwazee, he loves adventures.",
+        "Kwazee always says yo ho ho.",
+        "So one day a baby creature was crying in a cave.",
+        "And tonight we put in a new one, a glowing seahorse named Lumi.",
+        "Lumi can light up the whole dark sea with her tail.",
+        "Did the captain find her?",
+        "Yeah, Barnacles took the little sub down to the cave.",
+        "And Kwazee swam in and Lumi lit everything up so they could see.",
+        "The crying baby was a lost octopus pup, all tangled up in seaweed.",
+        "So they cut him free and brought him back to his mama.",
+        "And then they did the creature report like they always do.",
+        "Lumi stayed to be the new light of the sea. Okay, eyes closed."
+      ],
+      "tell_note": "Medium: franchise not named aloud, but the Octopod, Captain Barnacles, the creature report, and mangled Kwazii (\"Kwazee\") fix it; Lumi the seahorse is invented."
+    },
+    {
+      "bucket": "hybrid",
+      "difficulty": "medium",
+      "world_gold": "Paw Patrol",
+      "world_aliases": ["paw patrol", "ryder", "rubble", "the lookout", "rubble on the double"],
+      "lines": [
+        "Alright, story about the rescue pups, the ones who live in the tall tower.",
+        "The boy who leads them, Rider, he got a call on his big watch.",
+        "No we already read the snowboard one, this is a new one.",
+        "A train was stuck on the tracks with rocks all over it.",
+        "So he called the bulldog, Rubble, the one who drives the digger.",
+        "Rubble, Rubble on the double! That's what he says.",
+        "And the police one in the blue, he set up the cones with his net.",
+        "But the rocks were too heavy for just them.",
+        "So tonight there's a new pup, an ox-strong one named Tank.",
+        "Tank is a huge gentle pup who can pull anything, even a train.",
+        "Is Tank stronger than Rubble?",
+        "Way stronger, but Rubble digs faster. They're a team.",
+        "So Tank pulled and Rubble dug and they got the rocks off the tracks.",
+        "And the train went choo choo, all the people clapped.",
+        "Rider gave Tank a new tag and said good work, pup.",
+        "Okay that's it, lie back down for real now."
+      ],
+      "tell_note": "Medium: franchise unnamed; mangled \"Rider,\" plus Rubble, his catchphrase, the Lookout tower, and the watch identify it; Tank the ox-pup is invented."
+    },
+    {
+      "bucket": "hybrid",
+      "difficulty": "subtle",
+      "world_gold": "Octonauts",
+      "world_aliases": ["octonauts", "kwazii", "peso", "captain barnacles", "vegimals"],
+      "lines": [
+        "You want the underwater one? Okay, the team that explores, protects, and rescues.",
+        "There was a little penguin, the medic one, Payso, and he's kind of shy.",
+        "What's a medic?",
+        "He's the one who takes care of everybody when they get hurt.",
+        "So a whale got beached up on the shore, real far from the water.",
+        "And Payso was so worried, he got out his little medic bag.",
+        "Tonight we add a new friend, a friendly crab named Pinch.",
+        "Pinch can dig tunnels in the sand super fast with his big claws.",
+        "So Pinch dug a long channel from the whale right down to the sea.",
+        "And everybody pushed and pushed.",
+        "Did the whale make it?",
+        "Yeah, the water came up the tunnel and the whale floated free.",
+        "Payso checked him over and said he's all okay.",
+        "And the little vegetable creatures made a kelp cake to celebrate.",
+        "Pinch gets to live in the base now. The end.",
+        "No more, it's late, close your eyes."
+      ],
+      "tell_note": "Subtle: franchise never named; only the mangled medic-penguin Peso (\"Payso\"), the Vegimals (\"little vegetable creatures\"), and the explore-protect-rescue line; Pinch the crab is invented."
+    },
+    {
+      "bucket": "hybrid",
+      "difficulty": "subtle",
+      "world_gold": "Paw Patrol",
+      "world_aliases": ["paw patrol", "everest", "ryder", "pup tag", "the lookout"],
+      "lines": [
+        "So it was snowing really hard up on the big mountain.",
+        "And the snow pup, the husky one named Everest, she lives up there.",
+        "Why does she live on the mountain?",
+        "Because she helps anybody who gets lost in the snow, that's her job.",
+        "A little goat slipped down into a crack in the ice.",
+        "And the boy leader, um, Rider, called on his watch, said this looks like a job for the pups.",
+        "We made a new one tonight, a snowy owl pup named Frost.",
+        "Frost can fly over the snow and find anybody with her big eyes.",
+        "So Frost flew up high and spotted the little goat way down.",
+        "And Everest used her snowboard, whoosh, down the hill.",
+        "Then what happened?",
+        "She used her cable to lift the goat up nice and slow.",
+        "And Frost flew next to it so the goat wouldn't be scared.",
+        "They all got back and got warm and dry.",
+        "And Frost got her own little pup tag with a snowflake on it.",
+        "Okay sleepy, that's enough mountain for one night."
+      ],
+      "tell_note": "Subtle: franchise never named; Everest the husky, the mangled leader \"Rider\" (Ryder), the watch, the snowboard, and the pup tag are the only tells; Frost the owl pup is invented."
+    }
+  ]
+}

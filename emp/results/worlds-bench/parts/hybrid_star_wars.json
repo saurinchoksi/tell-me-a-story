@@ -1,0 +1,106 @@
+{
+  "stories": [
+    {
+      "bucket": "hybrid",
+      "difficulty": "obvious",
+      "world_gold": "Star Wars",
+      "world_aliases": ["star wars", "luke", "darth vader", "the death star", "the force", "jedi"],
+      "lines": [
+        "okay this one's about Luke, you remember Luke",
+        "the boy with the glowy laser sword, the lightsaber yeah",
+        "and the bad guy in the black mask, Darth Vader, he breathes all loud",
+        "and they had this giant round space station, the Death Star",
+        "it could blow up a whole planet, boom",
+        "wait why is it called that",
+        "cause it's big as a moon and full of bad guys, okay lie down",
+        "so Luke flies his little ship to go blow it up",
+        "and he's got a new droid this time, a little round orange one called Bee-Pip",
+        "Bee-Pip beeps and finds the secret door",
+        "and Luke closes his eyes and uses the Force, the power the Jedi have",
+        "and pew, one shot, and the whole thing goes boom",
+        "everybody cheers, the end, night night"
+      ],
+      "tell_note": "Obvious Star Wars (Luke, Darth Vader, Death Star, the Force named outright). Invented element: the droid 'Bee-Pip'."
+    },
+    {
+      "bucket": "hybrid",
+      "difficulty": "medium",
+      "world_gold": "Star Wars",
+      "world_aliases": ["star wars", "han solo", "chewbacca", "the millennium falcon", "the force"],
+      "lines": [
+        "so there's this guy Han, he's kind of a pirate but a good one",
+        "and his best friend is a big hairy guy, like a giant dog-bear, Chewbaca",
+        "Chewbaca just goes rrraaargh and Han knows what he means",
+        "they fly the fastest ship there is, the Falcon",
+        "and they pick up a new passenger, a little spiky lizard lady named Sereen",
+        "Sereen is a bounty hunter but she owes Han money",
+        "why does she owe him money",
+        "cause she lost a card game, anyway",
+        "the bad guys chase them through the asteroids, pew pew",
+        "and Chewbaca pulls the lever and they zoom into the stars and disappear",
+        "lightspeed, gone, the end"
+      ],
+      "tell_note": "Medium Star Wars (Han, Chewbacca mangled to 'Chewbaca', the Falcon; franchise not named). Invented element: bounty hunter 'Sereen'."
+    },
+    {
+      "bucket": "hybrid",
+      "difficulty": "medium",
+      "world_gold": "Star Wars",
+      "world_aliases": ["star wars", "yoda", "the force", "jedi", "dagobah"],
+      "lines": [
+        "this is the one with the little green wise guy in the swamp",
+        "the one who talks all backwards, Yoder",
+        "do or do not, there is no try, he says that",
+        "and a young warrior comes to him to learn the Force",
+        "the warrior brings his pet too, a little floaty robot ball named Tup",
+        "Tup keeps falling in the swamp water, plop",
+        "and Yoder makes a whole ship float up out of the mud with just his mind",
+        "whoa how",
+        "the Force, that's how, it's in everything he says",
+        "and the young one trains all night, lifting rocks with his eyes closed",
+        "okay that's enough, sleepy time"
+      ],
+      "tell_note": "Medium Star Wars (Yoda mangled to 'Yoder', the Force, swamp = Dagobah; franchise not named). Invented element: the robot 'Tup'."
+    },
+    {
+      "bucket": "hybrid",
+      "difficulty": "subtle",
+      "world_gold": "Star Wars",
+      "world_aliases": ["star wars", "anakin", "obi-wan", "obi wan", "the dark side", "jedi"],
+      "lines": [
+        "okay a sad one, a long time ago",
+        "there were two knights who were like brothers, the best of friends",
+        "the younger one was the strongest there ever was, Anny-kin",
+        "but he got angry and scared and he turned to the dark side",
+        "what's the dark side",
+        "it's when you let the meanness win, anyway",
+        "and his teacher Oben begged him to stop, please don't do this",
+        "but they had to fight, on a planet made of fire and lava",
+        "and a little mouse droid the younger one built, Squeak, watched and beeped sad",
+        "Oben won but he was so so sad about it",
+        "and he carried Squeak away and never forgot his friend",
+        "the end, that one's a little sad huh"
+      ],
+      "tell_note": "Subtle Star Wars (Anakin mangled 'Anny-kin', Obi-Wan as 'Oben', the dark side, lava planet = Mustafar; franchise never named). Invented element: droid 'Squeak'."
+    },
+    {
+      "bucket": "hybrid",
+      "difficulty": "subtle",
+      "world_gold": "Star Wars",
+      "world_aliases": ["star wars", "the force", "jedi", "the rebellion", "stormtroopers"],
+      "lines": [
+        "there's a desert girl who waits and waits for her family",
+        "she scrubs old machines for food, way out in the sand",
+        "and one day a beeping droid rolls up with a secret map inside it",
+        "and the white-armor soldiers, the bucket-heads, come looking for it",
+        "she runs and meets a boy who can feel the power, the one that flows through everything",
+        "he closes his eyes and a sword of light comes on, vmmm",
+        "and her new friend, a grumpy little engineer named Pob, fixes their ship just in time",
+        "they fly up past the soldiers and join the good guys fighting back",
+        "is the power real",
+        "in this story it is, now close your eyes like the boy did, goodnight"
+      ],
+      "tell_note": "Subtle Star Wars (desert scavenger = Rey/Jakku, the Force as 'the power', lightsaber, stormtroopers as 'bucket-heads', the Resistance; franchise never named). Invented element: engineer 'Pob'."
+    }
+  ]
+}

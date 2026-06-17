@@ -1,0 +1,142 @@
+{
+  "stories": [
+    {
+      "bucket": "canon",
+      "difficulty": "obvious",
+      "world_gold": "Harry Potter",
+      "world_aliases": ["hogwarts", "harry potter", "quidditch", "hogwarts school of witchcraft and wizardry"],
+      "lines": [
+        "Okay so this one's about Harry Potter, you know, the boy with the lightning scar.",
+        "He lives in the cupboard under the stairs and then this giant man named Hagrid comes.",
+        "Hagrid! He's the giant?",
+        "Yeah, big beard, and he tells Harry, you're a wizard, Harry.",
+        "And then he goes off to a school called Hogwarts on a special train.",
+        "Does he get a wand?",
+        "He does, he gets it from a little shop, and an owl too, her name's Hedwig.",
+        "And at Hogwarts there's a headmaster, the wise old one, um, Dumbledore.",
+        "And his friends are Ron and Hermione, she's the smart one with all the books.",
+        "They play that broomstick game, Quidditch, flying around catching the little gold ball.",
+        "What's the bad guy?",
+        "The bad wizard's Voldemort, nobody even likes to say his name.",
+        "Okay, one more page then sleep. Lie back down.",
+        "And Harry's so brave and he saves the whole school. The end."
+      ],
+      "tell_note": "Franchise named aloud line 1 plus a stack of correctly-spelled canon (Hogwarts, Hagrid, Dumbledore, Hermione, Quidditch, Voldemort, Hedwig) — unmistakable, hence obvious."
+    },
+    {
+      "bucket": "canon",
+      "difficulty": "obvious",
+      "world_gold": "Harry Potter",
+      "world_aliases": ["hogwarts", "harry potter", "quidditch", "gryffindor"],
+      "lines": [
+        "Tonight let's do the wizard school one, with Harry and Ron and Hermione.",
+        "The one where they're in Gryffindor?",
+        "Yeah, the red and gold house, and the mean kids are in Slytherin.",
+        "So at Hogwarts there's this teacher with greasy hair, Professor Snape, hates Harry.",
+        "And the headmaster Dumbledore's got a long silver beard down to here.",
+        "And Hagrid lives in a little hut and he's got a giant dog, Fluffy, three heads.",
+        "Three heads! Ew.",
+        "And there's a ghost and moving staircases and pictures that talk.",
+        "Ron's got a rat and Hermione already knows every single spell, of course she does.",
+        "They fly broomsticks in Quidditch and Harry's the youngest seeker in like a hundred years.",
+        "What about the bad guy, the no-nose one?",
+        "Voldemort, right, he's the one who gave Harry that scar when he was a baby.",
+        "Okay, finish your water. Almost done.",
+        "And the three of them go down a trapdoor to stop him. Goodnight."
+      ],
+      "tell_note": "Franchise named via 'wizard school' plus Hogwarts/Gryffindor/Slytherin/Snape/Dumbledore/Quidditch/Voldemort all spelled right — obvious."
+    },
+    {
+      "bucket": "canon",
+      "difficulty": "medium",
+      "world_gold": "Harry Potter",
+      "world_aliases": ["hogwarts", "harry potter", "quidditch", "gryffindor"],
+      "lines": [
+        "Okay so there's this boy at a boarding school up in a big stone castle.",
+        "And the school's secret, because, well, everybody there's a witch or a wizard.",
+        "Like with wands?",
+        "With wands, yeah, and the boy's best friend's a girl who reads everything, um, Her My Own E.",
+        "She's so smart she fixes everything they break.",
+        "And there's this huge friendly groundskeeper with a tangled beard, Hag Rid, keeps all these strange animals.",
+        "And they have flying lessons up on broomsticks over the courtyard.",
+        "And a game in the air, four balls, you've gotta catch the tiny gold one to win.",
+        "Did the boy win?",
+        "He's the best flier in the whole school, even though he's the youngest one.",
+        "And an owl brings his mail right to the table at breakfast, swoops down.",
+        "Why an owl?",
+        "That's just how the letters come there. Now scoot under the covers.",
+        "And the three friends sneak out at night to figure out the castle's big secret."
+      ],
+      "tell_note": "Franchise not named; canon names mangled (Hermione->'Her My Own E', Hagrid->'Hag Rid') with owl-post + Quidditch described generically — medium."
+    },
+    {
+      "bucket": "canon",
+      "difficulty": "medium",
+      "world_gold": "Harry Potter",
+      "world_aliases": ["hogwarts", "harry potter", "you-know-who"],
+      "lines": [
+        "There was once this skinny kid who lived with his awful aunt and uncle.",
+        "They made him sleep in a closet under the stairs, can you believe that.",
+        "That's so mean.",
+        "But on his birthday a letter came, and then like a hundred letters, then a thousand.",
+        "And they took him off to a castle school where he learned to do magic.",
+        "The school's called Hog Warts, funny name, right.",
+        "Hog warts, like a pig?",
+        "Ha, yeah. And the headmaster's this gentle old man, Dumble Door, knows everything.",
+        "And there was a bad sorcerer everyone was scared of, they wouldn't even say his name.",
+        "They just called him You-Know-Who.",
+        "Spooky.",
+        "And the kid had a scar on his forehead, shaped like lightning, from when he was a baby.",
+        "Okay, last sip of milk, then eyes closed.",
+        "And he made two best friends and they had adventures all year long."
+      ],
+      "tell_note": "Franchise unnamed; Hogwarts->'Hog Warts', Dumbledore->'Dumble Door' mangled, plus cupboard-under-stairs, You-Know-Who, and lightning scar — medium tells through garble."
+    },
+    {
+      "bucket": "canon",
+      "difficulty": "subtle",
+      "world_gold": "Harry Potter",
+      "world_aliases": ["hogwarts", "harry potter"],
+      "lines": [
+        "So there's this boy away at a school where they're all learning special things.",
+        "He's got a best friend who's a girl, brilliant, always has the answer first.",
+        "And another friend, freckly, lots of brothers.",
+        "One day they're hungry and her my own e knows exactly which corridor to take.",
+        "Of course she does.",
+        "And way up at the top of the tower there's a man with a long beard who runs the place.",
+        "Is he nice?",
+        "Very. Calm, twinkly eyes, kind of always seems to know what you're about to ask.",
+        "And the boy gets his letters delivered by a bird, can you imagine, right to his plate.",
+        "And they have this thing they're not supposed to do but they do it anyway, sneaking around at night.",
+        "And there's somebody out there, in the dark, that the grownups are all frightened of.",
+        "Are the kids scared?",
+        "A little. But they're brave. Okay, that's enough, lie back down now.",
+        "And they figure it out together, the three of them. Sleep tight."
+      ],
+      "tell_note": "Only one mangled tell (Hermione->'her my own e'); owl-post, bearded headmaster, boarding school all generic — a fan catches it, a careless reader calls it made-up. Subtle."
+    },
+    {
+      "bucket": "canon",
+      "difficulty": "subtle",
+      "world_gold": "Harry Potter",
+      "world_aliases": ["hogwarts", "harry potter", "gryffindor"],
+      "lines": [
+        "Tonight let's do the one about the kids in the castle, the four houses one.",
+        "Each kid gets sorted into a house when they get there, and ours is the brave one.",
+        "Which house?",
+        "Grif and Door, the lions, red and gold. And the sneaky ones are the snakes.",
+        "So the boy and his two friends are in the brave house.",
+        "And there's a teacher in black robes who really doesn't like the boy, just glares at him.",
+        "Why doesn't he like him?",
+        "It's a long story, we'll get to it another night. Anyway.",
+        "And they have this big feast in a hall where the ceiling looks like the sky.",
+        "Like outside?",
+        "Like the real night sky, with candles floating up near it. It's pretty.",
+        "And they win points for their house all year by doing good and being brave.",
+        "Okay, that's the chapter. Under the covers.",
+        "And at the very end the brave house wins the cup. Goodnight, love."
+      ],
+      "tell_note": "Franchise unnamed; only tell is Gryffindor->'Grif and Door' plus the four-houses/enchanted-ceiling detail — easy to miss, recognizable to a fan. Subtle."
+    }
+  ]
+}
