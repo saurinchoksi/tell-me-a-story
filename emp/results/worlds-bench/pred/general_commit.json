@@ -1,0 +1,509 @@
+{
+  "_about": "world-classifier benchmark predictions (firewalled runner)",
+  "model": "mlx-community/gemma-4-e4b-it-4bit",
+  "candidate": "general_commit",
+  "input_mode": "full",
+  "n": 100,
+  "results": [
+    {
+      "id": "s001",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s002",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s003",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s004",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s005",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s006",
+      "world_pred": "Guardians of the Galaxy",
+      "raw": "```json\n{\"world\": \"Guardians of the Galaxy\"}\n```"
+    },
+    {
+      "id": "s007",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s008",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s009",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s010",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s011",
+      "world_pred": "Sleeping Beauty",
+      "raw": "```json\n{\"world\": \"Sleeping Beauty\"}\n```"
+    },
+    {
+      "id": "s012",
+      "world_pred": "Made up",
+      "raw": "```json\n{\"world\": \"Made up\"}\n```"
+    },
+    {
+      "id": "s013",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s014",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s015",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s016",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s017",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s018",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s019",
+      "world_pred": "PAW Patrol",
+      "raw": "```json\n{\"world\": \"PAW Patrol\"}\n```"
+    },
+    {
+      "id": "s020",
+      "world_pred": "PAW Patrol",
+      "raw": "```json\n{\"world\": \"PAW Patrol\"}\n```"
+    },
+    {
+      "id": "s021",
+      "world_pred": "Paw Patrol",
+      "raw": "```json\n{\"world\": \"Paw Patrol\"}\n```"
+    },
+    {
+      "id": "s022",
+      "world_pred": "Paw Patrol",
+      "raw": "```json\n{\"world\": \"Paw Patrol\"}\n```"
+    },
+    {
+      "id": "s023",
+      "world_pred": "Paw Patrol",
+      "raw": "```json\n{\"world\": \"Paw Patrol\"}\n```"
+    },
+    {
+      "id": "s024",
+      "world_pred": "9-1-1",
+      "raw": "```json\n{\"world\": \"9-1-1\"}\n```"
+    },
+    {
+      "id": "s025",
+      "world_pred": "Octonauts",
+      "raw": "```json\n{\"world\": \"Octonauts\"}\n```"
+    },
+    {
+      "id": "s026",
+      "world_pred": "Octonauts",
+      "raw": "```json\n{\"world\": \"Octonauts\"}\n```"
+    },
+    {
+      "id": "s027",
+      "world_pred": "Bio-pods",
+      "raw": "```json\n{\"world\": \"Bio-pods\"}\n```"
+    },
+    {
+      "id": "s028",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s029",
+      "world_pred": "SpongeBob SquarePants",
+      "raw": "```json\n{\"world\": \"SpongeBob SquarePants\"}\n```"
+    },
+    {
+      "id": "s030",
+      "world_pred": "Oceanography/Marine Biology (or a fictionalized account thereof)",
+      "raw": "```json\n{\"world\": \"Oceanography/Marine Biology (or a fictionalized account thereof)\"}\n```"
+    },
+    {
+      "id": "s031",
+      "world_pred": "Hilda",
+      "raw": "```json\n{\"world\": \"Hilda\"}\n```"
+    },
+    {
+      "id": "s032",
+      "world_pred": "Musinhas",
+      "raw": "```json\n{\"world\": \"Musinhas\"}\n```"
+    },
+    {
+      "id": "s033",
+      "world_pred": "The Bremen Town Musicians",
+      "raw": "```json\n{\"world\": \"The Bremen Town Musicians\"}\n```"
+    },
+    {
+      "id": "s034",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s035",
+      "world_pred": "The Adventures of Tintin",
+      "raw": "```json\n{\"world\": \"The Adventures of Tintin\"}\n```"
+    },
+    {
+      "id": "s036",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s037",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s038",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s039",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s040",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s041",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s042",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s043",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\"world\": \"Masters of the Universe\"}\n```"
+    },
+    {
+      "id": "s044",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s045",
+      "world_pred": "High Fantasy/Original setting inspired by tropes",
+      "raw": "```json\n{\"world\": \"High Fantasy/Original setting inspired by tropes\"}\n```"
+    },
+    {
+      "id": "s046",
+      "world_pred": "PAW Patrol",
+      "raw": "```json\n{\"world\": \"PAW Patrol\"}\n```"
+    },
+    {
+      "id": "s047",
+      "world_pred": "Odd Squad",
+      "raw": "```json\n{\"world\": \"Odd Squad\"}\n```"
+    },
+    {
+      "id": "s048",
+      "world_pred": "PAW Patrol",
+      "raw": "```json\n{\"world\": \"PAW Patrol\"}\n```"
+    },
+    {
+      "id": "s049",
+      "world_pred": "Undertail/Bio-mechanical/Oceanic Rescue Scenario",
+      "raw": "```json\n{\"world\": \"Undertail/Bio-mechanical/Oceanic Rescue Scenario\"}\n```"
+    },
+    {
+      "id": "s050",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s051",
+      "world_pred": "",
+      "raw": "```json\n{\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s052",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s053",
+      "world_pred": "",
+      "raw": "```json\n{\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s054",
+      "world_pred": "",
+      "raw": "```json\n{\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s055",
+      "world_pred": "Made up",
+      "raw": "```json\n{\"world\": \"Made up\"}\n```"
+    },
+    {
+      "id": "s056",
+      "world_pred": "Made up",
+      "raw": "```json\n{\"world\": \"Made up\"}\n```"
+    },
+    {
+      "id": "s057",
+      "world_pred": "Made up",
+      "raw": "```json\n{\"world\": \"Made up\"}\n```"
+    },
+    {
+      "id": "s058",
+      "world_pred": "Made up",
+      "raw": "```json\n{\"world\": \"Made up\"}\n```"
+    },
+    {
+      "id": "s059",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s060",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s061",
+      "world_pred": "",
+      "raw": "```json\n{\n\"world\": \"\"\n}\n```"
+    },
+    {
+      "id": "s062",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s063",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s064",
+      "world_pred": "Mythology",
+      "raw": "```json\n{\"world\": \"Mythology\"}\n```"
+    },
+    {
+      "id": "s065",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s066",
+      "world_pred": "The Lantern Fish Kingdom",
+      "raw": "```json\n{\n\"world\": \"The Lantern Fish Kingdom\"\n}\n```"
+    },
+    {
+      "id": "s067",
+      "world_pred": "The Little Match Girl",
+      "raw": "```json\n{\"world\": \"The Little Match Girl\"}\n```"
+    },
+    {
+      "id": "s068",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s069",
+      "world_pred": "Sleeping Giant myth",
+      "raw": "```json\n{\"world\": \"Sleeping Giant myth\"}\n```"
+    },
+    {
+      "id": "s070",
+      "world_pred": "Alice in Wonderland",
+      "raw": "```json\n{\"world\": \"Alice in Wonderland\"}\n```"
+    },
+    {
+      "id": "s071",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s072",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s073",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s074",
+      "world_pred": "Star Trek",
+      "raw": "```json\n{\"world\": \"Star Trek\"}\n```"
+    },
+    {
+      "id": "s075",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s076",
+      "world_pred": "Halliday Inn",
+      "raw": "```json\n{\"world\": \"Halliday Inn\"}\n```"
+    },
+    {
+      "id": "s077",
+      "world_pred": "WALL-E",
+      "raw": "```json\n{\"world\": \"WALL-E\"}\n```"
+    },
+    {
+      "id": "s078",
+      "world_pred": "Star Trek",
+      "raw": "```json\n{\"world\": \"Star Trek\"}\n```"
+    },
+    {
+      "id": "s079",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s080",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\"world\": \"Star Wars\"}\n```"
+    },
+    {
+      "id": "s081",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s082",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s083",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s084",
+      "world_pred": "made up",
+      "raw": "```json\n{\"world\": \"made up\"}\n```"
+    },
+    {
+      "id": "s085",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s086",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s087",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s088",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s089",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s090",
+      "world_pred": "",
+      "raw": "```json\n{\"world\": \"\"}\n```"
+    },
+    {
+      "id": "s091",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\"world\": \"Harry Potter\"}\n```"
+    },
+    {
+      "id": "s092",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\n\"world\": \"Made Up\"\n}\n```"
+    },
+    {
+      "id": "s093",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\n\"world\": \"Star Wars\"\n}\n```"
+    },
+    {
+      "id": "s094",
+      "world_pred": "Made Up",
+      "raw": "```json\n{\"world\": \"Made Up\"}\n```"
+    },
+    {
+      "id": "s095",
+      "world_pred": "Tarzan",
+      "raw": "```json\n{\"world\": \"Tarzan\"}\n```"
+    },
+    {
+      "id": "s096",
+      "world_pred": "Frozen",
+      "raw": "```json\n{\"world\": \"Frozen\"}\n```"
+    },
+    {
+      "id": "s097",
+      "world_pred": "Lord of the Rings",
+      "raw": "```json\n{\n\"world\": \"Lord of the Rings\"\n}\n```"
+    },
+    {
+      "id": "s098",
+      "world_pred": "My Hero Academia",
+      "raw": "```json\n{\n\"world\": \"My Hero Academia\"\n}\n```"
+    },
+    {
+      "id": "s099",
+      "world_pred": "original",
+      "raw": "```json\n{\"world\": \"original\"}\n```"
+    },
+    {
+      "id": "s100",
+      "world_pred": "Sleeping Beauty",
+      "raw": "```json\n{\"world\": \"Sleeping Beauty\"}\n```"
+    }
+  ]
+}

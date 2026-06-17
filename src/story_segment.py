@@ -6,7 +6,11 @@ precedent: production copies the validated eval logic, emp/ stays the eval of
 record). The only changes from the original are production de-hardcodings, marked
 PROD: load_segments/segment_session take a session_dir instead of an EMP session
 id; the 5-session `SESSIONS` name lookup is gone (any session works now); and the
-one summary print goes to stderr so the worker's stdout stays clean JSON. The CLI
+one summary print goes to stderr so the worker's stdout stays clean JSON. A later
+PROD change generalizes pass 2 (world naming): it reads the FULL story region (not a
+12-line sample) and uses a general world prompt with no dataset-specific examples —
+validated on emp/results/worlds-bench (the held-out Mahabharata, missed under
+sampling, is recovered with the full story). Boundary detection is unchanged. The CLI
 (`main`), the pre-baked prediction file, and the truth sidecar are dropped — this
 module is imported, never run standalone.
 
@@ -181,10 +185,20 @@ Window:
 {window}
 """
 
-PASS2_PROMPT = """You are reading ONE complete bedtime story told by a parent to a young child (some lines are sampled, in order). Give it a short descriptive title, and name the WORLD it is set in — inferred ONLY from what you read. Examples of a world: "Thomas & Friends (plus invented engines)", "Mahabharata", "original / made-up". Do not use any outside list; name what you actually see.
+# PROD: generalized world prompt — the `general_reasoned` winner of the worlds-bench
+# (emp/src/bench_worlds.py), adapted to also emit a title. The old prompt named our
+# own recordings' worlds as examples ("Thomas & Friends", "Mahabharata") and forbade
+# outside knowledge, which both failed to generalize and made the model invent worlds
+# on made-up stories. This version: two-step reasoning, judge garbled names by sound,
+# use real world knowledge, and abstain (empty world) when it isn't a known world.
+PASS2_PROMPT = """You are reading the full transcript of ONE bedtime story a parent told a young child, out loud — so it rambles and proper names may be mis-transcribed (a name may be misspelled or split into pieces).
+
+Give it a short descriptive title, and decide what fictional WORLD it is set in. Think in two quick steps:
+1) Note the distinctive character names, place names, and signature words. Names may be garbled — judge by what they sound like.
+2) Do those match a REAL, widely-known story world (a book, film, show, myth, or franchise)? If yes, name that world. If it is an original, made-up story from no known world, leave the world empty. When unsure, leave it empty.
 
 Return JSON only, no other text:
-{{"title": "<short title>", "world": "<the world / canon>"}}
+{{"title": "<short title>", "world": "<the world, or empty if made up>"}}
 
 Story lines:
 {lines}
@@ -315,6 +329,18 @@ def sample_region_lines(segs, region, head=6, mid=3, tail=3):
         mids = [body[len(body) * (k + 1) // (mid + 1)] for k in range(mid)]
         picks = sorted(set(body[:head] + mids + body[-tail:]))
     return "\n".join(f'[{segs[p]["id"]}] "{segs[p]["text"]}"' for p in picks)
+
+
+def full_region_lines(segs, region):
+    """Every non-empty line of a region, in order — sample_region_lines WITHOUT the
+    thinning. PROD: pass 2 (world naming) reads the full story, because a 12-line
+    head/middle/tail sample routinely drops the one canonical name that identifies the
+    world (the held-out Mahabharata miss). Validated on emp/results/worlds-bench: with
+    the full story the model recovers that world; the 12-line sample loses it. Only
+    world-naming uses this; boundary-finding keeps the sampled views."""
+    sp, ep = region["start_pos"], region["end_pos"]
+    return "\n".join(f'[{segs[p]["id"]}] "{segs[p]["text"]}"'
+                     for p in range(sp, ep + 1) if segs[p]["text"])
 
 
 def _render_regions_for_merge(segs, regions, head=4, tail=3):
@@ -494,7 +520,7 @@ def segment_segments(segs, gen, name="session", show_only=False, use_global=True
     stories = []
     for r in regions:
         try:
-            title, world = pass2_name(gen, sample_region_lines(segs, r), raw_log)
+            title, world = pass2_name(gen, full_region_lines(segs, r), raw_log)
         except Exception as ex:
             title, world = "", ""
             raw_log.append({"pass": 2, "error": repr(ex)[:200]})

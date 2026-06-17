@@ -1,0 +1,509 @@
+{
+  "_about": "world-classifier benchmark predictions (firewalled runner)",
+  "model": "mlx-community/gemma-4-e4b-it-4bit",
+  "candidate": "current",
+  "input_mode": "sampled",
+  "n": 100,
+  "results": [
+    {
+      "id": "s001",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\n  \"title\": \"Luke Skywalker's First Adventure\",\n  \"world\": \"Star Wars\"\n}\n```"
+    },
+    {
+      "id": "s002",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\n  \"title\": \"Luke's Crash on Dagobah\",\n  \"world\": \"Star Wars\"\n}\n```"
+    },
+    {
+      "id": "s003",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Bounty Hunter and the Little Green Baby\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s004",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Sandy Planet Scavenger\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s005",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Smiths and the War\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s006",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Secret Plans\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s007",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\n  \"title\": \"He-Man and the Boulder\",\n  \"world\": \"Masters of the Universe\"\n}\n```"
+    },
+    {
+      "id": "s008",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\n\"title\": \"The Defense of Grayskull\",\n\"world\": \"Masters of the Universe\"\n}\n```"
+    },
+    {
+      "id": "s009",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Sleeping Prince\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s010",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Crinjer the Cat Hero\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s011",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Lazy Prince's Secret\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s012",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Tee-la and the Raiders\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s013",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\n  \"title\": \"Harry Potter's Arrival at Hogwarts\",\n  \"world\": \"Harry Potter\"\n}\n```"
+    },
+    {
+      "id": "s014",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\n  \"title\": \"Hogwarts Adventure\",\n  \"world\": \"Harry Potter\"\n}\n```"
+    },
+    {
+      "id": "s015",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Castle Secret\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s016",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\n  \"title\": \"The Boy Who Went to Magic School\",\n  \"world\": \"Harry Potter\"\n}\n```"
+    },
+    {
+      "id": "s017",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The School Friends and the Tower\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s018",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Brave House\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s019",
+      "world_pred": "Paw Patrol",
+      "raw": "```json\n{\n  \"title\": \"The Rescue Mission\",\n  \"world\": \"Paw Patrol\"\n}\n```"
+    },
+    {
+      "id": "s020",
+      "world_pred": "Paw Patrol",
+      "raw": "```json\n{\n  \"title\": \"The Storm Rescue\",\n  \"world\": \"Paw Patrol\"\n}\n```"
+    },
+    {
+      "id": "s021",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Rescue Puppies\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s022",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Festival Flight\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s023",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Rescue Team\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s024",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Spotty Fire Dog\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s025",
+      "world_pred": "Octonauts",
+      "raw": "```json\n{\n  \"title\": \"The Whale Rescue\",\n  \"world\": \"Octonauts\"\n}\n```"
+    },
+    {
+      "id": "s026",
+      "world_pred": "Octonauts",
+      "raw": "```json\n{\n  \"title\": \"The Giant Squid Adventure\",\n  \"world\": \"Octonauts\"\n}\n```"
+    },
+    {
+      "id": "s027",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Sea Bunny Patrol\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s028",
+      "world_pred": "Underwater Adventure",
+      "raw": "```json\n{\n  \"title\": \"The Sore Fin\",\n  \"world\": \"Underwater Adventure\"\n}\n```"
+    },
+    {
+      "id": "s029",
+      "world_pred": "under the sea",
+      "raw": "```json\n{\n  \"title\": \"The Crab Who Lost His Shell\",\n  \"world\": \"under the sea\"\n}\n```"
+    },
+    {
+      "id": "s030",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Sleepy Whale Shark\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s031",
+      "world_pred": "Hilda",
+      "raw": "```json\n{\n  \"title\": \"Hilda and the Giant\",\n  \"world\": \"Hilda\"\n}\n```"
+    },
+    {
+      "id": "s032",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Mathias and the Lost Sword\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s033",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Snuffkin's Winter Slumber\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s034",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Cocky Boy and the Shadow\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s035",
+      "world_pred": "Sherlock Holmes stories (implied)",
+      "raw": "```json\n{\n  \"title\": \"The Case of the Stolen Treasure\",\n  \"world\": \"Sherlock Holmes stories (implied)\"\n}\n```"
+    },
+    {
+      "id": "s036",
+      "world_pred": "Star Wars",
+      "raw": "```json\n{\n  \"title\": \"Luke and the Death Star\",\n  \"world\": \"Star Wars\"\n}\n```"
+    },
+    {
+      "id": "s037",
+      "world_pred": "Star Wars (implied)",
+      "raw": "```json\n{\n  \"title\": \"Han, Chewbacca, and the Bounty Hunter\",\n  \"world\": \"Star Wars (implied)\"\n}\n```"
+    },
+    {
+      "id": "s038",
+      "world_pred": "Star Wars (plus invented elements)",
+      "raw": "```json\n{\n  \"title\": \"The Wise Swamp Dweller\",\n  \"world\": \"Star Wars (plus invented elements)\"\n}\n```"
+    },
+    {
+      "id": "s039",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Fallen Knight\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s040",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Desert Girl and the Beeping Droid\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s041",
+      "world_pred": "Masters of the Universe",
+      "raw": "```json\n{\n  \"title\": \"He-Man's Transformation\",\n  \"world\": \"Masters of the Universe\"\n}\n```"
+    },
+    {
+      "id": "s042",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\n  \"title\": \"Tilly Sparrowmoor's Return\",\n  \"world\": \"Harry Potter\"\n}\n```"
+    },
+    {
+      "id": "s043",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Prince and Skellator\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s044",
+      "world_pred": "Harry Potter",
+      "raw": "```json\n{\n  \"title\": \"The Boy Wizard's Return\",\n  \"world\": \"Harry Potter\"\n}\n```"
+    },
+    {
+      "id": "s045",
+      "world_pred": "Eeternya",
+      "raw": "```json\n{\n  \"title\": \"The Prince and the Glowing Sword\",\n  \"world\": \"Eeternya\"\n}\n```"
+    },
+    {
+      "id": "s046",
+      "world_pred": "PAW Patrol",
+      "raw": "```json\n{\n  \"title\": \"The Adventure Bay Emergency\",\n  \"world\": \"PAW Patrol\"\n}\n```"
+    },
+    {
+      "id": "s047",
+      "world_pred": "Octonauts",
+      "raw": "```json\n{\n  \"title\": \"The Deep Sea Rescue\",\n  \"world\": \"Octonauts\"\n}\n```"
+    },
+    {
+      "id": "s048",
+      "world_pred": "PAW Patrol (plus invented pups)",
+      "raw": "```json\n{\n  \"title\": \"The Rescue Pups and the Stuck Train\",\n  \"world\": \"PAW Patrol (plus invented pups)\"\n}\n```"
+    },
+    {
+      "id": "s049",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Payso the Penguin Medic\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s050",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Everest and the Rescued Goat\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s051",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Pim the Sleepy Cloud\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s052",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Doodle the Snail's Light\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s053",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Friendly Washing Monster\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s054",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Bo the Bear's Sleepy Yawn Jar\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s055",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Moon-Moth's Visit\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s056",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Bedtime Pour\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s057",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Bathtub Voyage\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s058",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Gertie's Sleepy Eggs\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s059",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Pillow Fort Kingdom\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s060",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Click's Job\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s061",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Tamsin and the Friendly Dragon\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s062",
+      "world_pred": "Aderra",
+      "raw": "```json\n{\n  \"title\": \"Ferro and the Sky-Whale\",\n  \"world\": \"Aderra\"\n}\n```"
+    },
+    {
+      "id": "s063",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Old Bramble's Soups\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s064",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Keeper of the Silver Gate\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s065",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Snow Wolf's Vigil\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s066",
+      "world_pred": "Lantern Fish Kingdom",
+      "raw": "```json\n{\n  \"title\": \"Queen Marn and the Cold Crack\",\n  \"world\": \"Lantern Fish Kingdom\"\n}\n```"
+    },
+    {
+      "id": "s067",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Candle-Flower Trick\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s068",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Two Moons Story\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s069",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Singer and the Sleeping Giant\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s070",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Tibb and the Lost Hat\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s071",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Mapmaker's Son and the Wyrm\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s072",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Glass Princess\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s073",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Tin Sparrow's Delivery\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s074",
+      "world_pred": "Space Travel",
+      "raw": "```json\n{\n  \"title\": \"The Singing Hum\",\n  \"world\": \"Space Travel\"\n}\n```"
+    },
+    {
+      "id": "s075",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Hum of the Tall Grass\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s076",
+      "world_pred": "Giant Ring Station",
+      "raw": "```json\n{\n  \"title\": \"Mop's Fix\",\n  \"world\": \"Giant Ring Station\"\n}\n```"
+    },
+    {
+      "id": "s077",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Desert Pilgrimage\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s078",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Stowaway and the Singing Creature\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s079",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Upside-Down Rain\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s080",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Ship's Son\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s081",
+      "world_pred": "Space Opera",
+      "raw": "```json\n{\n  \"title\": \"The Comet Delivery Girl\",\n  \"world\": \"Space Opera\"\n}\n```"
+    },
+    {
+      "id": "s082",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Last Lamp\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s083",
+      "world_pred": "Animal Town of Hollow Creek",
+      "raw": "```json\n{\n  \"title\": \"The Dry Creek\",\n  \"world\": \"Animal Town of Hollow Creek\"\n}\n```"
+    },
+    {
+      "id": "s084",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Pib the Mouse Mail Carrier\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s085",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Quill's Big Hug\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s086",
+      "world_pred": "Lily Bottom",
+      "raw": "```json\n{\n  \"title\": \"Croak's Song\",\n  \"world\": \"Lily Bottom\"\n}\n```"
+    },
+    {
+      "id": "s087",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Fox Librarian and the Wren\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s088",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Slow Race\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s089",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Owl's Warm Quilt\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s090",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Pockets and the Moon Wash\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s091",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Orin's Magical Journey\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s092",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Lantern Sparrow and the Time Thief\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s093",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Star Warden's Journey\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s094",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Toys Come Alive\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s095",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Dax the Jungle Boy\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s096",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Mira and Wenna\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s097",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"Bobbin's Quest\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s098",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Gifted School\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s099",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Gray Moth's Night Watch\",\n  \"world\": \"original / made-up\"\n}\n```"
+    },
+    {
+      "id": "s100",
+      "world_pred": "original / made-up",
+      "raw": "```json\n{\n  \"title\": \"The Princess and the Cave Diggers\",\n  \"world\": \"original / made-up\"\n}\n```"
+    }
+  ]
+}

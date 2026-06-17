@@ -7,7 +7,32 @@ Gemma walk itself is ported verbatim from the sealed EMP probe and validated the
 """
 import pytest
 
-from story_segment import load_segments_from_list
+from story_segment import full_region_lines, load_segments_from_list
+
+
+def test_full_region_lines_renders_all_nonempty_with_ids():
+    # PROD: pass 2 reads the whole region (no head/mid/tail thinning); empty segments
+    # are skipped, gap segments (string ids) are kept, ids are preserved.
+    segs = [
+        {"id": 0, "text": "once there was"},
+        {"id": 1, "text": ""},                       # empty -> skipped
+        {"id": 2, "text": "a dragon"},
+        {"id": "gap_3.5", "text": "[unintelligible]"},
+        {"id": 4, "text": "the end"},
+    ]
+    out = full_region_lines(segs, {"start_pos": 0, "end_pos": 4})
+    assert out.splitlines() == [
+        '[0] "once there was"',
+        '[2] "a dragon"',
+        '[gap_3.5] "[unintelligible]"',
+        '[4] "the end"',
+    ]
+
+
+def test_full_region_lines_respects_region_bounds():
+    segs = [{"id": i, "text": f"line {i}"} for i in range(6)]
+    out = full_region_lines(segs, {"start_pos": 2, "end_pos": 4})
+    assert out.splitlines() == ['[2] "line 2"', '[3] "line 3"', '[4] "line 4"']
 
 
 def test_pos_gap_flag_and_gap_before():
