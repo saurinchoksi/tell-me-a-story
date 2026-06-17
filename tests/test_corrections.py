@@ -212,3 +212,32 @@ def test_apply_contraction_its_treated_as_possessive():
     word = result["segments"][0]["words"][0]
     assert word["word"] == " IT's"
     assert count == 1
+
+
+# --- segment text is rebuilt from corrected words (the text-vs-words fix) ---
+
+
+def test_apply_rebuilds_segment_text_from_corrected_words():
+    """The segment's text line reflects the corrected words, not the stale original."""
+    transcript = _make_transcript(" fondos", " are", " here")
+    transcript["segments"][0]["text"] = " fondos are here"  # the pre-correction (stale) line
+    result, _ = apply_corrections(
+        transcript, [{"transcribed": "fondos", "correct": "Pandavas"}], "llm"
+    )
+    assert result["segments"][0]["text"] == " Pandavas are here"
+
+
+def test_apply_text_synced_even_with_no_match():
+    """Text is rebuilt from words whether or not a correction fired (idempotent)."""
+    transcript = _make_transcript(" hello", " world")
+    result, count = apply_corrections(transcript, [], "llm")
+    assert count == 0
+    assert result["segments"][0]["text"] == " hello world"
+
+
+def test_apply_leaves_gap_segment_text_alone():
+    """A segment with no words (an injected [unintelligible] gap) keeps its text."""
+    transcript = {"segments": [{"id": "gap_1.5", "text": "[unintelligible]"}]}
+    result, count = apply_corrections(transcript, [], "llm")
+    assert result["segments"][0]["text"] == "[unintelligible]"
+    assert count == 0

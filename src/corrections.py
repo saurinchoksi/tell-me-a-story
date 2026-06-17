@@ -112,4 +112,13 @@ def apply_corrections(
 
             count += 1
 
+    # Keep each segment's text line in sync with its (now corrected) words — the words
+    # are the source of truth. Normalization rewrites words but historically left `text`
+    # stale, so every name tool had to rebuild the line itself; heal it here at the
+    # source. Segments with no words (injected [unintelligible] gaps) keep their text.
+    for segment in result.get("segments", []):
+        words = segment.get("words")
+        if words:
+            segment["text"] = "".join(w["word"] for w in words)
+
     return result, count
