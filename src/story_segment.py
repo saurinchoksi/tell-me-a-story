@@ -320,24 +320,13 @@ def _mkregion(open_story, end_id, end_quote, pos_of):
 
 
 # ============================ orchestration ===================================
-def sample_region_lines(segs, region, head=6, mid=3, tail=3):
-    sp, ep = region["start_pos"], region["end_pos"]
-    body = [p for p in range(sp, ep + 1) if segs[p]["text"]]
-    if len(body) <= head + mid + tail:
-        picks = body
-    else:
-        mids = [body[len(body) * (k + 1) // (mid + 1)] for k in range(mid)]
-        picks = sorted(set(body[:head] + mids + body[-tail:]))
-    return "\n".join(f'[{segs[p]["id"]}] "{segs[p]["text"]}"' for p in picks)
-
-
 def full_region_lines(segs, region):
-    """Every non-empty line of a region, in order — sample_region_lines WITHOUT the
-    thinning. PROD: pass 2 (world naming) reads the full story, because a 12-line
-    head/middle/tail sample routinely drops the one canonical name that identifies the
-    world (the held-out Mahabharata miss). Validated on emp/results/worlds-bench: with
-    the full story the model recovers that world; the 12-line sample loses it. Only
-    world-naming uses this; boundary-finding keeps the sampled views."""
+    """Every non-empty line of a region, in order — the whole story, not a
+    head/middle/tail sample. PROD: pass 2 (world naming) reads the full story, because a
+    thinned sample routinely drops the one canonical name that identifies the world (the
+    held-out Mahabharata miss). Validated on emp/results/worlds-bench: with the full
+    story the model recovers that world; a 12-line sample loses it. Only world-naming
+    uses this; boundary-finding keeps its own head/tail windows."""
     sp, ep = region["start_pos"], region["end_pos"]
     return "\n".join(f'[{segs[p]["id"]}] "{segs[p]["text"]}"'
                      for p in range(sp, ep + 1) if segs[p]["text"])
