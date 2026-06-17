@@ -291,3 +291,39 @@ def test_session_detections_missing_transcript_joins_null(client, sessions_dir,
     assert flag["segment_text"] is None
     assert flag["segment_speaker"] is None
     assert flag["token"] == "Martha"           # the flag itself is still real data
+
+
+# --- canon de-dup (m9b defers to m9c) -----------------------------------------
+
+def test_canon_dedup_suppresses_m9b_flag_owned_by_m9c():
+    # A canon name the reader (m9c) flagged is dropped from m9b, so it shows only
+    # under M9c; an improvised name m9c did not claim stays in m9b.
+    from api.routes.detections import _apply_canon_dedup
+    sections = {
+        "m9b-name-consistency": {"n_flags": 2, "flags": [
+            {"cleaned": "pondavas", "token": "Pondavas"},   # canon — m9c owns it
+            {"cleaned": "jammus", "token": "Jammus"},        # improvised — m9b keeps
+        ]},
+        "m9c-canon": {"n_flags": 1, "flags": [
+            {"cleaned": "pondavas", "wrong_cleaned": ["pondavas"], "canonical": "Pandavas"},
+        ]},
+    }
+    _apply_canon_dedup(sections)
+    m9b = sections["m9b-name-consistency"]
+    assert m9b["n_flags"] == 1
+    assert [f["cleaned"] for f in m9b["flags"]] == ["jammus"]
+
+
+def test_canon_dedup_noop_when_m9c_found_nothing():
+    # When the canon reader found no canon (e.g. it didn't recognize the world),
+    # m9b keeps its catches — they are the only thing flagging those names.
+    from api.routes.detections import _apply_canon_dedup
+    sections = {
+        "m9b-name-consistency": {"n_flags": 2, "flags": [
+            {"cleaned": "bishma", "token": "Bishma"},
+            {"cleaned": "garn", "token": "Garn"},
+        ]},
+        "m9c-canon": {"n_flags": 0, "flags": []},
+    }
+    _apply_canon_dedup(sections)
+    assert sections["m9b-name-consistency"]["n_flags"] == 2

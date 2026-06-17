@@ -47,6 +47,36 @@ def _make_judge():
         return None, str(e)
 
 
+# --- canon de-dup (m9b defers to m9c) -----------------------------------------
+
+M9B_ID = "m9b-name-consistency"
+M9C_ID = "m9c-canon"
+
+
+def _apply_canon_dedup(detector_sections: dict) -> None:
+    """In-place, view-time: drop m9b flags whose cleaned name the canon reader (m9c)
+    already owns, so a sourced-canon name surfaces ONLY under M9c, not doubled as an
+    'inconsistent' M9b flag. Detectors stay independent on disk; this reconciles their
+    overlap at read time, consistently for both the rollup counts and the detail flags.
+
+    Safe no-op when m9c found nothing (e.g. the local reader didn't recognize the
+    story's world) — m9b then keeps those catches, the only thing flagging them."""
+    m9c = detector_sections.get(M9C_ID)
+    m9b = detector_sections.get(M9B_ID)
+    if not m9c or not m9b:
+        return
+    canon = set()
+    for f in m9c.get("flags", []):
+        if f.get("cleaned"):
+            canon.add(f["cleaned"])
+        canon.update(f.get("wrong_cleaned") or [])
+    if not canon:
+        return
+    kept = [f for f in m9b["flags"] if f.get("cleaned") not in canon]
+    m9b["flags"] = kept
+    m9b["n_flags"] = len(kept)
+
+
 # --- shared read builders (used by both GET and POST-scan) --------------------
 
 def _rollup(sessions_dir, detector_objs):
@@ -64,6 +94,8 @@ def _rollup(sessions_dir, detector_objs):
             if not (entry / "transcript-rich.json").exists():
                 continue
             data = _read_detections(entry)  # may raise JSONDecodeError -> caller handles
+            if data:
+                _apply_canon_dedup(data["detectors"])  # m9b defers to m9c on canon names
             results, stale = {}, False
             for det_id, section in (data["detectors"].items() if data else []):
                 results[det_id] = {
@@ -90,6 +122,7 @@ def _session_detail(session_dir, session_id):
     data = _read_detections(session_dir)
     if data is None:
         return {"session_id": session_id, "has_audio": has_audio, "detectors": {}}
+    _apply_canon_dedup(data["detectors"])  # m9b defers to m9c on canon names
 
     transcript_path = session_dir / "transcript-rich.json"
     seg_by_id = {}
