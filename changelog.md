@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-17 — Canon-name mistranscriptions now get their own monitor line
+
+A name from a known source — a Thomas & Friends engine, a Mahabharata character — that the transcriber spelled wrong now shows up as its own check in the Monitor, beside the family-name and made-up-name checks. It was already being caught, just bundled inside the combined story-name check, so this splits it out by the tag it already carried and gives it a line of its own. The reader still does the full combined pass underneath (it needs the made-up-name grouping to avoid flagging a show's genuine engine), so nothing about the accuracy changed — only what you see. It's marked experimental until it's checked against recordings it hasn't seen.
+
 ## 2026-06-16 — A faster, tidier pipeline that splits each recording into its stories
 
 Reworked how the recording pipeline runs its AI steps and added story-splitting on top. Each recording is now split into its separate bedtime stories — saved right in the transcript and shown as labelled dividers on the screen — and the name-checker reads those instead of re-splitting every time. Re-cleaning a recording no longer redoes the slow AI steps when nothing they depend on changed; each heavy step runs as its own short-lived helper that frees the Mac's memory when done; and a long-standing glitch where a fixed-up name didn't reach the transcript line is gone. Every piece landed as its own tested step, and a multi-angle code review caught a real bug — a stuck AI step could hang forever instead of timing out — which is now fixed and guarded by a test.

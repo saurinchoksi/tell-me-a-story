@@ -49,8 +49,8 @@ def main():
                     help="apply the offline LLM judge to m9b-name-consistency "
                          "(recovers dictionary-word names; loads Gemma, slow)")
     ap.add_argument("--story-names", action="store_true",
-                    help="run the offline per-story name auditor (m9bc-story-names): "
-                         "segments each session then audits names with local Gemma-4 "
+                    help="run the offline canon-name auditor (m9c-canon): segments each "
+                         "session then audits names with local Gemma-4, surfacing M9c "
                          "(loads Gemma locally; slow — minutes/session). Skipped by "
                          "default and never in a web request. Loads the model separately "
                          "from --judge if both are given.")

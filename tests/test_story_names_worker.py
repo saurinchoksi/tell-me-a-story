@@ -5,7 +5,7 @@ All model-touching functions are mocked so no Gemma is ever loaded."""
 import json
 from unittest.mock import patch
 
-from detectors.story_names import _worker
+from detectors.story_names import CanonNameDetector, _worker
 
 
 def _write_rich(tmp_path, segments, stories=None):
@@ -54,3 +54,22 @@ def test_worker_uses_empty_saved_stories_without_resegmenting(tmp_path):
         result = _worker.run(str(sd))
     mock_seg.assert_not_called()  # empty saved list is still "segmented" — no re-split
     assert result == {"n_word_tokens": 0, "flags": []}
+
+
+def test_canon_detector_emits_only_m9c_flags(tmp_path):
+    """CanonNameDetector surfaces only the M9c slice of the converged worker output —
+    M9b is the separate m9b-name-consistency detector's job. The worker (the expensive
+    converged pass) runs exactly once; filtering its result is free."""
+    mixed = {
+        "n_word_tokens": 100,
+        "flags": [
+            {"case": "M9c", "token": "Pondavas", "canonical": "Pandavas"},
+            {"case": "M9b", "token": "Jameis", "canonical": "Jammus"},
+            {"case": "M9c", "token": "Dhrashtra", "canonical": "Dhritarashtra"},
+        ],
+    }
+    with patch("model_runner.run_model", return_value=mixed) as mock_run:
+        result = CanonNameDetector().run(tmp_path)
+    mock_run.assert_called_once()                                  # converged engine runs once
+    assert result["n_word_tokens"] == 100                          # denominator unchanged
+    assert [f["case"] for f in result["flags"]] == ["M9c", "M9c"]  # M9b filtered out

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Offline worker for the per-story name auditor — runs in a fresh subprocess.
 
-`run(session_dir)` is invoked via model_runner.run_model from StoryNameDetector: a
+`run(session_dir)` is invoked via model_runner.run_model from CanonNameDetector: a
 spawned subprocess of this venv, so its Gemma load gets a clean GPU process and frees
 it on exit. In ONE model load it (1) takes the pipeline's saved story regions
 (`_stories`), or segments live as a fallback for older sessions, (2) per story builds
