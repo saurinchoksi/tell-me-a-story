@@ -11,19 +11,21 @@ phonetic clusters by shared Double Metaphone code, then flag every occurrence in
 any cluster that appears under more than one spelling. A name spelled one
 consistent way is never flagged.
 
-Roster-agnostic by design, so it also surfaces inconsistently-spelled *family*
-names (an M9a case is, phonetically, just another multi-spelling cluster). That
-is acceptable — an inconsistent name is worth flagging either way — but it means
-the detector's output can echo family-name variants, so callers must treat the
-flags as private (the per-session detections.json already lives under gitignored
-sessions/).
+Family-roster names are EXCLUDED (deferred to the m9a detector): a roster match —
+the child's or a parent's name and its misspellings — is dropped before clustering,
+so m9b reports only *improvised* inconsistency and never double-counts a family name
+m9a already owns. The exclusion is graceful: with no roster file, m9b falls back to
+its original roster-agnostic behavior. Flags can still echo improvised story names,
+so the per-session detections.json stays under gitignored sessions/.
 """
 
+import hashlib
 from collections import defaultdict
 from pathlib import Path
 
 from detectors.base import Detector, load_transcript
 from detectors.phonetics import clean, codes, is_capitalized
+from detectors.roster import RosterMatcher, DEFAULT_ROSTER_PATH
 
 # Precision layer (see the score_m9b validation: code-only clustering had 0.94
 # recall but 0.06 precision — it drowned in capitalized common words and
@@ -33,6 +35,21 @@ MIN_NAME_LEN = 4   # improvised names are >=4 chars; I/Oh/We/No/Uh are not
 # Fillers a formal wordlist may omit (the <4-char ones are already dropped by
 # MIN_NAME_LEN; these are the >=4 stragglers).
 EXTRA_COMMON = {"yeah", "whoa", "woah", "haha", "hehe", "uhhuh", "mmhmm", "okay"}
+# Contractions: clean() strips the apostrophe, so "You're"->"youre", "We've"->"weve"
+# — forms the dictionary lacks, which otherwise drag a whole cluster (incl. ordinary
+# words like "where") past the all-common filter and get flagged as names. Only the
+# 're/'ve/'ll/'d/'m and n't forms are listed; the 's forms ("what's"->"whats") are
+# already caught by the trailing-s stem check, and that same check keeps real name
+# possessives ("Artie's"->"arties") OUT of this set, so they stay name candidates.
+CONTRACTIONS = {
+    "youre", "theyre",
+    "weve", "youve", "theyve", "couldve", "wouldve", "shouldve", "mightve",
+    "youll", "theyll", "itll", "thatll", "wholl", "whatll",
+    "youd", "theyd", "hed", "itd", "thatd", "whod",
+    "im",
+    "dont", "cant", "wont", "didnt", "doesnt", "isnt", "arent", "wasnt", "werent",
+    "hasnt", "havent", "hadnt", "wouldnt", "couldnt", "shouldnt", "mustnt", "aint",
+}
 
 
 class _UnionFind:
@@ -62,20 +79,33 @@ class NameConsistencyDetector(Detector):
     id = "m9b-name-consistency"
     label = "Inconsistent name spelling"
     failure_mode = "M9b"
-    version = "1.0.0"
+    version = "1.1.0"  # 1.1.0: exclude family-roster names + drop contraction fragments
     accepts_judge = True  # run(session_dir, judge=...) enables the offline LLM layer
 
-    def __init__(self, wordlist_path=DEFAULT_WORDLIST):
+    def __init__(self, wordlist_path=DEFAULT_WORDLIST, roster_path=None):
         # wordlist_path=None → stoplist-only (degraded, used by tests).
         self.wordlist_path = Path(wordlist_path) if wordlist_path else None
+        # Family-roster matcher excludes m9a's names so m9b reports only improvised
+        # inconsistency. Graceful — no roster file → matches nothing (roster-agnostic).
+        self.roster_path = Path(roster_path) if roster_path else DEFAULT_ROSTER_PATH
+        self._roster = RosterMatcher(self.roster_path)
         self._common = None  # loaded lazily
 
+    def config_fingerprint(self) -> str | None:
+        """Hash of the family roster — now an input, since m9b excludes roster names.
+        None when the roster is absent (roster-agnostic fallback). Mirrors m9a so a
+        roster edit re-runs m9b; it also marks pre-1.1.0 sections (fingerprint None)
+        stale, so the scan picks up this precision change."""
+        if self.roster_path.exists():
+            return "sha256:" + hashlib.sha256(self.roster_path.read_bytes()).hexdigest()
+        return None
+
     def _is_common(self, c: str) -> bool:
-        """Is this cleaned token an ordinary English word? (in the dictionary,
-        a known filler, or a plural/possessive/3sg of a dictionary word — the
-        trailing-s strip catches cleaned contractions like 'whats')."""
+        """Is this cleaned token an ordinary English word? (in the dictionary, a known
+        filler/contraction, or a plural/possessive/3sg of a dictionary word — the
+        trailing-s strip catches cleaned 's contractions like 'whats')."""
         if self._common is None:
-            common = set(EXTRA_COMMON)
+            common = set(EXTRA_COMMON) | CONTRACTIONS
             if self.wordlist_path and self.wordlist_path.exists():
                 common |= {
                     line.strip().lower()
@@ -112,6 +142,8 @@ class NameConsistencyDetector(Detector):
                 n_tokens += 1
                 if not is_capitalized(raw) or len(c) < MIN_NAME_LEN:
                     continue
+                if self._roster.is_roster_name(c):
+                    continue  # family name — m9a owns it; don't double-count in m9b
                 occurrences.append((seg["id"], wi, w.get("start"), w.get("end"), raw, c))
                 form_codes.setdefault(c, codes(c))
 

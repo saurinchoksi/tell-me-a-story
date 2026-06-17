@@ -318,8 +318,23 @@ export interface NameConsistencyFlag extends DetectionFlagBase {
   n_cluster_occurrences: number;
 }
 
-/** Discriminated by the presence of `cluster_spellings`. */
-export type DetectionFlag = FamilyNameFlag | NameConsistencyFlag;
+/** M9c — a sourced-canon name (Thomas / Mahabharata) spelled wrong, from the
+ *  per-story reader. Carries the correct spelling and the story's inferred world. */
+export interface CanonNameFlag extends DetectionFlagBase {
+  case: 'M9c';
+  canonical: string;
+  card_id: number;
+  all_spellings: string[];
+  wrong_cleaned: string[];
+  evidence: string;
+  story_id: number;
+  story_world: string;
+}
+
+/** Discriminated by a field unique to each shape: `cluster_spellings` → m9b,
+ *  `matched_canonicals` → m9a, `canonical` → m9c. Render code must narrow on one
+ *  of these and fall back gracefully, never assuming a single shape. */
+export type DetectionFlag = FamilyNameFlag | NameConsistencyFlag | CanonNameFlag;
 
 export interface SessionDetectorResult {
   label: string;

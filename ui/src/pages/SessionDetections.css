@@ -193,6 +193,19 @@
   color: var(--color-warning);
 }
 
+/* M9c — a sourced-canon name spelled wrong */
+.detection-flag-type--canon {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+/* M9c — the story's inferred world (e.g. "Thomas & Friends") */
+.detection-flag-world {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
 .detection-flag-type {
   padding: 1px 6px;
   border-radius: var(--radius);

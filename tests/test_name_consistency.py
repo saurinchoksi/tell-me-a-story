@@ -28,10 +28,12 @@ def make_session(tmp_path, words, extra_segments=None):
     return session_dir
 
 
-def run_on(tmp_path, words, extra_segments=None, wordlist_path=None):
-    # wordlist_path=None → stoplist-only, so the fake names below aren't filtered
-    # as "common words"; tests stay hermetic (no dependency on /usr/share/dict).
-    det = NameConsistencyDetector(wordlist_path=wordlist_path)
+def run_on(tmp_path, words, extra_segments=None, wordlist_path=None, roster_path=None):
+    # wordlist_path=None → stoplist-only, so the fake names below aren't filtered as
+    # "common words". roster_path defaults to a nonexistent file → no roster exclusion,
+    # so tests never depend on the real gitignored data/name_roster.json.
+    det = NameConsistencyDetector(wordlist_path=wordlist_path,
+                                  roster_path=roster_path or (tmp_path / "no-roster.json"))
     return det.run(make_session(tmp_path, words, extra_segments))
 
 
@@ -126,9 +128,14 @@ def test_cluster_kept_when_one_spelling_is_not_a_word(tmp_path):
 
 # --- Contract ------------------------------------------------------------------
 
-def test_config_fingerprint_is_none(tmp_path):
-    # No external config that needs freshness tracking — keys on the transcript.
-    assert NameConsistencyDetector().config_fingerprint() is None
+def test_config_fingerprint_tracks_roster(tmp_path):
+    # m9b now excludes roster names, so the roster is an input: absent → None
+    # (roster-agnostic), present → its content hash (a roster edit re-runs m9b).
+    assert NameConsistencyDetector(roster_path=tmp_path / "absent.json").config_fingerprint() is None
+    roster = tmp_path / "roster.json"
+    roster.write_text('{"people": [{"id": "c", "canonical": "Marta"}], "aliases": []}')
+    fp = NameConsistencyDetector(roster_path=roster).config_fingerprint()
+    assert fp is not None and fp.startswith("sha256:")
 
 
 def test_missing_transcript_fails_loud(tmp_path):
@@ -180,6 +187,50 @@ def test_judge_not_called_for_clear_names(tmp_path):
     calls = []
     det.run(session, judge=lambda c: (calls.append(c), set())[1])
     assert calls == [[]] or calls == []  # judge given no candidates (or not called)
+
+
+# --- Roster exclusion (defer family names to m9a) ------------------------------
+
+def test_roster_names_excluded_deferred_to_m9a(tmp_path):
+    # A family-roster name spelled inconsistently is m9a's job — m9b must not
+    # double-count it. With the roster loaded, Marta/Martah (canonical + a "th"
+    # misspelling that shares its metaphone code) is excluded, while a non-roster
+    # improvised cluster (Zerk/Zerg) still flags.
+    roster = tmp_path / "roster.json"
+    roster.write_text(json.dumps({
+        "people": [{"id": "child", "canonical": "Marta", "role": "child"}],
+        "aliases": [],
+    }))
+    det = NameConsistencyDetector(wordlist_path=None, roster_path=roster)
+    session = make_session(tmp_path, ["Marta", "Martah", "Zerk", "Zerg"])
+    tokens = sorted(f["token"] for f in det.run(session)["flags"])
+    assert tokens == ["Zerg", "Zerk"]  # roster names dropped, improvised kept
+
+
+def test_no_roster_file_is_roster_agnostic(tmp_path):
+    # Graceful degradation: with no roster file, m9b keeps its original behavior
+    # and flags the inconsistent cluster (Marta/Martah) like any other.
+    det = NameConsistencyDetector(wordlist_path=None, roster_path=tmp_path / "absent.json")
+    tokens = sorted(f["token"] for f in det.run(make_session(tmp_path, ["Marta", "Martah"]))["flags"])
+    assert tokens == ["Marta", "Martah"]
+
+
+# --- Contraction handling (precision) ------------------------------------------
+
+def test_contraction_forms_treated_as_common(tmp_path):
+    # clean() strips the apostrophe, so "You're"->"youre", "We've"->"weve" — forms
+    # the dictionary lacks. Treating them as common lets a contraction-only cluster
+    # get dropped instead of flagged as a name (the Cruel Baby We're/Where/You're case).
+    det = NameConsistencyDetector(wordlist_path=None)  # stoplist + contractions only
+    assert det._is_common("youre") and det._is_common("weve") and det._is_common("dont")
+
+
+def test_name_possessive_is_not_treated_as_common(tmp_path):
+    # The possessive of a real name must stay a candidate: "Zerk's" -> "zerks" is not
+    # common (its stem "zerk" is not a word), unlike a contraction. This keeps real
+    # name possessives (e.g. the child's "Artie's") in the clustering.
+    det = NameConsistencyDetector(wordlist_path=None)
+    assert not det._is_common("zerks")
 
 
 # --- Phonetics module move did not break M9a's helpers -------------------------

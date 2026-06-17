@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-17 — The Monitor's three name checks now read cleanly
+
+Fixed three things that made the Monitor's name flags confusing. Pages with a canon-name flag were blanking out — the screen only knew two of the three flag shapes and tripped over the third; it now handles all three (and any future one) without crashing. The made-up-name check was also doing two jobs badly: it re-flagged the family name that the family-name check already owns, and it flagged contraction words like "you're" as if they were names. It now leaves family names to their own check and ignores contractions, so the three checks finally mean three distinct things — family, made-up, and canon. As the noise left, the made-up check got more accurate; one old "catch" it had gotten for the wrong reason went away, which is the honest trade.
+
 ## 2026-06-17 — Canon-name mistranscriptions now get their own monitor line
 
 A name from a known source — a Thomas & Friends engine, a Mahabharata character — that the transcriber spelled wrong now shows up as its own check in the Monitor, beside the family-name and made-up-name checks. It was already being caught, just bundled inside the combined story-name check, so this splits it out by the tag it already carried and gives it a line of its own. The reader still does the full combined pass underneath (it needs the made-up-name grouping to avoid flagging a show's genuine engine), so nothing about the accuracy changed — only what you see. It's marked experimental until it's checked against recordings it hasn't seen.

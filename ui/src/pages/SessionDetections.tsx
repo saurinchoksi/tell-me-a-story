@@ -53,6 +53,7 @@ function FlagCard({ flag, isPlaying, canPlay, onToggle }: FlagCardProps) {
         </button>
         <span className="detection-flag-token">{flag.token}</span>
         {'cluster_spellings' in flag ? (
+          // M9b — inconsistent spelling cluster
           <>
             <span className="detection-flag-type detection-flag-type--inconsistent">
               inconsistent
@@ -61,7 +62,8 @@ function FlagCard({ flag, isPlaying, canPlay, onToggle }: FlagCardProps) {
               spelled: {flag.cluster_spellings.join(' · ')}
             </span>
           </>
-        ) : (
+        ) : 'matched_canonicals' in flag ? (
+          // M9a — family-name roster match
           <>
             <span className="detection-flag-arrow" aria-hidden="true">→</span>
             <span className="detection-flag-canonical">{flag.matched_canonicals.join(', ')}</span>
@@ -69,7 +71,17 @@ function FlagCard({ flag, isPlaying, canPlay, onToggle }: FlagCardProps) {
               {flag.match_type}
             </span>
           </>
-        )}
+        ) : 'canonical' in flag ? (
+          // M9c — sourced-canon name spelled wrong
+          <>
+            <span className="detection-flag-arrow" aria-hidden="true">→</span>
+            <span className="detection-flag-canonical">{flag.canonical}</span>
+            <span className="detection-flag-type detection-flag-type--canon">canon</span>
+            {flag.story_world ? (
+              <span className="detection-flag-world">{flag.story_world}</span>
+            ) : null}
+          </>
+        ) : null /* unknown shape — token + text + codes still render below, never throws */}
         <span className="detection-flag-meta">
           {flag.start != null ? formatTime(flag.start) : '—'}
           {flag.segment_speaker ? ` · ${flag.segment_speaker}` : ''}
