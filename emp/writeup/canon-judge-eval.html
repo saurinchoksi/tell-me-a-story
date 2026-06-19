@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>I built a machine to route around a weak model. I was fixing the wrong part.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,520;0,9..144,560;0,9..144,640;1,9..144,420;1,9..144,520&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --cream:#FBF8F3; --paper:#FFFFFF;
+    --maroon:#6A3843; --maroon-deep:#4f2932;
+    --gold:#BFA265; --gold-deep:#977c41;
+    --rose:#F2E6E8;
+    --ink:#352B2D; --read:#4A4042; --muted:#8C8081; --faint:#A99FA0;
+    --rule:#E9DFD9;
+    --serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:"DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;color:var(--read);background:var(--cream);
+    font-family:var(--sans);font-size:18px;line-height:1.68;font-weight:400;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    counter-reset:sec;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(1200px 600px at 78% -8%, rgba(191,162,101,.10), transparent 60%),
+      radial-gradient(900px 500px at 0% 4%, rgba(106,56,67,.05), transparent 55%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap{position:relative;z-index:1;max-width:716px;margin:0 auto;padding:5.5rem 1.4rem 7rem}
+
+  .eyebrow{
+    display:flex;align-items:center;gap:.7rem;
+    font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
+    color:var(--gold-deep);margin:0 0 1.4rem;
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--gold);display:inline-block}
+
+  h1{
+    font-family:var(--serif);font-weight:640;font-optical-sizing:auto;
+    font-variation-settings:"opsz" 120;
+    font-size:clamp(2.2rem,5.6vw,3.1rem);line-height:1.05;letter-spacing:-.018em;
+    color:var(--maroon);margin:0 0 1.4rem;
+  }
+  .dek{font-family:var(--serif);font-variation-settings:"opsz" 40;font-style:italic;
+    font-weight:420;font-size:1.22rem;line-height:1.5;color:var(--read);margin:0 0 2.2rem}
+
+  h2{
+    font-family:var(--sans);font-size:.76rem;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--maroon);
+    margin:3.4rem 0 .4rem;display:flex;align-items:baseline;gap:.7rem;
+  }
+  h2::before{
+    counter-increment:sec;content:counter(sec,decimal-leading-zero);
+    font-family:var(--serif);font-style:italic;font-weight:420;font-size:1.5rem;
+    letter-spacing:0;text-transform:none;color:var(--gold);line-height:1;
+  }
+
+  p{margin:1rem 0}
+  strong{font-weight:600;color:var(--ink)}
+  em{font-style:italic}
+  .nm{font-family:var(--mono);font-size:.92em;color:var(--maroon)}
+
+  a{color:var(--maroon);text-decoration:none;
+    background-image:linear-gradient(var(--gold),var(--gold));
+    background-size:100% 1px;background-repeat:no-repeat;background-position:0 95%;
+    padding-bottom:1px;transition:background-size .25s ease}
+  a:hover{background-size:100% 2px}
+
+  /* garble figure */
+  .namefig{display:flex;align-items:center;flex-wrap:wrap;gap:.85rem 1.15rem;
+    margin:1.5rem 0 .4rem;padding:1.15rem 1.3rem;background:var(--paper);
+    border:1px solid var(--rule);border-radius:10px}
+  .namefig .correct{display:flex;flex-direction:column;gap:.2rem}
+  .namefig .lab{font-size:.6rem;letter-spacing:.17em;text-transform:uppercase;color:var(--gold-deep);font-weight:600}
+  .namefig .val{font-family:var(--serif);font-weight:560;font-size:1.7rem;color:var(--maroon);line-height:1}
+  .namefig .arrow{font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);font-weight:600;white-space:nowrap}
+  .namefig .heard{display:flex;flex-wrap:wrap;gap:.45rem}
+  .namefig .chip{font-family:var(--mono);font-size:.82rem;color:var(--muted);
+    background:#FBF7F2;border:1px solid var(--rule);border-radius:5px;padding:.2em .55em}
+  .namefig .chip.worst{color:var(--maroon);border-color:var(--gold);background:rgba(191,162,101,.12)}
+
+  /* two-path compare (dead end vs the machine) */
+  .paths{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:1.6rem 0 .4rem}
+  .paths .p{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:.5rem}
+  .paths .lab{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+  .paths .deadend .lab{color:var(--faint)}
+  .paths .deadend{border-style:dashed}
+  .paths .built .lab{color:var(--gold-deep)}
+  .paths .name{font-family:var(--serif);font-weight:560;font-size:1.18rem;color:var(--maroon);line-height:1.15}
+  .paths .deadend .name{color:var(--muted)}
+  .paths .desc{font-size:.84rem;color:var(--read);line-height:1.5}
+  .paths .score{font-family:var(--mono);font-size:.82rem;color:var(--maroon-deep);margin-top:auto}
+  .paths .deadend .score{color:var(--muted)}
+  @media(max-width:560px){.paths{grid-template-columns:1fr}}
+
+  /* horizontal bar chart */
+  .bars{margin:1.7rem 0 .5rem;display:flex;flex-direction:column;gap:.65rem}
+  .bar{display:grid;grid-template-columns:10.5rem 1fr auto;align-items:center;gap:.85rem}
+  .bar .blab{font-size:.82rem;color:var(--read);text-align:right;line-height:1.25}
+  .bar .track{background:#F0E7DF;border-radius:6px;height:1.3rem;overflow:hidden}
+  .bar .fill{height:100%;border-radius:6px;min-width:2px;
+    animation:grow 1s cubic-bezier(.2,.7,.2,1) both}
+  .bar .bval{font-family:var(--mono);font-size:.79rem;color:var(--muted);white-space:nowrap}
+  .fill.hi{background:linear-gradient(90deg,var(--maroon-deep),var(--maroon))}
+  .fill.mid{background:linear-gradient(90deg,var(--gold-deep),var(--gold))}
+  .fill.lo{background:#D8C4C9}
+  @keyframes grow{from{transform:scaleX(.02);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
+  @media(prefers-reduced-motion:reduce){.bar .fill{animation:none}}
+  @media(max-width:560px){.bar{grid-template-columns:6.6rem 1fr auto;gap:.5rem}.bar .blab{font-size:.72rem}.bar .bval{font-size:.72rem}}
+
+  /* results table */
+  figure.tbl{margin:2.2rem 0 1.1rem;overflow-x:auto}
+  figcaption{font-size:.82rem;color:var(--muted);line-height:1.5;margin-top:1rem;max-width:64ch}
+  table.d{border-collapse:collapse;width:100%;min-width:34rem;background:var(--paper);
+    border:1px solid var(--rule);border-radius:10px;overflow:hidden;
+    box-shadow:0 1px 0 rgba(106,56,67,.04),0 18px 40px -28px rgba(106,56,67,.28)}
+  table.d thead th{
+    font-family:var(--sans);font-size:.64rem;font-weight:600;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--faint);text-align:left;
+    padding:.8rem .85rem;border-bottom:1px solid var(--rule);background:#FCFAF6}
+  table.d thead th.num{text-align:right}
+  table.d td{padding:.72rem .85rem;border-bottom:1px solid var(--rule);vertical-align:middle;font-size:.9rem}
+  table.d td.num{font-family:var(--mono);font-size:.84rem;text-align:right;white-space:nowrap}
+  table.d tbody tr:last-child td{border-bottom:none}
+  table.d td:first-child{color:var(--ink)}
+  table.d td .inp{display:block;font-size:.72rem;color:var(--faint);margin-top:.12rem}
+  table.d tr.win td{background:rgba(191,162,101,.13)}
+  table.d tr.win td:first-child{color:var(--maroon);font-weight:600;box-shadow:inset 3px 0 0 var(--gold)}
+  table.d .bad{color:var(--maroon-deep);font-weight:600}
+  table.d .good{color:var(--gold-deep)}
+  .tag{display:inline-block;font-family:var(--sans);font-size:.58rem;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--gold-deep);background:rgba(191,162,101,.16);
+    border-radius:4px;padding:.12em .45em;margin-left:.4em;vertical-align:.08em}
+
+  .pull{font-family:var(--serif);font-variation-settings:"opsz" 40;font-weight:520;
+    font-size:1.32rem;line-height:1.42;color:var(--maroon-deep);
+    border-left:2px solid var(--gold);padding-left:1.15rem;margin:2.2rem 0}
+
+  .find{margin:1.5rem 0;padding-left:1.15rem;border-left:1px solid var(--rule)}
+  .find .h{font-family:var(--sans);font-weight:600;color:var(--ink);font-size:.95rem;display:block;margin-bottom:.25rem}
+
+  .close{font-family:var(--serif);font-variation-settings:"opsz" 32;font-size:1.18rem;
+    line-height:1.5;color:var(--ink);margin-top:2.4rem}
+
+  hr{border:none;height:1px;background:var(--rule);margin:3rem 0 0}
+  .footnote{font-size:.82rem;color:var(--muted);line-height:1.6;margin-top:1.4rem}
+
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .reveal{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .reveal:nth-child(1){animation-delay:.04s}
+  .reveal:nth-child(2){animation-delay:.12s}
+  .reveal:nth-child(3){animation-delay:.22s}
+  .reveal:nth-child(4){animation-delay:.32s}
+  .reveal:nth-child(5){animation-delay:.42s}
+  .reveal:nth-child(n+6){animation-delay:.5s}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;animation:none}}
+
+  @media (max-width:560px){
+    body{font-size:16px}
+    .wrap{padding:3.5rem 1.2rem 5rem}
+    figure.tbl{overflow-x:auto}
+    table.d{min-width:30rem;font-size:.8rem}
+    table.d th,table.d td{padding:.5rem .5rem}
+  }
+
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="eyebrow reveal">Local-model evaluation</p>
+  <h1 class="reveal">I built a machine to route around a weak model.<br>I was fixing the wrong part.</h1>
+  <p class="dek reveal">A newer small model with a plain prompt beat the elaborate pipeline I&rsquo;d built to work around an old one. The hard part was admitting it.</p>
+
+  <div class="reveal">
+    <h2>Problem</h2>
+    <p>My local <a href="https://saurinchoksi.com/tell-me-a-story">bedtime-story pipeline</a> transcribes the stories I tell out loud, by ear. When the story is a known one, say a night of the Mahabharata, the by-ear transcriber mangles the characters&rsquo; names. I want a step that catches those: a name from a real story spelled wrong, fixed back to the spelling the story actually uses.</p>
+    <p>The trouble is how badly the names come out. Some are near misses; one was barely a name at all:</p>
+    <figure class="namefig">
+      <div class="correct"><span class="lab">The epic&rsquo;s names</span><span class="val">Bhishma &middot; Karna &middot; Arjuna</span></div>
+      <div class="arrow">heard as &rarr;</div>
+      <div class="heard"><span class="chip">Bishma</span><span class="chip">Garn</span><span class="chip worst">Urzi</span></div>
+    </figure>
+    <p>That last one, <span class="nm">Urzi</span> for Arjuna, I&rsquo;d written off as the floor: too degraded for anything reading text to recover. The whole job runs on-device, so family recordings never leave the machine, which rules out a big cloud model. It has to work on a small one.</p>
+  </div>
+
+  <div class="reveal">
+    <h2>Action</h2>
+    <p>My first idea was the obvious one: hand a small local model the names in the transcript and ask which are misspelled characters from a known story, and what the right spelling is. On the real held-out Mahabharata recording, running Gemma-4 E4B, it caught <strong>1 of 11</strong>. I wrote the model off as a wall and went looking for a way around it.</p>
+    <p>The way around it got elaborate. Instead of asking the model to judge, I had it <em>generate</em>: produce a cast list of a world&rsquo;s characters, then match the transcript&rsquo;s garbled names against that cast by sound and fuzzy spelling, and union several models&rsquo; lists to fill the gaps. It worked. It reached <strong>8 of 11</strong> on the real Mahabharata and about <strong>0.65</strong> across a synthetic spread of seven worlds (Star&nbsp;Wars, He&#8209;Man, Mario, the Ninja Turtles, Steven&nbsp;Universe, Harry&nbsp;Potter, the Mahabharata; 40 planted misspellings). Real progress, and a lot of moving parts.</p>
+    <div class="paths">
+      <div class="p deadend">
+        <span class="lab">The dead end</span>
+        <span class="name">Ask the model to judge</span>
+        <span class="desc">Feed it the names, ask which are misspelled canon. One model, one step.</span>
+        <span class="score">Gemma-4 E4B &mdash; 1/11</span>
+      </div>
+      <div class="p built">
+        <span class="lab">The workaround</span>
+        <span class="name">Generate a cast, then match</span>
+        <span class="desc">Build a character list, sound-and-spelling match the garble against it, union several models.</span>
+        <span class="score">8/11 real &middot; ~0.65 synthetic</span>
+      </div>
+    </div>
+    <p>One scare kept me honest about <em>what</em> I was measuring. An earlier version of the machine scored <strong>0.57</strong> on my synthetic fixtures and <strong>0 of 11</strong> on the real recording. The fakes were too clean: in each one a name was only ever misspelled, never also spelled right in the same story, so the model never met the failure that actually happens. Only the held-out real recording caught the lie.</p>
+  </div>
+
+  <div class="reveal">
+    <h2>Result</h2>
+    <p>Then a newer small model came out: Qwen3.5-4B, still under 5&nbsp;GB, still on-device. I dropped it into the <em>dead-end</em> idea, unchanged: hand it the transcript names in plain text, ask which are misspelled canon and the correct spelling. No cast, no fuzzy matching, no curated list.</p>
+    <p>It scored <strong>8 of 11</strong> on the held-out Mahabharata, the same number the whole elaborate machine reached, in one model and one step. The three &ldquo;misses&rdquo; aren&rsquo;t real errors: they&rsquo;re the epic&rsquo;s title spelled two ways and a stray phrase artifact, not characters. On the genuine character errors it went <strong>8 for 8</strong>, at <strong>8/9</strong> precision. It even caught <span class="nm">Urzi&nbsp;&rarr;&nbsp;Arjuna</span>, the name I&rsquo;d declared the permanent floor.</p>
+    <p class="pull">The machine had been compensating for the weak model the whole time. Swap in a capable one and the original idea just works &mdash; the elaborate part was paying for the wrong component.</p>
+
+    <p>Here&rsquo;s the arc on the held-out recording, from the wall to the win:</p>
+    <figure class="tbl">
+      <table class="d">
+        <thead><tr>
+          <th>Approach</th>
+          <th class="num">Caught</th>
+          <th class="num">Of 11</th>
+          <th class="num">Precision</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Ask the model to judge<span class="inp">Gemma-4 E4B</span></td><td class="num bad">1</td><td class="num">11</td><td class="num">&mdash;</td></tr>
+          <tr><td>Generate a cast, then match<span class="inp">several models, unioned</span></td><td class="num">8</td><td class="num">11</td><td class="num">&mdash;</td></tr>
+          <tr class="win"><td>Ask the model to judge<span class="tag">shipped</span><span class="inp">Qwen3.5-4B, plain prompt</span></td><td class="num good">8</td><td class="num">11</td><td class="num">8/9</td></tr>
+        </tbody>
+      </table>
+      <figcaption>Same held-out Mahabharata recording throughout. 8 of 11 is effectively 8 of 8 real character errors; the other 3 are non-errors (the title spelled two ways, plus a phrase artifact). Same idea, newer model, no machinery.</figcaption>
+    </figure>
+
+    <p>One more lift was worth taking. The judge and plain sound-matching (Double Metaphone, against a cast the same Qwen model writes) fail in different places, so I unioned their <em>outputs</em>. On the seven-world synthetic spread that took recall <strong>0.72&nbsp;&rarr;&nbsp;0.85</strong> with zero extra false flags: two independent methods cover more ground than either alone.</p>
+    <div class="bars">
+      <div class="bar"><span class="blab">Old judge (Gemma)</span><span class="track"><span class="fill lo" style="width:20%"></span></span><span class="bval">0.20</span></div>
+      <div class="bar"><span class="blab">The machine</span><span class="track"><span class="fill lo" style="width:65%"></span></span><span class="bval">~0.65</span></div>
+      <div class="bar"><span class="blab">Qwen judge alone</span><span class="track"><span class="fill mid" style="width:72%"></span></span><span class="bval">0.72</span></div>
+      <div class="bar"><span class="blab">Judge + sound-match</span><span class="track"><span class="fill hi" style="width:85%"></span></span><span class="bval">0.85</span></div>
+    </div>
+    <p class="footnote">Seven-world synthetic spread, 40 planted misspellings. The on-device recall arc, end to end: 0.20 &rarr; 0.85.</p>
+
+    <div class="find">
+      <span class="h">1 &nbsp;&middot;&nbsp; A capable model wants a simple prompt.</span>
+      Every dial I added to the judge made it worse: a confidence guard, few-shot examples, the cast pasted in as context. All hurt. The plain prompt won. The cleverness belongs in the model now, not in the scaffolding around it.
+    </div>
+    <div class="find">
+      <span class="h">2 &nbsp;&middot;&nbsp; Union the outputs; never feed one method into the other.</span>
+      Stacking only worked the independent way: combine what each method <em>catches</em>. When I instead fed the cast into the judge&rsquo;s prompt as context, it got over-eager and precision halved. The two methods help by being separate; coupling them poisons one.
+    </div>
+    <div class="find">
+      <span class="h">3 &nbsp;&middot;&nbsp; Only the held-out real recording told the truth.</span>
+      The synthetic fixtures said 0.57 on a version the real recording scored 0 on, because the fakes were too clean to contain the real failure shape. Data you held back is the only data that can correct you.
+    </div>
+  </div>
+
+  <div class="reveal">
+    <h2>Shipped, not just benchmarked</h2>
+    <p>It&rsquo;s wired into the live pipeline now, and it reproduces the lab number end to end: <strong>8/11</strong> recall and <strong>8/9</strong> precision on the held-out recording, on a sub-5&nbsp;GB local model, plain text throughout, no curated roster.</p>
+    <p>Getting it there surfaced a bug the lab never showed. One stray clause in the production prompt, &ldquo;names may be garbled,&rdquo; deterministically switched off the model&rsquo;s world-recognition until I removed it. The finding: test the exact production string, not a paraphrase of it. One sentence was the difference between working and silently not.</p>
+    <p class="close">The detector got better, but the lesson is older than the detector. The hard part wasn&rsquo;t the code. It was seeing I&rsquo;d been fixing the wrong part, then throwing away clever work that no longer earned its place.</p>
+  </div>
+
+  <div class="reveal">
+    <hr>
+    <p class="footnote">Built and measured locally on an Apple-silicon Mac with a sub-5&nbsp;GB on-device model; nothing leaves the machine, for family privacy. The benchmark, the judge, and the scorer are on <a href="https://github.com/saurinchoksi/tell-me-a-story/tree/main/emp">GitHub</a>. Written with AI assistance, reviewed and edited by me.</p>
+  </div>
+</main>
+</body>
+</html>
