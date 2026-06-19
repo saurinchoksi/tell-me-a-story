@@ -28,16 +28,19 @@ class CanonNameDetector(Detector):
     id = "m9c-canon"
     label = "Canon-name mistranscription (Thomas / Mahabharata / known source)"
     failure_mode = "M9c"
-    # 0.2.0: dictionary-gate the canon verdicts so an ordinary word ("arrows") can't be
-    # flagged as a misspelled canon name — recall-guarded (see _audit.gate_canon_flags).
-    version = "0.2.0-experimental"
+    # 0.3.0: Qwen3.5 cast+judge+phonetic design (real-data recall 1/11 -> 8/11). Qwen3.5
+    #   judges the names directly and is sound-matched against a Qwen3.5-generated cast; the
+    #   two catches are unioned, then dictionary-gated. World comes from the Qwen3.5
+    #   segmentation. (0.2.0 was the Gemma worksheet + dictionary gate, kept as the baseline
+    #   _worker.run.)
+    version = "0.3.0-experimental"
     accepts_judge = False
     offline_only = True  # never runs in a web request or a non-offline scan
 
     def run(self, session_dir: Path) -> dict:
         from model_runner import run_model
         from detectors.story_names import _worker
-        result = run_model(_worker.run, str(session_dir), timeout=WORKER_TIMEOUT)
+        result = run_model(_worker.run_qwen35, str(session_dir), timeout=WORKER_TIMEOUT)
         # Surface only the canon slice; the worker still computed (and shielded with)
         # the M9b clusters internally — that is what keeps the M9c flags accurate.
         return {

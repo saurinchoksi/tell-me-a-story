@@ -26,7 +26,7 @@ if str(SRC) not in sys.path:
 
 from story_segment import segment_session, make_reader
 from detectors.story_names._audit import story_name_cards, run_v2
-from detectors.story_names._names import story_segments
+from detectors.story_names._names import story_segments, proper_name_candidates
 from detectors.phonetics import clean, codes
 
 
@@ -105,6 +105,29 @@ def expand_flag(flag, card, seg_by_id, story_idx, world):
     return out
 
 
+def expand_combined(flags, cards, seg_by_id, story_idx, world):
+    """Expand combined judge+phonetic (Qwen3.5) flags to per-occurrence Monitor flags.
+
+    The judge flags carry no real card_id (they came from a name list, not a card), so we
+    pair each flag with EVERY card and let expand_flag emit only the occurrences whose
+    cleaned token is in the flag's wrong_cleaned set — a non-matching card yields nothing.
+    Dedupe by (segment_id, word_index, case) so a spelling that lives in two cards (or is
+    caught by both methods) lands once."""
+    out, seen = [], set()
+    for f in flags:
+        for card in cards:
+            f2 = dict(f)
+            f2["card_id"] = card["id"]
+            if not f2.get("all_spellings"):
+                f2["all_spellings"] = card["surface"]
+            for rec in expand_flag(f2, card, seg_by_id, story_idx, world):
+                key = (rec["segment_id"], rec["word_index"], rec["case"])
+                if key not in seen:
+                    seen.add(key)
+                    out.append(rec)
+    return out
+
+
 def count_word_tokens(rich):
     """Non-empty cleaned word tokens across all segments — matches the M9b detector's
     n_word_tokens so the Monitor's 'flags / tokens' line is comparable."""
@@ -146,6 +169,53 @@ def run(session_dir):
             if card is None:                              # v2 always sets a real card_id; defensive
                 continue
             flags.extend(expand_flag(f, card, seg_by_id, r["idx"], r["world"]))
+
+    return {"n_word_tokens": count_word_tokens(rich), "flags": flags}
+
+
+def run_qwen35(session_dir):
+    """Qwen3.5 canon pass (the production M9c detector, v0.3.0). One model load; per story
+    region: read the world from the saved Qwen3.5 segmentation, generate a cast, judge the
+    names, phonetic-match against the cast, UNION the two, dictionary-gate, and expand to
+    per-occurrence flags. The world already lives in `_stories` (Qwen3.5 segmentation), so no
+    separate world call; an older session with no `_stories` is segmented live with Qwen3.5
+    (world included). Returns {n_word_tokens, flags}. The Gemma run() above stays as baseline."""
+    from story_segment_qwen35 import segment_session as segment_session_q, make_reader as make_reader_q
+    from detectors.story_names import _qwen35
+
+    session_dir = Path(session_dir)
+    rich = json.loads((session_dir / "transcript-rich.json").read_text())
+    seg_by_id = {s["id"]: s for s in rich["segments"]}
+    pos_of = {s["id"]: i for i, s in enumerate(rich["segments"])}
+
+    gen = make_reader_q()  # one Qwen3.5 load for the whole session
+
+    stories = rich.get("_stories")
+    if stories is not None:
+        print(f"  using {len(stories)} saved story region(s)", file=sys.stderr)
+    else:  # older session: segment live with Qwen3.5 (world included)
+        seg_result, _ = segment_session_q(session_dir, gen)
+        stories = seg_result["stories"]
+    regions = build_regions(stories, pos_of)
+    print(f"  Qwen3.5 canon audit across {len(regions)} story region(s)", file=sys.stderr)
+
+    flags = []
+    for r in regions:
+        segs = story_segments(rich, r, pos_of)
+        cards = story_name_cards(segs, recover=True)
+        singles = proper_name_candidates(segs)
+        names = sorted({s for c in cards for s in c["surface"]})
+        # Recognize the world from the NAME LIST, not the saved segmentation world: pass-2 over a
+        # long whole-recording region abstains (Mahabharata held-out world=''), but the names place
+        # it reliably. Abstains to "" on unrecognizable names -> canon check stays off (no false on).
+        world = _qwen35.recognize_world(gen, names)
+        if not world:
+            continue  # no recognized world -> no canon check (same contract as Gemma run)
+        cast = _qwen35.generate_cast(gen, world)
+        judge_flags = _qwen35.judge_names(gen, world, names, singles)
+        phon_flags = _qwen35.phonetic_flags(cards, singles, cast)
+        combined = _qwen35.combine(judge_flags, phon_flags)
+        flags.extend(expand_combined(combined, cards, seg_by_id, r["idx"], world))
 
     return {"n_word_tokens": count_word_tokens(rich), "flags": flags}
 

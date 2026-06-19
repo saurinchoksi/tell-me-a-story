@@ -233,6 +233,9 @@ def segment_segments(segs, gen, name="session", use_global=True):
                 open_story = None
     if open_story is not None:  # dangling open story -> runs to end of recording
         regions.append(_mkregion(open_story, order[-1], "<runs to end of recording>", pos_of))
+    if not regions and order:  # no boundary detected anywhere -> the whole recording is ONE story
+        regions.append(_mkregion({"segment_id": order[0], "quote": "<whole recording>"},
+                                 order[-1], "<whole recording>", pos_of))
 
     n_pre = len(regions)
     if use_global:
