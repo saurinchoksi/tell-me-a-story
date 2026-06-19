@@ -22,7 +22,9 @@ from mutagen import File as MutagenFile
 from normalize import llm_normalize, MODEL as LLM_MODEL
 from dictionary import load_library, build_variant_map, normalize_variants, make_processing_entry as make_dictionary_entry
 from corrections import extract_text, apply_corrections
-from story_segment import segment_transcript, MODEL_ID as SEGMENT_MODEL_ID, SEGMENT_CONFIG_VERSION
+# Story segmentation runs on Qwen3.5 (5/5 story counts, 0.86->0.94 region overlap vs Gemma;
+# see emp/src/seg_qwen35.py). The Gemma backend (story_segment.py) stays as the baseline.
+from story_segment_qwen35 import segment_transcript, MODEL_ID as SEGMENT_MODEL_ID, SEGMENT_CONFIG_VERSION
 from stories import enrich_with_stories
 from model_cache import cached_or_run, fingerprint
 
