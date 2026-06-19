@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The name-detection effort — the plain version</title>
+<style>
+  :root{
+    --bg:#FBF8F3; --paper:#FFFFFF; --ink:#2A2326; --read:#463F41;
+    --muted:#857B7C; --maroon:#6A3843; --gold:#977c41; --green:#3f6b4f; --rule:#E9DFD9;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--read);
+    font-family:var(--sans);font-size:18px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:3rem 1.3rem 4.5rem}
+  .eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    font-weight:700;color:var(--gold);margin:0 0 .6rem}
+  h1{font-size:1.72rem;line-height:1.2;color:var(--maroon);margin:0 0 .5rem;letter-spacing:-.01em}
+  .dek{color:var(--muted);font-size:1.02rem;margin:0 0 1.6rem}
+  .frame{background:var(--paper);border:1px solid var(--rule);border-radius:9px;
+    padding:1rem 1.2rem;margin:0 0 2.4rem;font-size:.96rem;line-height:1.55}
+  .part{margin:2.6rem 0 0}
+  .partlab{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+    color:var(--gold);margin-bottom:.2rem}
+  .parttitle{font-size:1.2rem;color:var(--maroon);font-weight:650;margin:0 0 .3rem;letter-spacing:-.01em}
+  h3{font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;font-weight:700;
+    color:var(--ink);margin:1.4rem 0 .35rem}
+  p{margin:.6rem 0}
+  strong{color:var(--ink);font-weight:650}
+  .num{font-weight:700;color:var(--maroon);white-space:nowrap}
+  .win{color:var(--green);font-weight:700}
+  .verdict{display:inline-block;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+    font-weight:700;border-radius:5px;padding:.18em .5em;margin-left:.5rem;vertical-align:.12em}
+  .verdict.fixed{color:var(--green);background:rgba(63,107,79,.12)}
+  .verdict.mixed{color:var(--gold);background:rgba(151,124,65,.14)}
+  .wall{background:var(--paper);border:1px solid var(--rule);border-left:3px solid var(--muted);
+    border-radius:9px;padding:1rem 1.2rem;margin:2.6rem 0 0}
+  .wall .lab{display:block;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:700;color:var(--muted);margin-bottom:.4rem}
+  .bottom{background:var(--paper);border:1px solid var(--rule);border-left:3px solid var(--gold);
+    border-radius:9px;padding:1.1rem 1.25rem;margin:2.2rem 0 0;color:var(--ink);font-size:1.04rem;line-height:1.5}
+  .bottom .lab{display:block;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:700;color:var(--gold);margin-bottom:.45rem}
+  hr{border:none;height:1px;background:var(--rule);margin:2.6rem 0 0}
+  @media(max-width:480px){body{font-size:16px}.wrap{padding:2.2rem 1.1rem 3.5rem}h1{font-size:1.45rem}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="eyebrow">Tell Me A Story · the plain version</p>
+  <h1>Fixing the name checks &mdash; the whole effort, honestly</h1>
+  <p class="dek">Two connected pieces of work. What each set out to fix, and what&rsquo;s actually true now.</p>
+
+  <div class="frame">
+    The pipeline is supposed to catch character names from a <em>known</em> story that got transcribed wrong &mdash; the Mahabharata&rsquo;s Bhishma written as &ldquo;Bishma.&rdquo; It works in two steps: first a step <strong>names the story&rsquo;s world</strong>; then, only for a known world, a <strong>check looks for the misspelled names</strong>. We worked on both steps. Here&rsquo;s the reality of each.
+  </div>
+
+  <div class="part">
+    <div class="partlab">Part 1 &middot; the upstream step</div>
+    <div class="parttitle">Naming the story&rsquo;s world <span class="verdict fixed">Fixed</span></div>
+
+    <h3>Problem</h3>
+    <p>The step that names the world was calling real stories &ldquo;made up,&rdquo; which silently switched the name-check <strong>off</strong>. On a held-out Mahabharata recording it caught <strong>zero</strong> misspelled names &mdash; it had read only about a dozen scattered lines of each story and leaned on a hard-coded list of our own worlds.</p>
+
+    <h3>Action</h3>
+    <p>Built a benchmark of <span class="num">100</span> fake bedtime stories with known answers. Tested reading the <strong>whole story</strong> against the old dozen-line sample, tuned the prompt across several versions, and cold-tested on real recordings we&rsquo;d deliberately held back.</p>
+
+    <h3>Result</h3>
+    <p>Fixed, and live. It reads the whole story now and uses general knowledge instead of our hard-coded list; the held-out Mahabharata is recognized correctly. Benchmark accuracy went from about two-thirds right to about four-fifths (<span class="num">0.67 &rarr; 0.82</span>). The real surprise came from the held-out test: the main cause of the miss was <strong>how little it read</strong> (the sampling), <em>not</em> the wording &mdash; we&rsquo;d been about to rewrite the prompt and fix the wrong thing.</p>
+  </div>
+
+  <div class="part">
+    <div class="partlab">Part 2 &middot; the downstream check</div>
+    <div class="parttitle">Catching the misspelled names <span class="verdict mixed">Measured &amp; right-sized</span></div>
+
+    <h3>Problem</h3>
+    <p>With the switch finally on, the name-check itself turned out unreliable &mdash; it flagged <strong>ordinary words</strong> (it saw &ldquo;arrows&rdquo; and called it a misspelling of a character named &ldquo;Arrow&rdquo;) &mdash; and we had never tested whether it catches the real errors.</p>
+
+    <h3>Action</h3>
+    <p>Added a filter so it stops flagging plain dictionary words. Then listened to two recordings <strong>by ear</strong>, wrote down every name the transcriber actually got wrong, and scored the check against that list.</p>
+
+    <h3>Result</h3>
+    <p>The filter works and is live &mdash; false alarms on the test recording dropped from <span class="num">24 to 2</span>. But the check itself is <strong>weak</strong>: it catches about <span class="num">1 in 12</span> of the real misspellings. So we marked it &ldquo;experimental&rdquo; and chose <em>not</em> to hand-build a list of worlds to prop it up.</p>
+  </div>
+
+  <div class="wall">
+    <span class="lab">The wall behind both</span>
+    The small model running on the Mac simply doesn&rsquo;t know enough. It can&rsquo;t place less-famous worlds, and it can&rsquo;t spot most misspelled names even when it <em>does</em> know the world. That&rsquo;s a knowledge limit of a small, private, on-device model &mdash; not something cleverer wording fixes.
+  </div>
+
+  <div class="bottom">
+    <span class="lab">Bottom line</span>
+    We <span class="win">fixed the upstream switch</span> &mdash; a real, live improvement &mdash; and we <strong>honestly measured the downstream check and found it weak</strong>, so we stopped building on it. One clear win, one honest &ldquo;this doesn&rsquo;t work well, good to know.&rdquo; The lasting tools are the benchmark and the by-ear answer key: they&rsquo;re what turned hunches into numbers we can trust.
+  </div>
+</main>
+</body>
+</html>

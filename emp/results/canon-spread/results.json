@@ -1,0 +1,354 @@
+{
+  "results": [
+    {
+      "world": "Star Wars",
+      "recognized_as": "Star Wars",
+      "n_planted": 7,
+      "reachable": 4,
+      "recall_given": 0,
+      "recall_e2e": 0,
+      "marks": [
+        {
+          "heard": "Ray",
+          "correct": "Rey",
+          "reachable": false,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Fin",
+          "correct": "Finn",
+          "reachable": false,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Dark Vader",
+          "correct": "Darth Vader",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Obi Wan Canopy",
+          "correct": "Obi-Wan Kenobi",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Choobaka",
+          "correct": "Chewbacca",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Layah",
+          "correct": "Leia",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Po",
+          "correct": "Poe",
+          "reachable": false,
+          "caught_given": false,
+          "caught_e2e": false
+        }
+      ]
+    },
+    {
+      "world": "Harry Potter",
+      "recognized_as": "Harry Potter",
+      "n_planted": 5,
+      "reachable": 5,
+      "recall_given": 3,
+      "recall_e2e": 3,
+      "marks": [
+        {
+          "heard": "Hermyne",
+          "correct": "Hermione",
+          "reachable": true,
+          "caught_given": true,
+          "caught_e2e": true
+        },
+        {
+          "heard": "Snayp",
+          "correct": "Snape",
+          "reachable": true,
+          "caught_given": true,
+          "caught_e2e": true
+        },
+        {
+          "heard": "Dumbeldor",
+          "correct": "Dumbledore",
+          "reachable": true,
+          "caught_given": true,
+          "caught_e2e": true
+        },
+        {
+          "heard": "Dobi",
+          "correct": "Dobby",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Hootch",
+          "correct": "Hooch",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        }
+      ]
+    },
+    {
+      "world": "He-Man and the Masters of the Universe",
+      "recognized_as": "Masters of the Universe",
+      "n_planted": 6,
+      "reachable": 6,
+      "recall_given": 0,
+      "recall_e2e": 0,
+      "marks": [
+        {
+          "heard": "Skelator",
+          "correct": "Skeletor",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Soreceress",
+          "correct": "Sorceress",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Oarco",
+          "correct": "Orko",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Evil Lynn",
+          "correct": "Evil-Lyn",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Battlecat",
+          "correct": "Battle Cat",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Kobra Con",
+          "correct": "Kobra Khan",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        }
+      ]
+    },
+    {
+      "world": "Super Mario",
+      "recognized_as": "Super Mario Bros.",
+      "n_planted": 6,
+      "reachable": 6,
+      "recall_given": 0,
+      "recall_e2e": 0,
+      "marks": [
+        {
+          "heard": "Bowzer",
+          "correct": "Bowser",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Peech",
+          "correct": "Peach",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Yoshee",
+          "correct": "Yoshi",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Cammick",
+          "correct": "Kamek",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Toed",
+          "correct": "Toad",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Boozer",
+          "correct": "Bowser Junior",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        }
+      ]
+    },
+    {
+      "world": "Teenage Mutant Ninja Turtles",
+      "recognized_as": "Teenage Mutant Ninja Turtles",
+      "n_planted": 4,
+      "reachable": 4,
+      "recall_given": 0,
+      "recall_e2e": 0,
+      "marks": [
+        {
+          "heard": "Splinster",
+          "correct": "Splinter",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Donatella",
+          "correct": "Donatello",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Shrederr",
+          "correct": "Shredder",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Aprul",
+          "correct": "April",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        }
+      ]
+    },
+    {
+      "world": "Steven Universe",
+      "recognized_as": "Steven Universe",
+      "n_planted": 5,
+      "reachable": 5,
+      "recall_given": 0,
+      "recall_e2e": 0,
+      "marks": [
+        {
+          "heard": "Garnett",
+          "correct": "Garnet",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Perl",
+          "correct": "Pearl",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Amethist",
+          "correct": "Amethyst",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Jasbur",
+          "correct": "Jasper",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Connee",
+          "correct": "Connie",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        }
+      ]
+    },
+    {
+      "world": "Mahabharata",
+      "recognized_as": "Mahabharata",
+      "n_planted": 7,
+      "reachable": 7,
+      "recall_given": 5,
+      "recall_e2e": 5,
+      "marks": [
+        {
+          "heard": "Bandavas",
+          "correct": "Pandavas",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        },
+        {
+          "heard": "Beema",
+          "correct": "Bhima",
+          "reachable": true,
+          "caught_given": true,
+          "caught_e2e": true
+        },
+        {
+          "heard": "Urjun",
+          "correct": "Arjuna",
+          "reachable": true,
+          "caught_given": true,
+          "caught_e2e": true
+        },
+        {
+          "heard": "Doryodana",
+          "correct": "Duryodhana",
+          "reachable": true,
+          "caught_given": true,
+          "caught_e2e": true
+        },
+        {
+          "heard": "Bishma",
+          "correct": "Bhishma",
+          "reachable": true,
+          "caught_given": true,
+          "caught_e2e": true
+        },
+        {
+          "heard": "Garna",
+          "correct": "Karna",
+          "reachable": true,
+          "caught_given": true,
+          "caught_e2e": true
+        },
+        {
+          "heard": "Drop A Dee",
+          "correct": "Draupadi",
+          "reachable": true,
+          "caught_given": false,
+          "caught_e2e": false
+        }
+      ]
+    }
+  ]
+}

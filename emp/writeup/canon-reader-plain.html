@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canon name-check — the plain version</title>
+<style>
+  :root{
+    --bg:#FBF8F3; --paper:#FFFFFF; --ink:#2A2326; --read:#463F41;
+    --muted:#857B7C; --maroon:#6A3843; --gold:#977c41; --rule:#E9DFD9;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--read);
+    font-family:var(--sans);font-size:18px;line-height:1.6;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:640px;margin:0 auto;padding:3rem 1.3rem 4.5rem}
+  .eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    font-weight:700;color:var(--gold);margin:0 0 .6rem}
+  h1{font-size:1.7rem;line-height:1.2;color:var(--maroon);margin:0 0 .5rem;letter-spacing:-.01em}
+  .dek{color:var(--muted);font-size:1.02rem;margin:0 0 2.2rem}
+  h2{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+    color:var(--maroon);margin:2.4rem 0 .6rem;padding-bottom:.4rem;
+    border-bottom:1px solid var(--rule)}
+  p{margin:.8rem 0}
+  strong{color:var(--ink);font-weight:650}
+  ul{margin:.7rem 0;padding-left:0;list-style:none}
+  li{position:relative;padding-left:1.3rem;margin:.7rem 0}
+  li::before{content:"";position:absolute;left:.1rem;top:.62em;
+    width:.42rem;height:.42rem;border-radius:50%;background:var(--gold)}
+  .num{font-weight:700;color:var(--maroon);white-space:nowrap}
+  .step{counter-increment:step;padding-left:1.3rem;position:relative;margin:.7rem 0}
+  .step::before{content:counter(step);position:absolute;left:0;top:0;
+    font-weight:700;color:var(--gold)}
+  .steps{counter-reset:step}
+  .bottom{background:var(--paper);border:1px solid var(--rule);
+    border-left:3px solid var(--gold);border-radius:9px;
+    padding:1.1rem 1.25rem;margin:2rem 0;color:var(--ink);font-size:1.05rem;line-height:1.5}
+  .bottom .lab{display:block;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:700;color:var(--gold);margin-bottom:.45rem}
+  .note{font-size:.92rem;color:var(--muted);line-height:1.55;margin-top:2.2rem;
+    border-top:1px solid var(--rule);padding-top:1.2rem}
+  @media(max-width:480px){body{font-size:16px}.wrap{padding:2.2rem 1.1rem 3.5rem}h1{font-size:1.45rem}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="eyebrow">Tell Me A Story · the plain version</p>
+  <h1>The canon name-check, honestly</h1>
+  <p class="dek">What we set out to fix, what we did, and what&rsquo;s actually true now.</p>
+
+  <h2>Problem</h2>
+  <p>We have a check that&rsquo;s meant to catch character names from a <em>known</em> story that the transcriber spelled wrong &mdash; the Mahabharata&rsquo;s Bhishma written as &ldquo;Bishma.&rdquo; Two things were wrong with it:</p>
+  <ul>
+    <li>It flagged <strong>ordinary everyday words</strong>. It saw &ldquo;arrows&rdquo; and decided that was a misspelling of a character named &ldquo;Arrow.&rdquo;</li>
+    <li>We had <strong>never actually tested</strong> whether it catches the real misspellings.</li>
+  </ul>
+
+  <h2>Action</h2>
+  <p>Two things:</p>
+  <div class="steps">
+    <p class="step">Added a filter so it stops flagging plain dictionary words.</p>
+    <p class="step">Listened to two recordings <strong>by ear</strong>, wrote down every character name the transcriber actually got wrong, and checked the detector against that list.</p>
+  </div>
+
+  <h2>Result</h2>
+  <ul>
+    <li><strong>The filter worked, and it&rsquo;s live.</strong> The check no longer cries wolf on ordinary words &mdash; on the test recording, false alarms dropped from <span class="num">24 to 2</span>.</li>
+    <li><strong>The by-ear test showed the check itself is weak.</strong> It catches about <span class="num">1 in 12</span> of the real misspelled names. The small model running on the Mac just doesn&rsquo;t reliably know these names.</li>
+    <li><strong>So we stopped investing in it.</strong> Marked it &ldquo;experimental,&rdquo; and chose <em>not</em> to hand-build a list of worlds to prop it up.</li>
+  </ul>
+
+  <div class="bottom">
+    <span class="lab">Bottom line</span>
+    We didn&rsquo;t make the detector <em>good</em> &mdash; we made it <em>quiet</em>, and we <em>proved</em> it&rsquo;s weak. That told us to stop building on it and lean on the simpler checks instead.
+  </div>
+
+  <p class="note">Why it felt confusing: the same stretch of work did two opposite-feeling things at once &mdash; it <strong>fixed</strong> something (the noise) and <strong>found something disappointing</strong> (the detector&rsquo;s weak). The real deliverable was <em>knowing</em>, not improving: we now know it doesn&rsquo;t work well, and why, so we don&rsquo;t waste more time on it.</p>
+</main>
+</body>
+</html>

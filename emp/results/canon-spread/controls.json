@@ -1,0 +1,54 @@
+{
+  "_about": "Made-up control stories (no real world; clearly-invented names). The canon detector must flag NONE of these names — a flag here is a false positive (over-correcting an invented name into a real one). Used by bench_spell.py to test the precision risk of the spell-it approach.",
+  "stories": [
+    {
+      "world": "",
+      "lines": [
+        "Okay so there's a little cloud-dragon and his name is Zorble and he lives way up high in a puffy cloud castle.",
+        "Now Zorble he's not very good at flying yet so he bumps into things, boing, boing, all day long.",
+        "And his very best friend is a tiny worm named Pim who carries a teeny umbrella everywhere she goes.",
+        "So Pim and Zorble they go looking for the lost rainbow that fell down behind the tall mountains.",
+        "On the way they meet a grumpy old badger named Bramblefoot who guards the squeaky wooden bridge.",
+        "And Bramblefoot he won't let anybody cross unless they tell him a really really good joke.",
+        "So Zorble tells him a joke about a sleepy potato and Bramblefoot laughs so hard he tips right over.",
+        "Then a clever little firefly named Quenny lights up the dark tunnel so everybody can see.",
+        "And Quenny she blinks in patterns like a tiny flashlight, blink blink blink, all the way through.",
+        "At the very end they find the rainbow and Zorble carries it home and everybody cheers, hooray.",
+        "And that is the end, goodnight little one, close those sleepy eyes now."
+      ],
+      "names": ["Zorble", "Pim", "Bramblefoot", "Quenny"]
+    },
+    {
+      "world": "",
+      "lines": [
+        "Tonight it's the one about the robot pirate, you ready, his name is Captain Sprockets and his ship is made of tin cans.",
+        "Captain Sprockets he sails all over the Tin Sea looking for the shiniest bottle cap in the whole world.",
+        "His first mate is a squeaky robot parrot named Tindle who only ever says beep instead of squawk.",
+        "And Tindle she sits up on his shoulder and beeps him directions, beep left, beep right, beep beep.",
+        "Then they bump into a sea monster made all of bubbles and his name is Mosswiggle and he's actually super friendly.",
+        "Mosswiggle he just really wants somebody to play splash with, so they splash around all afternoon.",
+        "Then a sneaky little crab named Greelo tries to steal the treasure map with his tiny pinchy claws.",
+        "But Greelo he gets the map stuck right on his own claw and spins around in circles, wee, wee.",
+        "So Captain Sprockets shares the treasure with everybody and they have a big tin-can party.",
+        "The end, okay, time to close your eyes and sleep now."
+      ],
+      "names": ["Sprockets", "Tindle", "Mosswiggle", "Greelo"]
+    },
+    {
+      "world": "",
+      "lines": [
+        "Okay last one, it's the twins who live inside a music box, and their names are Plonk and Quizzle.",
+        "So Plonk he plays the low notes, bum bum bum, and Quizzle she plays the high ones, ting ting ting.",
+        "And every single night when the music box opens up they dance right out and tidy all the dreams.",
+        "Their pet is a fuzzy little sock-creature named Fennby who goes around eating all the lost buttons.",
+        "And Fennby he burps a tiny sparkle every time he eats one, isn't that the funniest thing.",
+        "But one night a gloomy gray fog named Marblecake rolls in and makes everybody feel sleepy and sad.",
+        "Now Marblecake he doesn't even mean to be gloomy, he's just lost and looking for his way back home.",
+        "So Plonk and Quizzle they play a happy little song and the fog turns into a soft glowy blanket.",
+        "And the little sock-creature Fennby he tucks everybody in, even the gloomy fog gets tucked in.",
+        "Goodnight, sleep tight, and that is the very end."
+      ],
+      "names": ["Plonk", "Quizzle", "Fennby", "Marblecake"]
+    }
+  ]
+}

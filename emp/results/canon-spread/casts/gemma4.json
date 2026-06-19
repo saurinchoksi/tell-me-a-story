@@ -1,0 +1,93 @@
+{
+  "model": "mlx-community/gemma-4-e4b-it-4bit",
+  "casts": {
+    "Mahabharata": [
+      "Pandavas",
+      "Kauravas",
+      "Arjuna",
+      "Krishna",
+      "Duryodhana",
+      "Bhima",
+      "Yudhishthira",
+      "Nakula",
+      "Sahadeva",
+      "Draupadi",
+      "Bhishma",
+      "Drona",
+      "Vidura",
+      "Kurukshetra",
+      "Hastinapura"
+    ],
+    "Star Wars": [
+      "Skywalkers",
+      "Rebels",
+      "Empire",
+      "Jedi",
+      "Sith",
+      "Dagobah",
+      "Tatooine",
+      "Bespin",
+      "Coruscant"
+    ],
+    "Harry Potter": [
+      "Harry Potter",
+      "Ron Weasley",
+      "Hermione Granger",
+      "Dursleys",
+      "Slytherin",
+      "Gryffindor",
+      "Ravenclaw",
+      "Hufflepuff",
+      "Hogwarts",
+      "Diagon Alley",
+      "Ministry of Magic",
+      "Death Eater",
+      "Death Eaters"
+    ],
+    "He-Man and the Masters of the Universe": [
+      "HeMan",
+      "Sorceress",
+      "Eternia",
+      "Masters of the Universe",
+      "Evil Skeletor",
+      "Snake Indians",
+      "Battle Catches",
+      "Trap Jaw",
+      "Clawful beasts"
+    ],
+    "Super Mario": [
+      "Mario",
+      "Luigi",
+      "Peach",
+      "Bowser",
+      "Goombas",
+      "Koopas",
+      "Toad",
+      "Rosalina"
+    ],
+    "Teenage Mutant Ninja Turtles": [
+      "Teenage Mutant Ninja Turtles",
+      "Foot Clan",
+      "Shredder",
+      "Donatello",
+      "Leonardo",
+      "Michelangelo",
+      "Raphael",
+      "Splinter",
+      "Casey Jones",
+      "April O'Neil",
+      "Ritation",
+      "Dimension X"
+    ],
+    "Steven Universe": [
+      "Steven Universe",
+      "Garnet",
+      "Amethyst",
+      "Pearl",
+      "Beach City",
+      "Corals",
+      "Cluster Gems",
+      "Gem Homeworld"
+    ]
+  }
+}

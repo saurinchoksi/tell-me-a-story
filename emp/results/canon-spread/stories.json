@@ -1,0 +1,342 @@
+{
+  "_about": "Synthetic name-misspelling stories across a fame/difficulty spread of worlds; fabricated + fact-checked via workflow. Tests the canon name-detector's recall.",
+  "stories": [
+    {
+      "world": "Star Wars",
+      "lines": [
+        "Okay so once upon a time a long long time ago in a galaxy really really far away there's a little girl named Ray.",
+        "And Ray she lives all alone on this big sandy planet and she's waiting for her family but they never come back.",
+        "So one day this round little orange and white robot rolls up beeping and booping and it has a secret map inside it.",
+        "And then this boy shows up too his name is Fin and he used to be a bad guy but now he wants to be good.",
+        "Fin grabs Ray's hand and he goes we gotta run we gotta run the bad guys are coming.",
+        "And the biggest baddest bad guy he wears all black and he breathes really loud like this, hhhh, hhhh, and everyone calls him Dark Vader.",
+        "Dark Vader he has this glowy red laser sword and he can move things just by waving his hand in the air.",
+        "But there's a good wizard too an old man with a gray beard and his name is Obi Wan Canopy.",
+        "And Obi Wan Canopy he teaches Ray how to use the Force which is like this invisible magic that's inside everybody.",
+        "Then they meet this giant furry guy who's like a big walking carpet and he goes rrraaaawwwgh and his name is Choobaka.",
+        "Choobaka can't really talk he just growls but he gives the best hugs in the whole galaxy.",
+        "And there's a brave princess too she has these funny buns on the side of her head and her name is Layah.",
+        "Princess Layah she's not scared of anybody not even the bad guys with all the lasers.",
+        "Oh and there's a brave pilot the best pilot ever and his name is Po and he flies the fastest ship.",
+        "Po he zooms around in his little orange jet and he goes pew pew pew and blows up all the bad robots.",
+        "So Ray and Fin and Choobaka they all fly away together to go save the whole galaxy.",
+        "And the Force is strong with little Ray and she's gonna grow up to be the bravest hero of all.",
+        "And everybody lives happily ever after and that's the end so now it's time for you to go to sleep okay goodnight."
+      ],
+      "planted": [
+        {
+          "heard": "Ray",
+          "correct": "Rey"
+        },
+        {
+          "heard": "Fin",
+          "correct": "Finn"
+        },
+        {
+          "heard": "Dark Vader",
+          "correct": "Darth Vader"
+        },
+        {
+          "heard": "Obi Wan Canopy",
+          "correct": "Obi-Wan Kenobi"
+        },
+        {
+          "heard": "Choobaka",
+          "correct": "Chewbacca"
+        },
+        {
+          "heard": "Layah",
+          "correct": "Leia"
+        },
+        {
+          "heard": "Po",
+          "correct": "Poe"
+        }
+      ]
+    },
+    {
+      "world": "Harry Potter",
+      "lines": [
+        "Okay okay snuggle in, tonight we're doing a Harry Potter one, you ready?",
+        "So there's this boy and his name is Harry and he lives under the stairs which is so silly, who sleeps under the stairs.",
+        "And one day this big giant man comes and tells him you're a wizard Harry, you're going to a magic school.",
+        "And his two best friends, there's a girl named Hermyne and she's super super smart and reads all the books.",
+        "And then there's a boy named Ron and he has lots of brothers and they all have red hair.",
+        "They take a train to the castle and the train is bright red and goes choo choo through the mountains.",
+        "Now the mean teacher, his name is Snayp, and he wears all black and he never ever smiles, not once.",
+        "And Snayp is always picking on Harry for no reason, no, no reason at all.",
+        "But the nice principal, the old wizard with the long white beard, his name is Dumbeldor and he is very wise.",
+        "Dumbeldor always knows what to do and he has a bird that bursts into fire and comes back, isn't that wild.",
+        "Oh and there's a tiny little house elf with big ears and his name is Dobi, and Dobi just wants to be free.",
+        "Dobi keeps trying to help Harry but he keeps messing it all up, poor little guy.",
+        "And the bad guy, the really scary one, his name is Voldemort but everybody is too scared to even say it.",
+        "They just call him you know who, because his name is so spooky, ooooh.",
+        "And there's a sweet big friend, the giant man from before, his name is Hagger and he loves all the scary monsters.",
+        "Hagger has a pet spider as big as a car and a baby dragon too, can you believe that.",
+        "Oh and Harry plays this game on a broom and his teacher for that is Madam Hootch and she has a whistle.",
+        "So Harry and his friends have to be brave and stop the bad guy from getting the magic stone.",
+        "And in the end they win and everybody is safe and they go home for the summer, the end, now close your eyes."
+      ],
+      "planted": [
+        {
+          "heard": "Hermyne",
+          "correct": "Hermione"
+        },
+        {
+          "heard": "Snayp",
+          "correct": "Snape"
+        },
+        {
+          "heard": "Dumbeldor",
+          "correct": "Dumbledore"
+        },
+        {
+          "heard": "Dobi",
+          "correct": "Dobby"
+        },
+        {
+          "heard": "Hootch",
+          "correct": "Hooch"
+        }
+      ]
+    },
+    {
+      "world": "He-Man and the Masters of the Universe",
+      "lines": [
+        "okay okay so tonight we're doing the one with He-Man and the bad guys on the spooky mountain.",
+        "so there's this big strong hero right and his name is He-Man but really he's a prince named Adam.",
+        "and whenever there's trouble he holds up his sword and yells by the power of Grayskull and he gets all strong.",
+        "and the bad guy the really bad one is Skelator and he's got like a blue face and just a skull, no skin, just bones, it's kinda gross.",
+        "and Skelator he lives in this scary place and he's always trying to break into the castle to get the power.",
+        "okay so the helper, the one who knows all the magic, that's the Soreceress, and she lives up in Castle Grayskull and she turns into a falcon sometimes.",
+        "and there's a funny little wizard who floats around and his name is Oarco and he messes up all his spells and drops stuff, he's so silly.",
+        "and Oarco the floaty one is your favorite I bet because he's such a goofball.",
+        "and then there's a mean lady warrior who works for the bad guy and her name is Evil Lynn and she does sneaky magic too.",
+        "and Evil Lynn she tricks people and she's always whispering to Skelator about the plan.",
+        "and don't forget the tiger, the big green and yellow tiger that He-Man rides, his name is Battlecat and he used to be a scaredy cat.",
+        "so one night the bad guys sneak up the mountain to grab the magic, and Battlecat hears them coming and he growls real loud.",
+        "and He-Man's friend, the big strong soldier with the metal arm, everybody calls him Man at Arms, and he builds all the cool machines.",
+        "so Man at Arms he fires up a big cannon and Oarco tries to help but he just zaps himself by accident, oops.",
+        "and then this other sneaky bad guy shows up, the one who turns into a snake, and his name is Kobra Con and he hisses real mean.",
+        "and Kobra Con slithers up the wall but Battlecat swats him right off, thwap, like a big bug.",
+        "and the Soreceress sends a magic light to wake up He-Man and he grabs Adam's sword and rides Battlecat down the hill.",
+        "and Evil Lynn throws this purple spell but Battlecat jumps right over it, woosh, like a big green airplane.",
+        "and He-Man grabs Skelator's bony arm and just gently sets him down and says go home, the magic stays here.",
+        "so Skelator stomps off all grumpy and the Soreceress says thank you and everybody's safe in the castle again."
+      ],
+      "planted": [
+        {
+          "heard": "Skelator",
+          "correct": "Skeletor"
+        },
+        {
+          "heard": "Soreceress",
+          "correct": "Sorceress"
+        },
+        {
+          "heard": "Oarco",
+          "correct": "Orko"
+        },
+        {
+          "heard": "Evil Lynn",
+          "correct": "Evil-Lyn"
+        },
+        {
+          "heard": "Battlecat",
+          "correct": "Battle Cat"
+        },
+        {
+          "heard": "Kobra Con",
+          "correct": "Kobra Khan"
+        }
+      ]
+    },
+    {
+      "world": "Super Mario",
+      "lines": [
+        "okay okay so once upon a time there's this plumber and his name is Mario and he lives in the mushroom kingdom with his brother",
+        "and his brother is um his brother is Luigi and Luigi is taller and he's a little bit scared of everything which is funny",
+        "and one day the bad guy he comes and he steals the princess away to his big scary castle far away",
+        "and the bad guy his name is Bowzer and he breathes fire and he has the spiky shell on his back like a turtle",
+        "so Mario he has to go and save her and the princess her name is Princess Peech and she wears the pink dress",
+        "and Peech she's really nice and she bakes cakes and she can float a little bit with her dress like an umbrella",
+        "so Mario he runs and he jumps on the bad guys and he stomps them flat boom boom boom",
+        "and he meets his little dinosaur friend and the dinosaur is green and his name is Yoshee",
+        "and Yoshee he has a really really long tongue and he can eat the bad guys and he can swallow them up",
+        "and they go through the pipes the green pipes and they go down down down into the underground",
+        "and there's a sneaky little guy who follows Bowzer around and his name is Cammick and he does the magic",
+        "and Cammick he waves his wand and he makes more bad guys appear poof poof out of nowhere",
+        "and there's a little mushroom guy with the mushroom hat and his name is Toed and he helps Mario find the way",
+        "and Toed he says oh thank you Mario thank you for saving us from the big bad turtle king",
+        "and the meanest littlest helper is a baby version of the bad guy and his name is Boozer Junior and he cries a lot",
+        "so Mario he climbs up the castle and he jumps over the lava and he saves the princess at the very end",
+        "and Peech she gives him a kiss on the nose and everybody is happy and they eat cake",
+        "and that's the end of the story now close your eyes and go to sleep okay goodnight"
+      ],
+      "planted": [
+        {
+          "heard": "Bowzer",
+          "correct": "Bowser"
+        },
+        {
+          "heard": "Peech",
+          "correct": "Peach"
+        },
+        {
+          "heard": "Yoshee",
+          "correct": "Yoshi"
+        },
+        {
+          "heard": "Cammick",
+          "correct": "Kamek"
+        },
+        {
+          "heard": "Toed",
+          "correct": "Toad"
+        },
+        {
+          "heard": "Boozer",
+          "correct": "Bowser Junior"
+        }
+      ]
+    },
+    {
+      "world": "Teenage Mutant Ninja Turtles",
+      "lines": [
+        "Okay okay so once upon a time, way way down under the city in the sewers, there were these four turtle brothers who knew karate, you ready?",
+        "And they all lived together with this big wise rat who was like their dad and their teacher, and his name was Splinster.",
+        "So Splinster, he found them when they were tiny baby turtles and he taught them everything about being ninjas.",
+        "The leader one, he wore a blue mask and he had two swords, and his name was Leonardo, but everybody just called him Leo.",
+        "And then there was the funny one who loved pizza so so much, that's Mikey, his real name is Michael Angelo but that's too long to say.",
+        "Then the smart one with the purple mask, he made all the gadgets and machines, his name was Donatella and he was so clever.",
+        "Oh and the grumpy tough one in the red mask, he carried these pointy things called sai, and his name was Rafield, and he liked to fight the most.",
+        "Now hold on, every story needs a bad guy, right, and the bad guy here he wore a scary metal suit covered in blades.",
+        "And his name, are you ready, his name was Shrederr, and he was the meanest baddest guy in the whole city.",
+        "Shrederr had a whole army of robot soldiers and they all wanted to catch the turtles and ruin everything.",
+        "But the turtles had a friend, a news lady with yellow hair who helped them, and her name was Aprul.",
+        "And Aprul, she would call them on the phone whenever Shrederr was up to no good, no really she would.",
+        "So one night, Shrederr sends his robots into the sewers to find where the turtles were hiding, sneaky sneaky.",
+        "But Donatella heard them coming on his computer screen and he woke everybody up super fast.",
+        "Leo grabbed his swords and Rafield grabbed his sai and even sleepy Mikey got up off his pizza.",
+        "And together, with Splinster cheering them on, they chased every single robot right back out of the sewer.",
+        "And Aprul put it all on the news so the whole city knew the turtles were the heroes, and Shrederr lost again.",
+        "So the turtles ate one more slice of pizza and went to sleep, and that's the end, now it's your turn to sleep too, goodnight."
+      ],
+      "planted": [
+        {
+          "heard": "Splinster",
+          "correct": "Splinter"
+        },
+        {
+          "heard": "Donatella",
+          "correct": "Donatello"
+        },
+        {
+          "heard": "Shrederr",
+          "correct": "Shredder"
+        },
+        {
+          "heard": "Aprul",
+          "correct": "April"
+        }
+      ]
+    },
+    {
+      "world": "Steven Universe",
+      "lines": [
+        "Okay okay so once upon a time there's this little boy and his name is Steven and he lives in a town by the ocean with these magic ladies.",
+        "And the magic ladies they're called the Crystal Gems and they fight bad guys and they have gems on their bodies that's where they keep their powers.",
+        "So there's the tall red one and her name is Garnett and she's really really strong and she wears these cool shades like sunglasses all the time.",
+        "And then there's Perl, Perl is the skinny one and she's got like a pointy nose and she's super smart and she does sword fighting.",
+        "And the purple one she eats a lot and she's funny and her name is Amethist and she can turn into different animals which is so cool.",
+        "So one day Steven he wakes up and he wants to be a gem just like them but he doesn't know how to use his powers yet.",
+        "And his mom was a gem too, the most important one, her name was Rose and she gave up her body so that Steven could be born.",
+        "So the gems they take Steven on a mission and they have to go fight this big scary monster in a cave.",
+        "And there's this other gem who shows up and she's mean and she's from outer space and her name is Jasbur and she wants to take over the whole planet.",
+        "And Jasbur she's got this big orange hair and she's a warrior and she captures Steven and puts him in a bubble.",
+        "But then Steven's best friend comes to help and her name is Connee and she's a regular girl, she's not a gem but she's brave.",
+        "And Connee she learns to use a sword too and together they fight off the bad guys.",
+        "Oh and there's a funny part because there's this little gem who's actually two gems stuck together and his name is Lars, no wait, his name is Steven's friend and he works at the donut shop.",
+        "And the gems they all do this thing called fusing where two of them combine into one giant gem and it's like a dance.",
+        "When Perl and Amethist fuse they make this big clumsy gem and when Garnett does it she's already a fusion because she's love.",
+        "So at the end Steven he saves the day and everybody's happy and they have a big party on the beach with fry bits and donuts.",
+        "And the moral of the story is that you should always believe in yourself even when you're small, just like Steven.",
+        "Okay that's the end now close your eyes and go to sleep, love you, goodnight."
+      ],
+      "planted": [
+        {
+          "heard": "Garnett",
+          "correct": "Garnet"
+        },
+        {
+          "heard": "Perl",
+          "correct": "Pearl"
+        },
+        {
+          "heard": "Amethist",
+          "correct": "Amethyst"
+        },
+        {
+          "heard": "Jasbur",
+          "correct": "Jasper"
+        },
+        {
+          "heard": "Connee",
+          "correct": "Connie"
+        }
+      ]
+    },
+    {
+      "world": "Mahabharata",
+      "lines": [
+        "Okay okay snuggle in, tonight I'm gonna tell you the big big story about the five brothers, okay.",
+        "So a long long time ago there were these five brothers and they were called the Bandavas, and they were the good ones.",
+        "And the oldest brother, no wait, the strong one, his name is Beema and he is so so strong he can lift a whole mountain.",
+        "And then there's the one who shoots the arrows, the best in the whole world, his name is Urjun.",
+        "Urjun could shoot an arrow and hit a bird's eye without even looking, that's how good he was.",
+        "Now the brothers had a hundred cousins, a hundred, can you believe it, and the meanest one was named Doryodana.",
+        "Doryodana did not want to share, he was jealous of the five brothers because everybody loved them more.",
+        "There's also a very old grandpa warrior, the wise one, everybody listened to him, his name is Bishma.",
+        "Bishma was so good that he could lie on a whole bed of arrows and still be okay, isn't that wild.",
+        "And there was this other warrior, kind of a sad guy, nobody knew he was secretly their big brother, his name is Garna.",
+        "Garna was super loyal to the mean cousin even though, even though he should've been on the good side.",
+        "And the wife of the five brothers, she was so brave, her name is Drop A Dee.",
+        "When the bad guys were mean to Drop A Dee a god came and protected her, just like magic.",
+        "So then there's this huge huge war, everybody fights, and it goes on for like eighteen whole days.",
+        "And in the end the five good brothers, the Bandavas, they win because they did the right thing.",
+        "And the lesson is, um, you always do what's right even when it's really really hard, okay.",
+        "Okay that's enough, no more, it's sleepy time now, give me a hug, goodnight sweetie."
+      ],
+      "planted": [
+        {
+          "heard": "Bandavas",
+          "correct": "Pandavas"
+        },
+        {
+          "heard": "Beema",
+          "correct": "Bhima"
+        },
+        {
+          "heard": "Urjun",
+          "correct": "Arjuna"
+        },
+        {
+          "heard": "Doryodana",
+          "correct": "Duryodhana"
+        },
+        {
+          "heard": "Bishma",
+          "correct": "Bhishma"
+        },
+        {
+          "heard": "Garna",
+          "correct": "Karna"
+        },
+        {
+          "heard": "Drop A Dee",
+          "correct": "Draupadi"
+        }
+      ]
+    }
+  ]
+}
