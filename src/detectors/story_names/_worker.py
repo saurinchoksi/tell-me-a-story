@@ -118,8 +118,10 @@ def expand_combined(flags, cards, seg_by_id, story_idx, world):
         for card in cards:
             f2 = dict(f)
             f2["card_id"] = card["id"]
-            if not f2.get("all_spellings"):
-                f2["all_spellings"] = card["surface"]
+            # Always carry the matched card's full surface set (a judge flag arrives with only
+            # the one misspelling it saw — [wrong] — which would otherwise under-report the
+            # spellings the Monitor shows; the phonetic path already sets this to card surface).
+            f2["all_spellings"] = card["surface"]
             for rec in expand_flag(f2, card, seg_by_id, story_idx, world):
                 key = (rec["segment_id"], rec["word_index"], rec["case"])
                 if key not in seen:
@@ -201,21 +203,25 @@ def run_qwen35(session_dir):
 
     flags = []
     for r in regions:
-        segs = story_segments(rich, r, pos_of)
-        cards = story_name_cards(segs, recover=True)
-        singles = proper_name_candidates(segs)
-        names = sorted({s for c in cards for s in c["surface"]})
-        # Recognize the world from the NAME LIST, not the saved segmentation world: pass-2 over a
-        # long whole-recording region abstains (Mahabharata held-out world=''), but the names place
-        # it reliably. Abstains to "" on unrecognizable names -> canon check stays off (no false on).
-        world = _qwen35.recognize_world(gen, names)
-        if not world:
-            continue  # no recognized world -> no canon check (same contract as Gemma run)
-        cast = _qwen35.generate_cast(gen, world)
-        judge_flags = _qwen35.judge_names(gen, world, names, singles)
-        phon_flags = _qwen35.phonetic_flags(cards, singles, cast)
-        combined = _qwen35.combine(judge_flags, phon_flags)
-        flags.extend(expand_combined(combined, cards, seg_by_id, r["idx"], world))
+        try:  # one bad story must not lose the flags already found in the others
+            segs = story_segments(rich, r, pos_of)
+            cards = story_name_cards(segs, recover=True)
+            singles = proper_name_candidates(segs)
+            names = sorted({s for c in cards for s in c["surface"]})
+            # Recognize the world from the NAME LIST, not the saved segmentation world: pass-2 over
+            # a long whole-recording region abstains (Mahabharata held-out world=''), but the names
+            # place it reliably. Abstains to "" on unrecognizable names -> canon check stays off.
+            world = _qwen35.recognize_world(gen, names)
+            if not world:
+                continue  # no recognized world -> no canon check (same contract as Gemma run)
+            cast = _qwen35.generate_cast(gen, world)
+            judge_flags = _qwen35.judge_names(gen, world, names, singles)
+            phon_flags = _qwen35.phonetic_flags(cards, singles, cast)
+            combined = _qwen35.combine(judge_flags, phon_flags)
+            flags.extend(expand_combined(combined, cards, seg_by_id, r["idx"], world))
+        except Exception as ex:
+            print(f"  WARNING: canon audit failed on story {r.get('idx')}: {repr(ex)[:200]}",
+                  file=sys.stderr)
 
     return {"n_word_tokens": count_word_tokens(rich), "flags": flags}
 

@@ -2,6 +2,8 @@
 (_worker.expand_combined). The model is mocked (a canned `gen`); the dictionary gate is
 isolated to identity where we test parsing/matching (the gate has its own tests in
 test_canon_dictionary_gate.py). Fast — no model load."""
+import pytest
+
 import detectors.story_names._qwen35 as q
 from detectors.story_names._worker import expand_combined
 
@@ -82,6 +84,15 @@ def test_phonetic_flags_empty_cast():
     assert q.phonetic_flags([_card(0, ["bishma"], ["Bishma"])], set(), []) == []
 
 
+def test_phonetic_flags_skips_phrase_cards(monkeypatch):
+    # a multi-word card must NOT be split into per-word phonetic flags (the judge handles
+    # phrases; a split flag's occurrence can't be reconstructed by expand_flag) -> no flag
+    monkeypatch.setattr(q, "gate_canon_flags", lambda flags, singles: flags)
+    phrase = {"id": 0, "clean": ["bishma warrior"], "surface": ["Bishma Warrior"],
+              "n": 1, "examples": [""], "is_phrase": True, "occ": []}
+    assert q.phonetic_flags([phrase], set(), ["Bhishma"]) == []
+
+
 # ----------------------------- the union ------------------------------------
 def test_combine_unions_by_wrong_spelling():
     a = [{"wrong_cleaned": ["bishma"], "canonical": "Bhishma"}]
@@ -90,6 +101,11 @@ def test_combine_unions_by_wrong_spelling():
     out = q.combine(a, b)
     assert len(out) == 2
     assert {tuple(f["wrong_cleaned"]) for f in out} == {("bishma",), ("garn",)}
+
+
+def test_combine_fails_loud_on_missing_wrong_cleaned():
+    with pytest.raises(KeyError):
+        q.combine([{"canonical": "X"}])  # a flag must carry wrong_cleaned — don't silently drop it
 
 
 # ----------------------------- occurrence expansion -------------------------
@@ -114,3 +130,14 @@ def test_expand_combined_dedupes_across_cards():
     flag = {"case": "M9c", "canonical": "Bhishma", "wrong_cleaned": ["bishma"], "all_spellings": ["Bishma"]}
     out = expand_combined([flag], [card_a, card_b], seg_by_id, story_idx=0, world="Mahabharata")
     assert len(out) == 1
+
+
+def test_expand_combined_uses_full_card_surface_for_all_spellings():
+    # a judge flag arrives with only the one misspelling it saw; the occurrence record must carry
+    # the matched card's FULL surface set (not [wrong]), matching the phonetic + Gemma contract
+    card = _card(0, ["bishma"], ["Bishma", "bishma", "Bhishma"], occ=[{"seg_id": 5, "wi": 0}])
+    seg_by_id = {5: {"id": 5, "words": [{"word": "Bishma", "start": 1.0, "end": 1.5}]}}
+    flag = {"case": "M9c", "canonical": "Bhishma", "wrong_cleaned": ["bishma"], "all_spellings": ["Bishma"]}
+    out = expand_combined([flag], [card], seg_by_id, story_idx=0, world="Mahabharata")
+    assert len(out) == 1
+    assert out[0]["all_spellings"] == ["Bishma", "bishma", "Bhishma"]

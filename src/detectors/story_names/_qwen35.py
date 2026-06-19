@@ -135,6 +135,11 @@ def phonetic_flags(cards, singles, cast):
     canon_forms, code_to_name = cast_index(cast)
     flags = []
     for card in cards:
+        # Phrase (multi-word) cards are handled by the judge. Splitting one here would flag a
+        # single word whose per-occurrence flag expand_flag can't reconstruct (it rebuilds the
+        # whole bigram and cleans it, so a single-word wrong_cleaned never matches).
+        if card.get("is_phrase"):
+            continue
         for cl in card["clean"]:
             for tok in cl.split(" "):
                 if len(tok) < MIN_LEN or tok in canon_forms:
@@ -157,7 +162,7 @@ def combine(*flag_lists):
     out, seen = [], set()
     for fl in flag_lists:
         for f in fl:
-            key = tuple(sorted(f.get("wrong_cleaned", [])))
+            key = tuple(sorted(f["wrong_cleaned"]))  # fail loud: every flag carries wrong_cleaned
             if key and key not in seen:
                 seen.add(key)
                 out.append(f)

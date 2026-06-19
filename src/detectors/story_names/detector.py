@@ -28,11 +28,12 @@ class CanonNameDetector(Detector):
     id = "m9c-canon"
     label = "Canon-name mistranscription (Thomas / Mahabharata / known source)"
     failure_mode = "M9c"
-    # 0.3.0: Qwen3.5 cast+judge+phonetic design (real-data recall 1/11 -> 8/11). Qwen3.5
-    #   judges the names directly and is sound-matched against a Qwen3.5-generated cast; the
-    #   two catches are unioned, then dictionary-gated. World comes from the Qwen3.5
-    #   segmentation. (0.2.0 was the Gemma worksheet + dictionary gate, kept as the baseline
-    #   _worker.run.)
+    # 0.3.0: Qwen3.5 cast+judge+phonetic design (held-out real-data recall 1/11 -> 8/11 on one
+    #   run; mlx_vlm output wobbles a hair on Metal). Qwen3.5 judges the names directly and is
+    #   sound-matched against a Qwen3.5-generated cast; the two catches are unioned, then
+    #   dictionary-gated. The world is RE-recognized from the story's name list (the saved
+    #   segmentation world abstains to empty on long regions). (0.2.0 was the Gemma worksheet +
+    #   dictionary gate, kept as the baseline _worker.run.)
     version = "0.3.0-experimental"
     accepts_judge = False
     offline_only = True  # never runs in a web request or a non-offline scan

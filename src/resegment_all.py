@@ -14,6 +14,7 @@ transcript-raw.json are never touched. One Qwen3.5 load for the whole loop.
     ./venv/bin/python src/resegment_all.py 20260211-210718 ...   # specific sessions
 """
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -47,21 +48,33 @@ def main():
     sids = discover(sys.argv[1:])
     gen = make_reader()  # one model load for the whole rollout
     print(f"re-segmenting {len(sids)} session(s) with Qwen3.5 ...\n", flush=True)
+    failed = []
     for i, sid in enumerate(sids, 1):
         path = SESSIONS_DIR / sid / "transcript-rich.json"
         if not path.exists():
             print(f"  [{i}/{len(sids)}] {sid}: no transcript-rich.json — skipped", flush=True)
             continue
-        rich = _strip_old(json.loads(path.read_text()))
-        t0 = time.monotonic()
-        segs = load_segments_from_list(rich["segments"])
-        result, _ = segment_segments(segs, gen, name=sid)
-        enriched = enrich_with_stories(rich, result["stories"])
-        with open(path, "w") as f:
-            json.dump(enriched, f, indent=2)
-        worlds = [s.get("world", "") or "-" for s in result["stories"]]
-        print(f"  [{i}/{len(sids)}] {sid}: {len(result['stories'])} story(ies), worlds={worlds}  "
-              f"({time.monotonic() - t0:.0f}s)", flush=True)
+        try:
+            rich = _strip_old(json.loads(path.read_text()))
+            t0 = time.monotonic()
+            segs = load_segments_from_list(rich["segments"])
+            result, _ = segment_segments(segs, gen, name=sid)
+            enriched = enrich_with_stories(rich, result["stories"])
+            # Atomic write: serialize fully first (so a serialization error never touches the
+            # file), write a temp alongside, then rename over the original — the session ends up
+            # either fully updated or completely untouched, never half-written.
+            tmp = path.with_name(path.name + ".tmp")
+            tmp.write_text(json.dumps(enriched, indent=2))
+            os.replace(tmp, path)
+            worlds = [s.get("world", "") or "-" for s in result["stories"]]
+            print(f"  [{i}/{len(sids)}] {sid}: {len(result['stories'])} story(ies), worlds={worlds}  "
+                  f"({time.monotonic() - t0:.0f}s)", flush=True)
+        except Exception as ex:  # one bad session must not abort the rollout
+            failed.append(sid)
+            print(f"  [{i}/{len(sids)}] {sid}: FAILED ({repr(ex)[:200]}) — file left untouched, "
+                  f"continuing", flush=True)
+    if failed:
+        print(f"\n{len(failed)} session(s) failed and were skipped: {failed}", flush=True)
     print("\ndone — now re-run the canon detector:  python src/detect.py --detector m9c-canon", flush=True)
 
 
