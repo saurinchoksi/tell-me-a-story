@@ -95,12 +95,30 @@ def test_phonetic_flags_skips_phrase_cards(monkeypatch):
 
 # ----------------------------- the union ------------------------------------
 def test_combine_unions_by_wrong_spelling():
-    a = [{"wrong_cleaned": ["bishma"], "canonical": "Bhishma"}]
-    b = [{"wrong_cleaned": ["bishma"], "canonical": "Bhishma"},   # dup of a
-         {"wrong_cleaned": ["garn"], "canonical": "Karna"}]       # new
+    a = [{"wrong_cleaned": ["bishma"], "canonical": "Bhishma", "methods": ["judge"]}]
+    b = [{"wrong_cleaned": ["bishma"], "canonical": "Bhishma", "methods": ["phonetic"]},  # dup of a
+         {"wrong_cleaned": ["garn"], "canonical": "Karna", "methods": ["judge"]}]          # new
     out = q.combine(a, b)
     assert len(out) == 2
     assert {tuple(f["wrong_cleaned"]) for f in out} == {("bishma",), ("garn",)}
+
+
+def test_combine_prefers_phonetic_canonical_and_unions_methods():
+    # same wrong spelling caught by both methods: keep the PHONETIC canonical (a real cast
+    # name) over the judge's free-typed drift, and record both methods. The judge list is
+    # passed FIRST to prove the phonetic catch still wins the tie regardless of order.
+    judge = [{"wrong_cleaned": ["urjun"], "canonical": "Urjuna", "methods": ["judge"]}]
+    phon = [{"wrong_cleaned": ["urjun"], "canonical": "Arjuna", "methods": ["phonetic"]}]
+    out = q.combine(judge, phon)
+    assert len(out) == 1
+    assert out[0]["canonical"] == "Arjuna"            # phonetic spelling beats the judge's guess
+    assert out[0]["methods"] == ["phonetic", "judge"]  # both recorded, phonetic-first
+
+
+def test_combine_judge_only_keeps_judge_methods():
+    # a spelling only the judge caught stays judge-only -> shown as a tentative "best guess"
+    out = q.combine([{"wrong_cleaned": ["urzi"], "canonical": "Urja", "methods": ["judge"]}], [])
+    assert len(out) == 1 and out[0]["methods"] == ["judge"]
 
 
 def test_combine_fails_loud_on_missing_wrong_cleaned():
@@ -113,7 +131,8 @@ def test_expand_combined_maps_flag_to_occurrences():
     card = _card(0, ["bishma"], ["Bishma"], occ=[{"seg_id": 5, "wi": 2}])
     seg_by_id = {5: {"id": 5, "words": [{"word": "and"}, {"word": "then"},
                                         {"word": "Bishma", "start": 1.0, "end": 1.5}]}}
-    flag = {"case": "M9c", "canonical": "Bhishma", "wrong_cleaned": ["bishma"], "all_spellings": ["Bishma"]}
+    flag = {"case": "M9c", "canonical": "Bhishma", "wrong_cleaned": ["bishma"],
+            "all_spellings": ["Bishma"], "methods": ["judge"]}
     out = expand_combined([flag], [card], seg_by_id, story_idx=0, world="Mahabharata")
     assert len(out) == 1
     rec = out[0]
@@ -127,7 +146,8 @@ def test_expand_combined_dedupes_across_cards():
     card_a = _card(0, ["bishma"], ["Bishma"], occ=[{"seg_id": 5, "wi": 0}])
     card_b = _card(1, ["bishma"], ["Bishma"], occ=[{"seg_id": 5, "wi": 0}])
     seg_by_id = {5: {"id": 5, "words": [{"word": "Bishma", "start": 1.0, "end": 1.5}]}}
-    flag = {"case": "M9c", "canonical": "Bhishma", "wrong_cleaned": ["bishma"], "all_spellings": ["Bishma"]}
+    flag = {"case": "M9c", "canonical": "Bhishma", "wrong_cleaned": ["bishma"],
+            "all_spellings": ["Bishma"], "methods": ["judge"]}
     out = expand_combined([flag], [card_a, card_b], seg_by_id, story_idx=0, world="Mahabharata")
     assert len(out) == 1
 
@@ -137,7 +157,34 @@ def test_expand_combined_uses_full_card_surface_for_all_spellings():
     # the matched card's FULL surface set (not [wrong]), matching the phonetic + Gemma contract
     card = _card(0, ["bishma"], ["Bishma", "bishma", "Bhishma"], occ=[{"seg_id": 5, "wi": 0}])
     seg_by_id = {5: {"id": 5, "words": [{"word": "Bishma", "start": 1.0, "end": 1.5}]}}
-    flag = {"case": "M9c", "canonical": "Bhishma", "wrong_cleaned": ["bishma"], "all_spellings": ["Bishma"]}
+    flag = {"case": "M9c", "canonical": "Bhishma", "wrong_cleaned": ["bishma"],
+            "all_spellings": ["Bishma"], "methods": ["judge"]}
     out = expand_combined([flag], [card], seg_by_id, story_idx=0, world="Mahabharata")
     assert len(out) == 1
     assert out[0]["all_spellings"] == ["Bishma", "bishma", "Bhishma"]
+
+
+def test_expand_combined_carries_methods_to_each_occurrence():
+    # the catch-method (judge-only vs sound-matched) must ride onto every per-occurrence flag,
+    # so the Monitor can render a judge-only suggestion as a tentative "best guess"
+    card = _card(0, ["urzi"], ["Urzi"], occ=[{"seg_id": 5, "wi": 0}])
+    seg_by_id = {5: {"id": 5, "words": [{"word": "Urzi", "start": 1.0, "end": 1.5}]}}
+    flag = {"case": "M9c", "canonical": "Urja", "wrong_cleaned": ["urzi"],
+            "all_spellings": ["Urzi"], "methods": ["judge"]}
+    out = expand_combined([flag], [card], seg_by_id, story_idx=0, world="Mahabharata")
+    assert len(out) == 1 and out[0]["methods"] == ["judge"]
+
+
+def test_expand_combined_sets_sounds_alike_confidence():
+    # confident iff the heard token shares a Double-Metaphone code with the canonical:
+    # Bishma~Bhishma (both PXM) -> confident; Urzi~Urjani (ARS vs ARJN) -> a "best guess"
+    seg_by_id = {5: {"id": 5, "words": [{"word": "Bishma", "start": 1.0, "end": 1.5}]},
+                 6: {"id": 6, "words": [{"word": "Urzi", "start": 2.0, "end": 2.5}]}}
+    sound = _card(0, ["bishma"], ["Bishma"], occ=[{"seg_id": 5, "wi": 0}])
+    far = _card(1, ["urzi"], ["Urzi"], occ=[{"seg_id": 6, "wi": 0}])
+    confident = {"case": "M9c", "canonical": "Bhishma", "wrong_cleaned": ["bishma"],
+                 "all_spellings": ["Bishma"], "methods": ["judge"]}
+    guess = {"case": "M9c", "canonical": "Urjani", "wrong_cleaned": ["urzi"],
+             "all_spellings": ["Urzi"], "methods": ["judge"]}
+    out = expand_combined([confident, guess], [sound, far], seg_by_id, story_idx=0, world="Mahabharata")
+    assert {r["token"]: r["suggestion_confident"] for r in out} == {"Bishma": True, "Urzi": False}

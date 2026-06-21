@@ -244,6 +244,54 @@
   color: var(--color-text-muted);
 }
 
+/* M9c — occurrences grouped under one header per corrected name */
+
+.detection-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.detection-group-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.detection-group-count {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.detection-group-spellings {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* a judge-only suggestion whose spelling doesn't match the sound — a best guess, not a verdict */
+.detection-flag-type--guess {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.detection-group-reason {
+  margin: 0 0 var(--space-2);
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--color-warning);
+}
+
+/* nest the occurrence cards under their group header */
+.detection-group .detection-flags {
+  gap: var(--space-2);
+  margin-left: var(--space-3);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-border);
+}
+
 /* Empty state */
 
 .session-detections-empty {

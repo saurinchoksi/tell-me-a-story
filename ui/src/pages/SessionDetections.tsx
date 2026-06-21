@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getSessionDetections, scanSession, audioURL } from '../api/client';
 import { formatSessionDate, formatTime } from '../utils/time';
-import type { DetectionFlag, SessionDetectionsData } from '../types';
+import type { CanonNameFlag, DetectionFlag, SessionDetectionsData } from '../types';
 import './SessionDetections.css';
 
 // Clip window padding (seconds). We play the flagged token's whole containing
@@ -36,9 +36,13 @@ interface FlagCardProps {
   isPlaying: boolean;
   canPlay: boolean;
   onToggle: () => void;
+  /** When true (an M9c occurrence rendered inside a per-name group), hide the
+   *  →canonical/badge/world — the group header shows those — so each row is just the
+   *  occurrence: token, timestamp, sentence, codes. */
+  grouped?: boolean;
 }
 
-function FlagCard({ flag, isPlaying, canPlay, onToggle }: FlagCardProps) {
+function FlagCard({ flag, isPlaying, canPlay, onToggle, grouped }: FlagCardProps) {
   return (
     <div className="detection-flag">
       <div className="detection-flag-top">
@@ -52,7 +56,7 @@ function FlagCard({ flag, isPlaying, canPlay, onToggle }: FlagCardProps) {
           {isPlaying ? '❚❚' : '▶'}
         </button>
         <span className="detection-flag-token">{flag.token}</span>
-        {'cluster_spellings' in flag ? (
+        {!grouped && ('cluster_spellings' in flag ? (
           // M9b — a spelling that deviates from the recording's majority
           <>
             <span className="detection-flag-type detection-flag-type--inconsistent">
@@ -88,7 +92,7 @@ function FlagCard({ flag, isPlaying, canPlay, onToggle }: FlagCardProps) {
               <span className="detection-flag-world">{flag.story_world}</span>
             ) : null}
           </>
-        ) : null /* unknown shape — token + text + codes still render below, never throws */}
+        ) : null) /* token + text + codes still render below; the group header shows the rest */}
         <span className="detection-flag-meta">
           {flag.start != null ? formatTime(flag.start) : '—'}
           {flag.segment_speaker ? ` · ${flag.segment_speaker}` : ''}
@@ -106,6 +110,18 @@ function FlagCard({ flag, isPlaying, canPlay, onToggle }: FlagCardProps) {
       </div>
     </div>
   );
+}
+
+/** Group M9c occurrence flags by their corrected name, preserving first-seen order — one
+ *  group per canonical, each carrying its occurrences. */
+function groupByCanonical(flags: CanonNameFlag[]): { canonical: string; flags: CanonNameFlag[] }[] {
+  const groups = new Map<string, CanonNameFlag[]>();
+  for (const f of flags) {
+    const arr = groups.get(f.canonical);
+    if (arr) arr.push(f);
+    else groups.set(f.canonical, [f]);
+  }
+  return [...groups.entries()].map(([canonical, fs]) => ({ canonical, flags: fs }));
 }
 
 // Keyed by session id so navigating A→B remounts the view — a fresh <audio>
@@ -236,6 +252,54 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
             </div>
             {result.n_flags === 0 ? (
               <p className="detection-section-clean">No flags — clean scan.</p>
+            ) : result.failure_mode === 'M9c' ? (
+              // M9c — group the per-occurrence flags under one header per corrected name
+              <div className="detection-groups">
+                {groupByCanonical(result.flags as CanonNameFlag[]).map((grp) => {
+                  // confident iff every occurrence's suggestion sounds like what was heard
+                  const confident = grp.flags.every((f) => f.suggestion_confident !== false);
+                  const spellings = [...new Set(grp.flags.map((f) => f.token.replace(/[.,'’"]+$/, '')))];
+                  return (
+                    <div className="detection-group" key={grp.canonical}>
+                      <div className="detection-group-header">
+                        <span className="detection-flag-arrow" aria-hidden="true">→</span>
+                        <span className="detection-flag-canonical">{grp.canonical}</span>
+                        {confident ? (
+                          <span className="detection-flag-type detection-flag-type--canon">canon</span>
+                        ) : (
+                          <span className="detection-flag-type detection-flag-type--guess">best guess</span>
+                        )}
+                        {grp.flags[0].story_world ? (
+                          <span className="detection-flag-world">{grp.flags[0].story_world}</span>
+                        ) : null}
+                        <span className="detection-group-count">heard {grp.flags.length}×</span>
+                        <span className="detection-group-spellings">{spellings.join(' · ')}</span>
+                      </div>
+                      {!confident && (
+                        <p className="detection-group-reason">
+                          the suggested spelling doesn't match the sound — the model's best guess
+                        </p>
+                      )}
+                      <div className="detection-flags">
+                        {grp.flags.map((flag) => {
+                          const key = `${String(flag.segment_id)}-${flag.word_index}`;
+                          const clip = clipWindow(flag);
+                          return (
+                            <FlagCard
+                              key={key}
+                              flag={flag}
+                              grouped
+                              isPlaying={playingKey === key}
+                              canPlay={data.has_audio && clip !== null}
+                              onToggle={() => clip && playClip(key, clip[0], clip[1])}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
               <div className="detection-flags">
                 {result.flags.map((flag, i) => {

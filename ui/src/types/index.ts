@@ -334,6 +334,15 @@ export interface CanonNameFlag extends DetectionFlagBase {
   evidence: string;
   story_id: number;
   story_world: string;
+  /** Confidence in the SUGGESTED spelling: true when the heard token sounds like the
+   *  canonical (shared Double-Metaphone code). false = a "best guess" (e.g. Urzi→Urjani).
+   *  Optional: pre-0.4.0 flags lack it. */
+  suggestion_confident?: boolean;
+  /** How the catch was made — informational, not the confidence driver. */
+  methods?: string[];
+  /** Order-robust judge: rounds (of vote_rounds) that agreed this is a misspelled canon name. */
+  vote_count?: number;
+  vote_rounds?: number;
 }
 
 /** Discriminated by a field unique to each shape: `cluster_spellings` → m9b,

@@ -55,13 +55,19 @@ def proper_name_candidates(segments, min_len=MIN_NAME_LEN):
     return cands
 
 
-# Function words that should never begin or end a NAME phrase — kills "the ducky",
-# "ducky said" while keeping content-modifier names like "rubber ducky" / "cruel kid".
+# Function words + discourse fillers that should never begin or end a NAME phrase — kills
+# "the ducky", "ducky said", and narrated kid-speech fillers like "like Urjun" / "exactly
+# Arthi", while keeping content-modifier names like "rubber ducky" / "cruel kid". The rule:
+# filler/function words ONLY — never a descriptive modifier, which carries real name meaning
+# (so "little", "old", "rubber" stay OUT). Stripping a glued filler also un-blinds the phonetic
+# canon matcher: "Urjun" alone sounds like Arjuna, but "like Urjun" matches nothing.
 PHRASE_STOP = {"the", "a", "an", "my", "your", "his", "her", "their", "our", "its", "that",
                "this", "these", "those", "said", "says", "and", "but", "or", "to", "of", "in",
                "on", "at", "with", "is", "was", "are", "were", "it", "he", "she", "they", "you",
                "i", "we", "me", "him", "them", "there", "here", "what", "who", "when", "then",
-               "so", "no", "not", "do", "does", "did", "had", "have", "for", "from", "be"}
+               "so", "no", "not", "do", "does", "did", "had", "have", "for", "from", "be",
+               "like", "just", "really", "very", "actually", "exactly", "okay", "well",
+               "yeah", "oh", "um", "uh", "now", "also", "maybe"}
 
 
 def detect_phrases(segments, single_cands, min_count=2, dominance=0.5):

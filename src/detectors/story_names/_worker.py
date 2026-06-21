@@ -123,6 +123,13 @@ def expand_combined(flags, cards, seg_by_id, story_idx, world):
             # spellings the Monitor shows; the phonetic path already sets this to card surface).
             f2["all_spellings"] = card["surface"]
             for rec in expand_flag(f2, card, seg_by_id, story_idx, world):
+                rec["methods"] = f2["methods"]  # how it was caught (judge / sound-match) — informational
+                # Confidence = does the suggested spelling SOUND like what was heard (shared Double
+                # Metaphone code)? A judge-only catch can still be confident (Bishma->Bhishma); a
+                # garbled guess (Urzi->Urjani) is not. This drives the "best guess" badge, not `methods`.
+                rec["suggestion_confident"] = bool(codes(rec["cleaned"]) & codes(clean(rec["canonical"])))
+                if "vote_count" in f2:          # order-robust judge stamped how many rounds agreed
+                    rec["vote_count"], rec["vote_rounds"] = f2["vote_count"], f2["vote_rounds"]
                 key = (rec["segment_id"], rec["word_index"], rec["case"])
                 if key not in seen:
                     seen.add(key)
@@ -215,7 +222,7 @@ def run_qwen35(session_dir):
             if not world:
                 continue  # no recognized world -> no canon check (same contract as Gemma run)
             cast = _qwen35.generate_cast(gen, world)
-            judge_flags = _qwen35.judge_names(gen, world, names, singles)
+            judge_flags = _qwen35.judge_names_voted(gen, world, names, singles)  # order-robust vote
             phon_flags = _qwen35.phonetic_flags(cards, singles, cast)
             combined = _qwen35.combine(judge_flags, phon_flags)
             flags.extend(expand_combined(combined, cards, seg_by_id, r["idx"], world))
