@@ -182,7 +182,7 @@
 <main class="wrap">
   <p class="eyebrow reveal">Local-model evaluation</p>
   <h1 class="reveal">I built a machine to route around a weak model.<br>I was fixing the wrong part.</h1>
-  <p class="dek reveal">A newer small model with a plain prompt beat the elaborate pipeline I&rsquo;d built to work around an old one. The hard part was admitting it.</p>
+  <p class="dek reveal">A newer small model with a plain prompt beat the machine I&rsquo;d built around an old one. Admitting that was hard. Trusting the number it gave me was harder.</p>
 
   <div class="reveal">
     <h2>Problem</h2>
@@ -220,8 +220,8 @@
   <div class="reveal">
     <h2>Result</h2>
     <p>Then a newer small model came out: Qwen3.5-4B, still under 5&nbsp;GB, still on-device. I dropped it into the <em>dead-end</em> idea, unchanged: hand it the transcript names in plain text, ask which are misspelled canon and the correct spelling. No cast, no fuzzy matching, no curated list.</p>
-    <p>It scored <strong>8 of 11</strong> on the held-out Mahabharata, the same number the whole elaborate machine reached, in one model and one step. The three &ldquo;misses&rdquo; aren&rsquo;t real errors: they&rsquo;re the epic&rsquo;s title spelled two ways and a stray phrase artifact, not characters. On the genuine character errors it went <strong>8 for 8</strong>, at <strong>8/9</strong> precision. It even caught <span class="nm">Urzi&nbsp;&rarr;&nbsp;Arjuna</span>, the name I&rsquo;d declared the permanent floor.</p>
-    <p class="pull">The machine had been compensating for the weak model the whole time. Swap in a capable one and the original idea just works &mdash; the elaborate part was paying for the wrong component.</p>
+    <p>It scored <strong>8 of 11</strong> on the held-out Mahabharata, the same number the whole elaborate machine reached, in one model and one step. The three &ldquo;misses&rdquo; aren&rsquo;t real errors: they&rsquo;re the epic&rsquo;s title spelled two ways and a stray phrase artifact, not characters. On the genuine character errors it went <strong>8 for 8</strong>, with <strong>8 of 9</strong> flags right. It even caught <span class="nm">Urzi&nbsp;&rarr;&nbsp;Arjuna</span>, the name I&rsquo;d declared the permanent floor.</p>
+    <p class="pull">The machine had been compensating for the weak model the whole time. Swap in a capable one and the original idea just works. The elaborate part was paying for the wrong component.</p>
 
     <p>Here&rsquo;s the arc on the held-out recording, from the wall to the win:</p>
     <figure class="tbl">
@@ -235,13 +235,13 @@
         <tbody>
           <tr><td>Ask the model to judge<span class="inp">Gemma-4 E4B</span></td><td class="num bad">1</td><td class="num">11</td><td class="num">&mdash;</td></tr>
           <tr><td>Generate a cast, then match<span class="inp">several models, unioned</span></td><td class="num">8</td><td class="num">11</td><td class="num">&mdash;</td></tr>
-          <tr class="win"><td>Ask the model to judge<span class="tag">shipped</span><span class="inp">Qwen3.5-4B, plain prompt</span></td><td class="num good">8</td><td class="num">11</td><td class="num">8/9</td></tr>
+          <tr class="win"><td>Ask the model to judge<span class="tag">the turn</span><span class="inp">Qwen3.5-4B, plain prompt</span></td><td class="num good">8</td><td class="num">11</td><td class="num">8/9</td></tr>
         </tbody>
       </table>
       <figcaption>Same held-out Mahabharata recording throughout. 8 of 11 is effectively 8 of 8 real character errors; the other 3 are non-errors (the title spelled two ways, plus a phrase artifact). Same idea, newer model, no machinery.</figcaption>
     </figure>
 
-    <p>One more lift was worth taking. The judge and plain sound-matching (Double Metaphone, against a cast the same Qwen model writes) fail in different places, so I unioned their <em>outputs</em>. On the seven-world synthetic spread that took recall <strong>0.72&nbsp;&rarr;&nbsp;0.85</strong> with zero extra false flags: two independent methods cover more ground than either alone.</p>
+    <p>One more lift was worth taking. The judge and plain sound-matching (Double Metaphone, against a cast the same Qwen model writes) fail in different places, so I unioned their <em>outputs</em>. On the seven-world synthetic spread that took recall <strong>0.72&nbsp;&rarr;&nbsp;0.85</strong>: two independent methods cover more ground than either alone.</p>
     <div class="bars">
       <div class="bar"><span class="blab">Old judge (Gemma)</span><span class="track"><span class="fill lo" style="width:20%"></span></span><span class="bval">0.20</span></div>
       <div class="bar"><span class="blab">The machine</span><span class="track"><span class="fill lo" style="width:65%"></span></span><span class="bval">~0.65</span></div>
@@ -265,10 +265,15 @@
   </div>
 
   <div class="reveal">
-    <h2>Shipped, not just benchmarked</h2>
-    <p>It&rsquo;s wired into the live pipeline now, and it reproduces the lab number end to end: <strong>8/11</strong> recall and <strong>8/9</strong> precision on the held-out recording, on a sub-5&nbsp;GB local model, plain text throughout, no curated roster.</p>
-    <p>Getting it there surfaced a bug the lab never showed. One stray clause in the production prompt, &ldquo;names may be garbled,&rdquo; deterministically switched off the model&rsquo;s world-recognition until I removed it. The finding: test the exact production string, not a paraphrase of it. One sentence was the difference between working and silently not.</p>
-    <p class="close">The detector got better, but the lesson is older than the detector. The hard part wasn&rsquo;t the code. It was seeing I&rsquo;d been fixing the wrong part, then throwing away clever work that no longer earned its place.</p>
+    <h2>The number wasn&rsquo;t trustworthy yet</h2>
+    <p>8 of 11 looked like a finish line. It wasn&rsquo;t. I re-ran the judge and the score moved. The model hadn&rsquo;t changed. I&rsquo;d handed it the names in a different order.</p>
+    <p>One borderline name showed me the whole problem. <span class="nm">Bandos</span>, the way I&rsquo;d said Pandavas, got caught in five of eight shuffles of the same list. The model runs greedy, one temperature, so it should give the same answer every time. But the order of the list tipped a name it was unsure about, on or off. Production fed it the names alphabetically, so my headline number was hostage to a sort.</p>
+    <p>So I stopped trusting one run. The judge now reads the list seven times, shuffled, and keeps the names a majority of the runs agree on. The borderline catches stop flickering. The number comes back the same every time.</p>
+    <p>Voting also surfaced what a lucky run had hidden. Told a story&rsquo;s world, the model over-reaches: it maps a child&rsquo;s made-up characters onto that world&rsquo;s canon. On a Thomas the Tank Engine night it had never seen, it decided an invented <span class="nm">Pataki</span> was really Paddy, thirty times over. So I ship only the catches it can back up by sound, where the corrected spelling actually sounds like what was heard. <span class="nm">Bishma&nbsp;&rarr;&nbsp;Bhishma</span> stays. <span class="nm">Pataki&nbsp;&rarr;&nbsp;Paddy</span> goes.</p>
+    <p>Then, checking the score against my by-ear answer key, I found the ruler was bent: a correctly-spelled word marked as an error, and stale entries left from an older transcriber. Earlier, one stray clause in the live prompt, &ldquo;names may be garbled,&rdquo; had silently switched off the model&rsquo;s world-recognition until I caught it. Both only surfaced against the real recording. When the number moves, check your answer key before you blame the model.</p>
+    <p class="pull">Making an eval trustworthy is a different job than making the number high.</p>
+    <p>On the corrected key, with the vote and the sound-check, the honest result is <strong>5 of 9</strong> real misspellings caught, <strong>5 of 6</strong> flags right, and the same on every run. It reads lower than the 8 I opened with, but part of that 8 was never real: the old key had marked a correctly-spelled word as an error, so the honest count was out of 9, not 11. The vote killed the lucky runs. The sound-check gave up exactly the wrong catches. The number didn&rsquo;t get worse. I trust it more. Across the seven synthetic worlds the sound-check is the precision dial: it trades recall <strong>0.85&nbsp;&rarr;&nbsp;0.75</strong> to cut false flags from three to one, and the catches it gives up are the over-reaches.</p>
+    <p class="close">The detector got better. Earning the right to trust the number was the work.</p>
   </div>
 
   <div class="reveal">
