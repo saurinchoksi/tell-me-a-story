@@ -213,7 +213,7 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
 
       <div className="session-detections-header">
         <div className="session-detections-header-row">
-          <h1>{date}</h1>
+          <h1>{date} · {time}</h1>
           <button
             className="session-detections-rescan"
             onClick={handleRescan}
@@ -223,7 +223,7 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
             {scanning ? 'Scanning…' : 'Full re-scan'}
           </button>
         </div>
-        <p className="session-detections-subtitle">{time} · session {id}</p>
+        <p className="session-detections-subtitle">session {id}</p>
         {data.warning && <p className="session-detections-warning">⚠ {data.warning}</p>}
       </div>
 

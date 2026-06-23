@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-23 — A mis-heard canon name no longer shows up in two sections at once
+
+When a known character's name was written down several ways, it could appear in both the "inconsistent spelling" section and the "canon misspelling" section at the same time — the same character, split across two lists and labeled two different ways. The reconciler meant to hand a canon name to a single section was working one spelling at a time, so it peeled off the few spellings the canon reader claimed and stranded the rest — including the correct spelling — in the other section. It now hands over the whole name at once (the full cluster of spellings), so a canon character lands in exactly one place. A small second fix rode along: two recordings from the same day now show the time in their page titles, so they stop looking like the same session.
+
 ## 2026-06-21 — Canon name flags are steadier, grouped, and only the sure ones show
 
 The check that catches a known character whose name was written down wrong now presents its results better and trusts them more. Every spelling of one character collapses under a single heading, so one name no longer reads as five separate flags, and a catch only shows when the suggested correct spelling actually sounds like what was heard — a "Jammus" that's plainly James, not a guess. It also re-runs the check across several shufflings of the name list and keeps what a majority agree on, because the model's answer on a borderline name turned out to depend on the list's order; the vote makes the result steady run to run instead of flickering on luck. The lesson that shaped the last call: told a story's world, the model will confidently mistake a child's made-up character for a misspelled real one — it decided an invented "Pataki" was Thomas's "Paddy," thirty times — so we surface only the sound-alike catches and keep those mix-ups off the screen, trading a couple of badly-garbled real catches for a flag you can trust.

@@ -54,13 +54,16 @@ M9C_ID = "m9c-canon"
 
 
 def _apply_canon_dedup(detector_sections: dict) -> None:
-    """In-place, view-time: drop m9b flags whose cleaned name the canon reader (m9c)
-    already owns, so a sourced-canon name surfaces ONLY under M9c, not doubled as an
-    'inconsistent' M9b flag. Detectors stay independent on disk; this reconciles their
-    overlap at read time, consistently for both the rollup counts and the detail flags.
+    """In-place, view-time: drop the whole m9b CLUSTER the canon reader (m9c) owns any token of,
+    so a sourced-canon name surfaces ONLY under M9c, never split across both sections. M9b's unit
+    is the cluster (a name spelled many ways, keyed by cluster_id); a token-level cut would leave
+    the rest of the cluster stranded in M9b (e.g. 'james'/'jamis' after M9c takes the other James
+    spellings), doubling the same name, mislabeled. Detectors stay independent on disk; this
+    reconciles their overlap at read time, for both the rollup counts and the detail flags.
 
-    Safe no-op when m9c found nothing (e.g. the local reader didn't recognize the
-    story's world) — m9b then keeps those catches, the only thing flagging them."""
+    Trade-off: a canon spelling M9c MISSED then shows in neither detector (an M9c recall gap, not
+    a confusing split). Safe no-op when m9c found nothing (e.g. world unrecognized) — m9b then keeps
+    those catches, the only thing flagging them."""
     m9c = detector_sections.get(M9C_ID)
     m9b = detector_sections.get(M9B_ID)
     if not m9c or not m9b:
@@ -72,7 +75,8 @@ def _apply_canon_dedup(detector_sections: dict) -> None:
         canon.update(f.get("wrong_cleaned") or [])
     if not canon:
         return
-    kept = [f for f in m9b["flags"] if f.get("cleaned") not in canon]
+    owned = {f["cluster_id"] for f in m9b["flags"] if f.get("cleaned") in canon}
+    kept = [f for f in m9b["flags"] if f.get("cluster_id") not in owned]
     m9b["flags"] = kept
     m9b["n_flags"] = len(kept)
 

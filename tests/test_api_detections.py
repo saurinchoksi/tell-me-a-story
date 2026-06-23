@@ -301,8 +301,8 @@ def test_canon_dedup_suppresses_m9b_flag_owned_by_m9c():
     from api.routes.detections import _apply_canon_dedup
     sections = {
         "m9b-name-consistency": {"n_flags": 2, "flags": [
-            {"cleaned": "pondavas", "token": "Pondavas"},   # canon — m9c owns it
-            {"cleaned": "jammus", "token": "Jammus"},        # improvised — m9b keeps
+            {"cleaned": "pondavas", "token": "Pondavas", "cluster_id": "pondavas"},  # canon — m9c owns it
+            {"cleaned": "jammus", "token": "Jammus", "cluster_id": "jammus"},         # improvised — m9b keeps
         ]},
         "m9c-canon": {"n_flags": 1, "flags": [
             {"cleaned": "pondavas", "wrong_cleaned": ["pondavas"], "canonical": "Pandavas"},
@@ -312,6 +312,28 @@ def test_canon_dedup_suppresses_m9b_flag_owned_by_m9c():
     m9b = sections["m9b-name-consistency"]
     assert m9b["n_flags"] == 1
     assert [f["cleaned"] for f in m9b["flags"]] == ["jammus"]
+
+
+def test_canon_dedup_drops_whole_cluster_when_m9c_owns_one_token():
+    # Regression for the split-name bug: M9b's unit is the CLUSTER. If M9c owns even ONE token of a
+    # cluster, the whole cluster defers to M9c — so a canon name never appears half in M9b (the
+    # stranded "james"/"jamis" remnant after M9c took the other James spellings).
+    from api.routes.detections import _apply_canon_dedup
+    sections = {
+        "m9b-name-consistency": {"n_flags": 4, "flags": [
+            {"cleaned": "jameis", "token": "Jameis", "cluster_id": "jameis"},  # m9c owns this token
+            {"cleaned": "james", "token": "James", "cluster_id": "jameis"},     # same cluster -> also defers
+            {"cleaned": "jamis", "token": "Jamis", "cluster_id": "jameis"},     # same cluster -> also defers
+            {"cleaned": "jiraki", "token": "Jiraki", "cluster_id": "jiraki"},   # separate cluster -> stays
+        ]},
+        "m9c-canon": {"n_flags": 1, "flags": [
+            {"cleaned": "jameis", "wrong_cleaned": ["jameis"], "canonical": "James"},
+        ]},
+    }
+    _apply_canon_dedup(sections)
+    m9b = sections["m9b-name-consistency"]
+    assert m9b["n_flags"] == 1
+    assert [f["cleaned"] for f in m9b["flags"]] == ["jiraki"]  # the whole James cluster deferred to M9c
 
 
 def test_canon_dedup_noop_when_m9c_found_nothing():
