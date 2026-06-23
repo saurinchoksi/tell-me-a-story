@@ -66,6 +66,19 @@ def test_list_sessions_sorted_newest_first(client):
     assert ids == ["20260102-180000", "20260101-120000"]
 
 
+def test_list_sessions_excludes_zero_fixture(tmp_path):
+    # The all-zeros sample fixture (sessions/00000000-000000) is a valid id for paths/tests but
+    # must NOT show as a real recording (it renders as a junk "1899" row otherwise).
+    for sid in ("00000000-000000", "20260101-120000"):
+        (tmp_path / sid).mkdir()
+        (tmp_path / sid / "audio.m4a").write_bytes(b"x")
+    app = create_app(sessions_dir=tmp_path, profiles_path=str(tmp_path / "p.json"))
+    app.config["TESTING"] = True
+    with app.test_client() as c:
+        ids = [s["id"] for s in c.get("/api/sessions").get_json()["sessions"]]
+    assert ids == ["20260101-120000"]  # the fixture is excluded, the real session stays
+
+
 def test_list_sessions_artifact_flags(client):
     resp = client.get("/api/sessions")
     sessions = {s["id"]: s for s in resp.get_json()["sessions"]}

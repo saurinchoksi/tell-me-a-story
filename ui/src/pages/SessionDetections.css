@@ -181,19 +181,14 @@
   color: var(--color-success);
 }
 
-/* M9b — the other spellings this name appeared under */
-.detection-flag-cluster {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
+/* Badge color — one per detector so the three sections are visually distinct */
+/* M9a — a family-name match */
+.detection-flag-type--family {
+  border-color: var(--color-maroon);
+  color: var(--color-maroon);
 }
 
-/* M9b — the recording's majority spelling, shown muted as the reference the
-   flagged token deviates from */
-.spelling-dominant {
-  color: var(--color-text-muted);
-}
-
+/* M9b — a spelling inconsistent with the recording's majority */
 .detection-flag-type--inconsistent {
   border-color: var(--color-warning);
   color: var(--color-warning);
@@ -244,7 +239,7 @@
   color: var(--color-text-muted);
 }
 
-/* M9c — occurrences grouped under one header per corrected name */
+/* All detectors — occurrences grouped under one header per name */
 
 .detection-groups {
   display: flex;
@@ -269,19 +264,6 @@
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--color-text-muted);
-}
-
-/* a judge-only suggestion whose spelling doesn't match the sound — a best guess, not a verdict */
-.detection-flag-type--guess {
-  border-color: var(--color-warning);
-  color: var(--color-warning);
-}
-
-.detection-group-reason {
-  margin: 0 0 var(--space-2);
-  font-size: 0.8rem;
-  font-style: italic;
-  color: var(--color-warning);
 }
 
 /* nest the occurrence cards under their group header */

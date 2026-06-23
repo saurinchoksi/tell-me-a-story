@@ -4,6 +4,11 @@ import json
 import re
 from pathlib import Path
 
+# The all-zeros sample/test fixture (sessions/00000000-000000) is a valid session ID for path
+# resolution and tests, but it is not a real recording — it is excluded from the UI lists so it
+# doesn't show up as a phantom "November 30, 1899" row in the Monitor / Sessions views.
+FIXTURE_SESSION_ID = "00000000-000000"
+
 
 def validate_session_id(session_id: str) -> bool:
     """Check that a session ID matches the YYYYMMDD-HHMMSS convention."""
@@ -110,7 +115,7 @@ def discover_sessions(sessions_dir: Path) -> list[dict]:
     for entry in sessions_dir.iterdir():
         if not entry.is_dir():
             continue
-        if not validate_session_id(entry.name):
+        if not validate_session_id(entry.name) or entry.name == FIXTURE_SESSION_ID:
             continue
 
         metadata = _read_session_metadata(entry)

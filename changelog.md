@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-23 — The three name checks now look and read the same
+
+The session page runs three checks that each catch a kind of name trouble — a family name, a name spelled several ways, and a known character spelled wrong — and over time they'd drifted into three different looks: one grouped its findings under a per-name heading, the other two were flat lists, and one's little tags were an unstyled grey. They now share one layout: each name gets a single heading with a colored tag and its spellings listed, and every mention of it sits underneath. Some dead code got swept out along the way — an old rendering path and a "best guess" label that nothing shows anymore — and the all-zeros sample recording no longer appears as a phantom "1899" row in the lists.
+
 ## 2026-06-23 — A mis-heard canon name no longer shows up in two sections at once
 
 When a known character's name was written down several ways, it could appear in both the "inconsistent spelling" section and the "canon misspelling" section at the same time — the same character, split across two lists and labeled two different ways. The reconciler meant to hand a canon name to a single section was working one spelling at a time, so it peeled off the few spellings the canon reader claimed and stranded the rest — including the correct spelling — in the other section. It now hands over the whole name at once (the full cluster of spellings), so a canon character lands in exactly one place. A small second fix rode along: two recordings from the same day now show the time in their page titles, so they stop looking like the same session.

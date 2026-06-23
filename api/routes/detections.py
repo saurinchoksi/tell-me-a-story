@@ -14,7 +14,7 @@ from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify
 
-from api.helpers import _read_transcript_facts, get_session_dir, validate_session_id
+from api.helpers import FIXTURE_SESSION_ID, _read_transcript_facts, get_session_dir, validate_session_id
 
 bp = Blueprint("detections", __name__)
 
@@ -94,6 +94,8 @@ def _rollup(sessions_dir, detector_objs):
     if sessions_dir.exists():
         for entry in sorted(sessions_dir.iterdir(), reverse=True):
             if not entry.is_dir() or not validate_session_id(entry.name):
+                continue
+            if entry.name == FIXTURE_SESSION_ID:  # the all-zeros sample isn't a real recording
                 continue
             if not (entry / "transcript-rich.json").exists():
                 continue
