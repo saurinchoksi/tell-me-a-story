@@ -10,16 +10,28 @@ from api.helpers import _derive_story_label
 
 # --- _derive_story_label (pure, no I/O) ---
 
-def test_derive_story_label_worlds_branch():
-    """A recognized world leads; remaining empty-world stories count as originals."""
+def test_derive_story_label_title_leads_world_trails():
+    """The title leads (it's how a parent recognizes the night); a recognized
+    world rides along as trailing context, not in place of the titles."""
     out = _derive_story_label([
         {"title": "The Tale of the Two Brothers", "world": "Mahabharata"},
         {"title": "B", "world": ""},
         {"title": "C", "world": ""},
     ])
-    assert out["label"] == "Mahabharata + 2 originals"
+    assert out["label"] == "The Tale of the Two Brothers + 2 more · Mahabharata"
     assert out["worlds"] == ["Mahabharata"]
     assert out["n_stories"] == 3
+
+
+def test_derive_story_label_single_world_story_keeps_title():
+    """Regression: a lone world-tagged story must still show its title, not just
+    the world (a single Mahabharata tale read 'Mahabharata' and lost its name)."""
+    out = _derive_story_label([
+        {"title": "The Tale of the Two Brothers", "world": "Mahabharata"},
+    ])
+    assert out["label"] == "The Tale of the Two Brothers · Mahabharata"
+    assert out["worlds"] == ["Mahabharata"]
+    assert out["titles"] == ["The Tale of the Two Brothers"]
 
 
 def test_derive_story_label_all_original_branch():
@@ -189,8 +201,8 @@ def test_list_sessions_includes_stories(client):
     assert st["n_stories"] == 2
     assert st["worlds"] == ["Thomas the Tank Engine"]
     assert st["titles"] == ["The Lost Balloon", "The Brave Little Engine"]
-    # one recognized world + one original -> world leads, singular "original"
-    assert st["label"] == "Thomas the Tank Engine + 1 original"
+    # title leads; the recognized world rides along as trailing context
+    assert st["label"] == "The Lost Balloon + 1 more · Thomas the Tank Engine"
 
     # No transcript -> no story summary.
     assert sessions["20260102-180000"]["stories"] is None

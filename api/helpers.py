@@ -83,14 +83,20 @@ def _derive_story_label(stories: list) -> dict | None:
     n_world_stories = sum(1 for s in stories if (s.get("world") or "").strip())
     n_original = n - n_world_stories
 
-    if worlds:
-        label = " · ".join(worlds)
-        if n_original > 0:
-            label += f" + {n_original} original{'s' if n_original != 1 else ''}"
-    elif titles:
+    # Lead with the story title — every recording has one, and it's how a parent
+    # recognizes the night ("The Tale of the Two Brothers"), not the canon tag. A
+    # recognized world (Mahabharata, Thomas) rides along as trailing context. Only
+    # when there are no titles at all does a world — or a bare count — stand in.
+    if titles:
         label = titles[0]
         if n > 1:
             label += f" + {n - 1} more"
+        if worlds:
+            label += " · " + " · ".join(worlds)
+    elif worlds:
+        label = " · ".join(worlds)
+        if n_original > 0:
+            label += f" + {n_original} original{'s' if n_original != 1 else ''}"
     else:
         label = f"{n} stor{'ies' if n != 1 else 'y'}"
 
