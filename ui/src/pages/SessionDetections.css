@@ -270,11 +270,15 @@
   align-items: center;
 }
 
-/* Clickable spelling (M9b) — "mark this spelling correct, leave it unflagged" */
+/* Clickable spelling (M9b) — click a correct spelling to remove it from the flags.
+   Hover shows an × and a red cue, because the click removes the name from the list. */
 .spelling-chip {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
   padding: 0 var(--space-1);
   border: 1px solid transparent;
   border-radius: var(--radius);
@@ -284,9 +288,19 @@
 }
 
 .spelling-chip:hover {
-  color: var(--color-success);
-  border-color: var(--color-success);
-  background: rgba(107, 158, 113, 0.12);
+  color: var(--color-error);
+  border-color: var(--color-error);
+  background: rgba(176, 96, 80, 0.1);
+}
+
+.spelling-chip-x {
+  opacity: 0;
+  font-weight: 600;
+  transition: opacity 0.12s;
+}
+
+.spelling-chip:hover .spelling-chip-x {
+  opacity: 1;
 }
 
 /* "Not canon" verdict button on an M9c group header */

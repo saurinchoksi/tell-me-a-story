@@ -111,7 +111,7 @@ function buildGroups(flags: DetectionFlag[]): FlagGroup[] {
     else groups.set(key, { key, ...header, spellings: [], flags: [f] });
   }
   for (const grp of groups.values()) {
-    grp.spellings = [...new Set(grp.flags.map((f) => f.token.replace(/[.,'’"]+$/, '')))];
+    grp.spellings = [...new Set(grp.flags.map((f) => f.token.replace(/[.,!?'’"]+$/, '')))];
   }
   return [...groups.values()];
 }
@@ -121,7 +121,7 @@ function buildGroups(flags: DetectionFlag[]): FlagGroup[] {
 function spellingPairs(grp: FlagGroup): { display: string; cleaned: string }[] {
   const seen = new Map<string, string>();
   for (const f of grp.flags) {
-    if (!seen.has(f.cleaned)) seen.set(f.cleaned, f.token.replace(/[.,'’"]+$/, ''));
+    if (!seen.has(f.cleaned)) seen.set(f.cleaned, f.token.replace(/[.,!?'’"]+$/, ''));
   }
   return [...seen.entries()].map(([cleaned, display]) => ({ display, cleaned }));
 }
@@ -247,8 +247,8 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
           {data.name_verdicts.map((v, i) => (
             <span key={i} className="detection-correction">
               {v.type === 'not_canon'
-                ? `${v.name} — not canon`
-                : `${v.spelling ?? v.cleaned} — kept`}
+                ? `Made-up name (not ${v.name})`
+                : `“${v.spelling ?? v.cleaned}” — correct spelling`}
               {v.stale && (
                 <span className="detection-correction-stale" title="The name's spellings changed since you set this — re-check">
                   ⟳
@@ -313,10 +313,11 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
                             <button
                               key={cleaned}
                               className="spelling-chip"
-                              title="Mark this spelling correct — leave it unflagged"
+                              title="This spelling is correct — click to remove it from the flags"
                               onClick={() => applyVerdict({ type: 'correct', cleaned, spelling: display })}
                             >
                               {display}
+                              <span className="spelling-chip-x" aria-hidden="true">×</span>
                             </button>
                           ))}
                         </span>
@@ -326,7 +327,7 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
                       {result.failure_mode === 'M9c' && (
                         <button
                           className="detection-verdict-btn"
-                          title="It's invented, not a misspelled canon character — drop it from canon and let M9b show the inconsistency"
+                          title={`These flagged spellings are a made-up name, not the real ${grp.ref} — so they aren't a misspelled character`}
                           onClick={() =>
                             applyVerdict({
                               type: 'not_canon',
@@ -335,7 +336,7 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
                             })
                           }
                         >
-                          Not canon
+                          Made-up name
                         </button>
                       )}
                     </div>
