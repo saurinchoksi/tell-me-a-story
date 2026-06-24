@@ -30,6 +30,19 @@ function stageLabel(key: string): string {
   return STAGE_LABELS[key] ?? key.replace(/_/g, ' ');
 }
 
+/**
+ * Lead-story line for a session: the first title plus "+N more", or a bare
+ * count when the stories carry no titles (any recognized worlds already show as
+ * chips). Lets the row say what it holds instead of just its date.
+ */
+function storyTitleLine(st: NonNullable<SessionSummary['stories']>): string {
+  if (st.titles.length === 0) {
+    return st.n_stories > 1 ? `${st.n_stories} stories` : '';
+  }
+  const lead = st.titles[0];
+  return st.n_stories > 1 ? `${lead} + ${st.n_stories - 1} more` : lead;
+}
+
 /** Sortable column keys. Time isn't listed — it sorts with Date via session id. */
 type SortKey = 'date' | 'length' | 'validation' | 'notes';
 type SortDir = 'asc' | 'desc';
@@ -190,6 +203,20 @@ export default function Sessions() {
               >
                 👥
               </Link>
+
+              {s.stories && (
+                <div className="session-row-stories">
+                  <span className="session-row-stories-icon" aria-hidden="true">📖</span>
+                  {s.stories.worlds.map((w) => (
+                    <span key={w} className="story-chip">{w}</span>
+                  ))}
+                  {storyTitleLine(s.stories) && (
+                    <span className="session-row-stories-title">
+                      {storyTitleLine(s.stories)}
+                    </span>
+                  )}
+                </div>
+              )}
 
               <SessionNote sessionId={s.id} initialNote={s.note} />
             </div>

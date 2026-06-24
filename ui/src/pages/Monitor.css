@@ -155,7 +155,10 @@
 .monitor-row {
   display: grid;
   align-items: center;
-  gap: var(--space-4);
+  /* column-gap matches the header's spacing; row-gap is tight so the story
+     line (full-width second row) sits close under the badges, not 16px away */
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
   padding: var(--space-3);
   border-bottom: 1px solid var(--color-border);
   transition: background-color 0.1s;
@@ -185,6 +188,18 @@
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--color-text-muted);
+}
+
+/* Story line — full-width second row: what this recording holds, so a flag
+   row is recognizable by content, not just date. Compact (one line, ellipsis). */
+
+.monitor-row-story {
+  grid-column: 1 / -1;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Flag badges — flagged / scanned-clean / never-scanned are distinct states */

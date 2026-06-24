@@ -15,6 +15,9 @@ from detectors.base import Detector, transcript_fingerprint
 
 TRANSCRIPT = {
     "audio": {"duration_seconds": 60.0},
+    "_stories": [
+        {"index": 0, "start_id": 0, "end_id": 0, "title": "The Marda Mix-up", "world": ""},
+    ],
     "segments": [
         {
             "id": 0,
@@ -136,6 +139,16 @@ def test_rollup_is_read_only(client, fake_detector):
     assert by_id["20260101-120000"]["duration_seconds"] == 60.0
     assert by_id["20260101-120000"]["stale"] is False
     assert data["totals"]["fake-detector"] == 1
+
+
+def test_rollup_includes_story_summary(client):
+    """Each rollup session carries the derived story summary for the Monitor."""
+    data = client.get("/api/detections").get_json()
+    by_id = {s["session_id"]: s for s in data["sessions"]}
+    st = by_id["20260101-120000"]["stories"]
+    assert st is not None
+    assert st["label"] == "The Marda Mix-up"
+    assert st["n_stories"] == 1
 
 
 def test_rollup_second_view_runs_nothing(client, fake_detector):

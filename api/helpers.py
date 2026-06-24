@@ -55,19 +55,62 @@ def _read_session_metadata(session_dir: Path) -> dict:
         return json.load(f)
 
 
+def _derive_story_label(stories: list) -> dict | None:
+    """Build a glanceable summary from a transcript's `_stories` array.
+
+    Returns {'label', 'n_stories', 'worlds', 'titles'} so a list view can
+    recognize a recording by its content instead of just its date — or None
+    when the session has no stories (untranscribed, or a transcript that
+    predates story segmentation). `label` is a compact one-liner for tight
+    spaces (the Monitor); `worlds` (distinct recognized worlds, e.g. "Thomas
+    the Tank Engine") and `titles` let a roomier view render chips + a title.
+
+    Soft `.get()` reads on purpose: this is optional display metadata over data
+    that may predate a field, so absence is a legitimate empty state — not a
+    pipeline assumption to fail loud on.
+    """
+    if not stories:
+        return None
+
+    titles = [s["title"].strip() for s in stories if isinstance(s.get("title"), str) and s["title"].strip()]
+    worlds: list[str] = []
+    for s in stories:
+        w = (s.get("world") or "").strip()
+        if w and w not in worlds:
+            worlds.append(w)
+
+    n = len(stories)
+    n_world_stories = sum(1 for s in stories if (s.get("world") or "").strip())
+    n_original = n - n_world_stories
+
+    if worlds:
+        label = " · ".join(worlds)
+        if n_original > 0:
+            label += f" + {n_original} original{'s' if n_original != 1 else ''}"
+    elif titles:
+        label = titles[0]
+        if n > 1:
+            label += f" + {n - 1} more"
+    else:
+        label = f"{n} stor{'ies' if n != 1 else 'y'}"
+
+    return {"label": label, "n_stories": n, "worlds": worlds, "titles": titles}
+
+
 def _read_transcript_facts(session_dir: Path) -> dict:
     """Read transcript-rich.json once for the facts the sessions list needs.
 
-    Returns {'duration_seconds': float|None, 'failed_stages': list[str]}.
-    Both empty when the session was never transcribed (or the transcript
-    predates the relevant block). Parsing transcript-rich.json (~200-600KB)
-    is acceptable at this app's scale; if session counts grow, have the
-    pipeline cache these into session-metadata.json instead. A corrupt
-    transcript propagates json.JSONDecodeError (fail loud).
+    Returns {'duration_seconds': float|None, 'failed_stages': list[str],
+    'stories': dict|None}. All empty/None when the session was never
+    transcribed (or the transcript predates the relevant block). Parsing
+    transcript-rich.json (~200-600KB) is acceptable at this app's scale; if
+    session counts grow, have the pipeline cache these into
+    session-metadata.json instead. A corrupt transcript propagates
+    json.JSONDecodeError (fail loud).
     """
     transcript_path = session_dir / "transcript-rich.json"
     if not transcript_path.exists():
-        return {"duration_seconds": None, "failed_stages": []}
+        return {"duration_seconds": None, "failed_stages": [], "stories": None}
     with open(transcript_path) as f:
         data = json.load(f)
 
@@ -85,7 +128,9 @@ def _read_transcript_facts(session_dir: Path) -> dict:
             if entry.get("status") == "error"
         ]
 
-    return {"duration_seconds": duration, "failed_stages": failed_stages}
+    stories = _derive_story_label(data.get("_stories") or [])
+
+    return {"duration_seconds": duration, "failed_stages": failed_stages, "stories": stories}
 
 
 def _read_note_count(session_dir: Path) -> int:
@@ -132,6 +177,7 @@ def discover_sessions(sessions_dir: Path) -> list[dict]:
             "duration_seconds": facts["duration_seconds"],
             "note_count": _read_note_count(entry),
             "failed_stages": facts["failed_stages"],
+            "stories": facts["stories"],
         })
 
     sessions.sort(key=lambda s: s["id"], reverse=True)

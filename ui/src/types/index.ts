@@ -10,6 +10,20 @@ export type SegmentId = number | string;
 /** Human-review status for a session, set from the Sessions list. */
 export type ValidationStatus = 'not_started' | 'in_progress' | 'done';
 
+/**
+ * Glanceable summary of a session's stories, derived server-side from the
+ * transcript's `_stories`. `label` is a compact one-liner (for tight spaces
+ * like the Monitor); `worlds` (distinct recognized worlds) and `titles` let a
+ * roomier view render chips + the lead title. Null/absent when a session has no
+ * stories (untranscribed, or a transcript predating story segmentation).
+ */
+export interface StorySummary {
+  label: string;
+  n_stories: number;
+  worlds: string[];
+  titles: string[];
+}
+
 export interface SessionSummary {
   id: string;
   has_audio: boolean;
@@ -27,6 +41,8 @@ export interface SessionSummary {
   validation_status: ValidationStatus;
   /** Pipeline stages that errored (from transcript-rich.json _processing); [] when healthy. */
   failed_stages: string[];
+  /** What this recording holds — derived from the story map; null when none. */
+  stories: StorySummary | null;
 }
 
 export interface SessionDetail {
@@ -275,6 +291,8 @@ export interface DetectionRunSummary {
 export interface DetectionsRollupSession {
   session_id: string;
   duration_seconds: number | null;
+  /** What this recording holds — derived from the story map; null when none. */
+  stories: StorySummary | null;
   /** Keyed by detector id. A missing key means "never scanned" — distinct from 0 flags. */
   results: Record<string, DetectionRunSummary>;
   /** The transcript changed since this session was scanned — re-scan to refresh. */

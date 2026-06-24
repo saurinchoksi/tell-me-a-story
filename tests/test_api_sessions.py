@@ -5,6 +5,41 @@ import json
 import pytest
 
 from api.app import create_app
+from api.helpers import _derive_story_label
+
+
+# --- _derive_story_label (pure, no I/O) ---
+
+def test_derive_story_label_worlds_branch():
+    """A recognized world leads; remaining empty-world stories count as originals."""
+    out = _derive_story_label([
+        {"title": "The Tale of the Two Brothers", "world": "Mahabharata"},
+        {"title": "B", "world": ""},
+        {"title": "C", "world": ""},
+    ])
+    assert out["label"] == "Mahabharata + 2 originals"
+    assert out["worlds"] == ["Mahabharata"]
+    assert out["n_stories"] == 3
+
+
+def test_derive_story_label_all_original_branch():
+    """No worlds -> lead title, with '+N more' when there's more than one."""
+    out = _derive_story_label([
+        {"title": "The Moon's Reflection", "world": ""},
+        {"title": "Second", "world": ""},
+    ])
+    assert out["label"] == "The Moon's Reflection + 1 more"
+    assert out["worlds"] == []
+
+
+def test_derive_story_label_single_original():
+    out = _derive_story_label([{"title": "Solo Tale", "world": ""}])
+    assert out["label"] == "Solo Tale"
+    assert out["n_stories"] == 1
+
+
+def test_derive_story_label_empty_is_none():
+    assert _derive_story_label([]) is None
 
 
 @pytest.fixture
@@ -21,6 +56,11 @@ def sessions_dir(tmp_path):
             {"stage": "transcription", "status": "success"},
             {"stage": "llm_normalization", "status": "error", "error": "parse fail"},
             {"stage": "dictionary_normalization", "status": "skipped"},
+        ],
+        "_stories": [
+            {"index": 0, "start_id": 0, "end_id": 50, "title": "The Lost Balloon", "world": ""},
+            {"index": 1, "start_id": 51, "end_id": 120,
+             "title": "The Brave Little Engine", "world": "Thomas the Tank Engine"},
         ],
     }))
     (s1 / "diarization.json").write_text(json.dumps({
@@ -137,6 +177,23 @@ def test_list_sessions_includes_failed_stages(client):
     assert sessions["20260101-120000"]["failed_stages"] == ["llm_normalization"]
     # s2 has no transcript at all.
     assert sessions["20260102-180000"]["failed_stages"] == []
+
+
+def test_list_sessions_includes_stories(client):
+    """stories summarizes the transcript's _stories; None when no transcript."""
+    resp = client.get("/api/sessions")
+    sessions = {s["id"]: s for s in resp.get_json()["sessions"]}
+
+    st = sessions["20260101-120000"]["stories"]
+    assert st is not None
+    assert st["n_stories"] == 2
+    assert st["worlds"] == ["Thomas the Tank Engine"]
+    assert st["titles"] == ["The Lost Balloon", "The Brave Little Engine"]
+    # one recognized world + one original -> world leads, singular "original"
+    assert st["label"] == "Thomas the Tank Engine + 1 original"
+
+    # No transcript -> no story summary.
+    assert sessions["20260102-180000"]["stories"] is None
 
 
 # --- GET /api/sessions/:id ---

@@ -155,6 +155,11 @@ export default function Monitor() {
                   {detectors.map((d) => (
                     <FlagBadge key={d.id} summary={s.results[d.id]} />
                   ))}
+                  {s.stories && (
+                    <span className="monitor-row-story" title={s.stories.label}>
+                      📖 {s.stories.label}
+                    </span>
+                  )}
                 </div>
               );
             })}

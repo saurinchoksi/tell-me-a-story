@@ -116,6 +116,7 @@ def _rollup(sessions_dir, detector_objs):
             sessions.append({
                 "session_id": entry.name,
                 "duration_seconds": facts["duration_seconds"],
+                "stories": facts["stories"],
                 "results": results,
                 "stale": stale,
             })
