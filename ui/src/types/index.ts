@@ -361,6 +361,9 @@ export interface CanonNameFlag extends DetectionFlagBase {
   /** Order-robust judge: rounds (of vote_rounds) that agreed this is a misspelled canon name. */
   vote_count?: number;
   vote_rounds?: number;
+  /** View-time confidence tier (api.helpers.canon_tier): 'confident' (sound-alike) and
+   *  'best_guess' (judge vote ≥ 4) show by default; 'low' shows only under "Show all". */
+  tier?: 'confident' | 'best_guess' | 'low';
 }
 
 /** Discriminated by a field unique to each shape: `cluster_spellings` → m9b,

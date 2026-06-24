@@ -379,6 +379,73 @@
   border-left: 2px solid var(--color-border);
 }
 
+/* M9c confidence tiers — confident shows plainly; best-guess and low are framed + de-emphasized.
+   The suggested-name color steps down green → amber → grey so the tier reads at a glance. */
+.detection-tier {
+  margin-top: var(--space-5);
+  padding: var(--space-3) 0 var(--space-2) var(--space-4);
+  border-left: 3px solid var(--color-border);
+}
+
+.detection-tier--bestguess {
+  border-left-color: var(--color-warning);
+  background: rgba(184, 145, 60, 0.04);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.detection-tier--bestguess .detection-flag-canonical {
+  color: var(--color-warning);
+}
+
+.detection-tier--low {
+  opacity: 0.92;
+}
+
+.detection-tier--low .detection-flag-canonical {
+  color: var(--color-text-muted);
+}
+
+.detection-tier-label {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.detection-tier--bestguess > .detection-tier-label {
+  color: var(--color-warning);
+}
+
+.detection-tier-hint {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.detection-tier-toggle {
+  display: inline-block;
+  margin-top: var(--space-3);
+  padding: var(--space-1) 0;
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.detection-tier-toggle:hover {
+  text-decoration: underline;
+}
+
 /* Empty state */
 
 .session-detections-empty {

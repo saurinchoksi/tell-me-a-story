@@ -361,6 +361,58 @@ def test_canon_dedup_drops_whole_cluster_when_m9c_owns_one_token():
     assert [f["cleaned"] for f in m9b["flags"]] == ["jiraki"]  # the whole James cluster deferred to M9c
 
 
+def test_canon_tier_derives_three_tiers():
+    # confident = sounds alike; best_guess = not sound-alike but judge vote >= 4; low = below that.
+    from api.helpers import canon_tier
+    assert canon_tier({"suggestion_confident": True, "vote_count": 7}) == "confident"
+    assert canon_tier({"suggestion_confident": True}) == "confident"                      # confident wins
+    assert canon_tier({"suggestion_confident": False, "vote_count": 5}) == "best_guess"
+    assert canon_tier({"suggestion_confident": False, "vote_count": 4}) == "best_guess"   # at the floor
+    assert canon_tier({"suggestion_confident": False, "vote_count": 3}) == "low"
+    assert canon_tier({"suggestion_confident": False}) == "low"                           # no votes -> low
+
+
+def test_annotate_canon_tiers_tags_flags_and_counts_default_visible():
+    # Each M9c flag gets a tier; n_flags becomes the DEFAULT-VISIBLE count (confident + best_guess),
+    # while the 'low' flag stays in the list (the UI reveals it under "Show all").
+    from api.helpers import annotate_canon_tiers
+    sections = {"m9c-canon": {"n_flags": 4, "flags": [
+        {"cleaned": "pondavas", "canonical": "Pandavas", "suggestion_confident": True},
+        {"cleaned": "dhrashtra", "canonical": "Dhritarashtra", "suggestion_confident": False, "vote_count": 5},
+        {"cleaned": "yudhisthir", "canonical": "Yudhishthira", "suggestion_confident": False, "vote_count": 3},
+        {"cleaned": "duryodhan", "canonical": "Duryodhana", "suggestion_confident": True},
+    ]}}
+    annotate_canon_tiers(sections)
+    flags = sections["m9c-canon"]["flags"]
+    assert [f["tier"] for f in flags] == ["confident", "best_guess", "low", "confident"]
+    assert sections["m9c-canon"]["n_flags"] == 3   # the 'low' yudhisthir is not counted in the badge
+    assert len(flags) == 4                          # but it stays in the payload for "Show all"
+
+
+def test_canon_dedup_skips_low_tier_m9c_claim():
+    # A LOW-confidence M9c claim must NOT hide a real M9b inconsistency (a confident/best-guess one
+    # still does — covered above). Tiers are annotated before the dedup runs.
+    from api.helpers import annotate_canon_tiers
+    from api.routes.detections import _apply_canon_dedup
+    sections = {
+        "m9b-name-consistency": {"n_flags": 2, "flags": [
+            {"cleaned": "pondavas", "token": "Pondavas", "cluster_id": "pondavas"},   # owned by a CONFIDENT m9c
+            {"cleaned": "yudister", "token": "Yudister", "cluster_id": "yudister"},   # only a LOW m9c claim -> stays
+        ]},
+        "m9c-canon": {"n_flags": 2, "flags": [
+            {"cleaned": "pondavas", "wrong_cleaned": ["pondavas"], "canonical": "Pandavas",
+             "suggestion_confident": True},
+            {"cleaned": "yudister", "wrong_cleaned": ["yudister"], "canonical": "Yudhishthira",
+             "suggestion_confident": False, "vote_count": 2},   # low tier
+        ]},
+    }
+    annotate_canon_tiers(sections)
+    _apply_canon_dedup(sections)
+    m9b = sections["m9b-name-consistency"]
+    assert [f["cleaned"] for f in m9b["flags"]] == ["yudister"]   # the low-tier claim did NOT defer it
+    assert m9b["n_flags"] == 1
+
+
 def test_apply_not_canon_drops_m9c_and_releases_m9b():
     # The core of the feature: a 'not canon' verdict drops the M9c claim, and because it
     # runs BEFORE the dedup, M9b's (correct) inconsistency is no longer deferred away.

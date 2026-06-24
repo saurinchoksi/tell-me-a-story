@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getSessionDetections, scanSession, saveNameVerdict, audioURL } from '../api/client';
 import { formatSessionDate, formatTime } from '../utils/time';
-import type { DetectionFlag, SessionDetectionsData, NameVerdict } from '../types';
+import type { DetectionFlag, SessionDetectionsData, NameVerdict, SessionDetectorResult, CanonNameFlag } from '../types';
 import StoryHeading from '../components/StoryHeading';
 import './SessionDetections.css';
 
@@ -139,6 +139,8 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  // Reveal the lowest M9c tier (judge votes < 4). Default off — those are the shakiest guesses.
+  const [showAll, setShowAll] = useState(false);
 
   // Shared clip player — one <audio> element drives every flag's play button.
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -208,6 +210,124 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
 
   const { date, time } = formatSessionDate(id);
   const sections = Object.entries(data.detectors);
+  const hasAudio = data.has_audio;
+
+  // One name group's card — identical for every detector and every M9c tier. The header owns the
+  // name/badge/world + verdict control; occurrences nest beneath. Factored out so the three M9c
+  // confidence tiers can each render the same group shape.
+  const renderGroup = (grp: FlagGroup, result: SessionDetectorResult) => (
+    <div className="detection-group" key={grp.key}>
+      <div className="detection-group-header">
+        <span className="detection-flag-arrow" aria-hidden="true">→</span>
+        <span className="detection-flag-canonical">{grp.ref}</span>
+        <span className={`detection-flag-type ${grp.badgeClass}`}>{grp.badgeLabel}</span>
+        {grp.world ? <span className="detection-flag-world">{grp.world}</span> : null}
+        <span className="detection-group-count">heard {grp.flags.length}×</span>
+        {result.failure_mode === 'M9b' ? (
+          <span className="detection-group-spellings">
+            {spellingPairs(grp).map(({ display, cleaned }) => (
+              <button
+                key={cleaned}
+                className="spelling-chip"
+                title="This spelling is correct — click to remove it from the flags"
+                onClick={() => applyVerdict({ type: 'correct', cleaned, spelling: display })}
+              >
+                {display}
+                <span className="spelling-chip-x" aria-hidden="true">×</span>
+              </button>
+            ))}
+          </span>
+        ) : (
+          <span className="detection-group-spellings">{grp.spellings.join(' · ')}</span>
+        )}
+        {result.failure_mode === 'M9c' && (
+          <button
+            className="detection-verdict-btn"
+            title={`These flagged spellings are a made-up name, not the real ${grp.ref} — so they aren't a misspelled character`}
+            onClick={() =>
+              applyVerdict({
+                type: 'not_canon',
+                name: grp.ref,
+                cleaned_at_review: [...new Set(grp.flags.map((f) => f.cleaned))],
+              })
+            }
+          >
+            Made-up name
+          </button>
+        )}
+      </div>
+      <div className="detection-flags">
+        {grp.flags.map((flag) => {
+          // detector-prefixed so the same word flagged by two detectors can't collide
+          const key = `${result.failure_mode}-${String(flag.segment_id)}-${flag.word_index}`;
+          const clip = clipWindow(flag);
+          return (
+            <FlagCard
+              key={key}
+              flag={flag}
+              isPlaying={playingKey === key}
+              canPlay={hasAudio && clip !== null}
+              onToggle={() => clip && playClip(key, clip[0], clip[1])}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  // M9c renders in confidence tiers (api.helpers.canon_tier): confident + best-guess show by
+  // default; the lowest tier (judge votes < 4) hides behind "Show all". A made-up-name verdict
+  // works on every tier's groups.
+  const renderM9cBody = (result: SessionDetectorResult) => {
+    const tierGroups = (t: string) =>
+      buildGroups(result.flags.filter((f) => (f as CanonNameFlag).tier === t));
+    const confident = tierGroups('confident');
+    const bestGuess = tierGroups('best_guess');
+    const low = tierGroups('low');
+    const hasLower = bestGuess.length > 0 || low.length > 0;
+
+    return (
+      <>
+        {confident.length > 0 && (
+          <div className="detection-groups">
+            {hasLower && <div className="detection-tier-label">Confident</div>}
+            {confident.map((g) => renderGroup(g, result))}
+          </div>
+        )}
+
+        {bestGuess.length > 0 && (
+          <div className="detection-tier detection-tier--bestguess">
+            <div className="detection-tier-label">
+              Best guess<span className="detection-tier-hint">the model's read, but it doesn't sound like the canon name</span>
+            </div>
+            <div className="detection-groups">{bestGuess.map((g) => renderGroup(g, result))}</div>
+          </div>
+        )}
+
+        {confident.length === 0 && bestGuess.length === 0 && low.length === 0 && (
+          <p className="detection-section-clean">No flags — clean scan.</p>
+        )}
+
+        {low.length > 0 && (
+          <>
+            {showAll && (
+              <div className="detection-tier detection-tier--low">
+                <div className="detection-tier-label">
+                  Lowest confidence<span className="detection-tier-hint">a minority of the judge's rounds agreed</span>
+                </div>
+                <div className="detection-groups">{low.map((g) => renderGroup(g, result))}</div>
+              </div>
+            )}
+            <button className="detection-tier-toggle" onClick={() => setShowAll((v) => !v)}>
+              {showAll
+                ? '− Show fewer'
+                : `+ Show all (${low.length} lower-confidence ${low.length === 1 ? 'guess' : 'guesses'})`}
+            </button>
+          </>
+        )}
+      </>
+    );
+  };
 
   return (
     <div className="session-detections-page">
@@ -294,70 +414,14 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
                 )}
               </span>
             </div>
-            {result.n_flags === 0 ? (
+            {result.failure_mode === 'M9c' ? (
+              renderM9cBody(result)
+            ) : result.n_flags === 0 ? (
               <p className="detection-section-clean">No flags — clean scan.</p>
             ) : (
-              // All three detectors: one header per name, occurrences nested under it
+              // M9a / M9b: one header per name, occurrences nested under it
               <div className="detection-groups">
-                {buildGroups(result.flags).map((grp) => (
-                  <div className="detection-group" key={grp.key}>
-                    <div className="detection-group-header">
-                      <span className="detection-flag-arrow" aria-hidden="true">→</span>
-                      <span className="detection-flag-canonical">{grp.ref}</span>
-                      <span className={`detection-flag-type ${grp.badgeClass}`}>{grp.badgeLabel}</span>
-                      {grp.world ? <span className="detection-flag-world">{grp.world}</span> : null}
-                      <span className="detection-group-count">heard {grp.flags.length}×</span>
-                      {result.failure_mode === 'M9b' ? (
-                        <span className="detection-group-spellings">
-                          {spellingPairs(grp).map(({ display, cleaned }) => (
-                            <button
-                              key={cleaned}
-                              className="spelling-chip"
-                              title="This spelling is correct — click to remove it from the flags"
-                              onClick={() => applyVerdict({ type: 'correct', cleaned, spelling: display })}
-                            >
-                              {display}
-                              <span className="spelling-chip-x" aria-hidden="true">×</span>
-                            </button>
-                          ))}
-                        </span>
-                      ) : (
-                        <span className="detection-group-spellings">{grp.spellings.join(' · ')}</span>
-                      )}
-                      {result.failure_mode === 'M9c' && (
-                        <button
-                          className="detection-verdict-btn"
-                          title={`These flagged spellings are a made-up name, not the real ${grp.ref} — so they aren't a misspelled character`}
-                          onClick={() =>
-                            applyVerdict({
-                              type: 'not_canon',
-                              name: grp.ref,
-                              cleaned_at_review: [...new Set(grp.flags.map((f) => f.cleaned))],
-                            })
-                          }
-                        >
-                          Made-up name
-                        </button>
-                      )}
-                    </div>
-                    <div className="detection-flags">
-                      {grp.flags.map((flag) => {
-                        // detector-prefixed so the same word flagged by two detectors can't collide
-                        const key = `${result.failure_mode}-${String(flag.segment_id)}-${flag.word_index}`;
-                        const clip = clipWindow(flag);
-                        return (
-                          <FlagCard
-                            key={key}
-                            flag={flag}
-                            isPlaying={playingKey === key}
-                            canPlay={data.has_audio && clip !== null}
-                            onToggle={() => clip && playClip(key, clip[0], clip[1])}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+                {buildGroups(result.flags).map((grp) => renderGroup(grp, result))}
               </div>
             )}
           </section>

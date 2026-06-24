@@ -28,6 +28,13 @@ class CanonNameDetector(Detector):
     id = "m9c-canon"
     label = "Canon-name mistranscription (Thomas / Mahabharata / known source)"
     failure_mode = "M9c"
+    # 0.5.0: emit ALL canon catches (confident AND not), each carrying suggestion_confident + vote_count,
+    #   so the VIEW layer (api.helpers.canon_tier) sorts them into confidence TIERS — confident /
+    #   best-guess (judge vote >= 4) / low — instead of the detector hard-dropping the non-sound-alike
+    #   ones. The scored sweep (emp/src/tune_surfacing_policy.py) showed the best-guess tier lifts
+    #   real-canon recall (held-out 0.56 -> 0.78, synthetic spread 0.75 -> 0.85) at a trivial precision
+    #   cost the human verdict button absorbs. The vote threshold lives at view time, so it's tunable
+    #   without a re-scan. (0.4.0 was the order-robust judge surfacing CONFIDENT catches only.)
     # 0.4.0: ORDER-ROBUST judge. The single judge call is order-sensitive (a borderline name is
     #   caught in one ordering of the name list, missed in another), so the judge now votes across
     #   several deterministic shuffles and keeps names a majority agrees on — reliable on borderline
@@ -35,10 +42,7 @@ class CanonNameDetector(Detector):
     #   union; 0.2.0 the Gemma worksheet, kept as the baseline _worker.run.) mlx_vlm wobbles a hair
     #   on Metal even at temp 0; voting averages that out too. Qwen3.5 judges the names directly and
     #   is sound-matched against a Qwen3.5 cast; the two catches are unioned, then dictionary-gated.
-    #   Surfaces only CONFIDENT catches (the suggested spelling sounds like the heard token): a
-    #   not-sound-alike "best guess" is the judge over-reaching — it force-maps an invented name onto
-    #   canon when told a world (e.g. Pataki->Paddy) — so those stay out of the Monitor.
-    version = "0.4.0-experimental"
+    version = "0.5.0-experimental"
     accepts_judge = False
     offline_only = True  # never runs in a web request or a non-offline scan
 
@@ -57,7 +61,7 @@ class CanonNameDetector(Detector):
             "judge_prompt": _qwen35.JUDGE_PROMPT,
             "recognize_prompt": _qwen35.RECOGNIZE_PROMPT,
             "cast_prompt": _qwen35.CAST_PROMPT,
-            "surface": "confident-only",   # only sound-alike catches are emitted (see run())
+            "surface": "all-tiers",   # all canon catches emitted; the view layer tiers them (see run())
         }, sort_keys=True).encode()
         return "sha256:" + hashlib.sha256(payload).hexdigest()
 
@@ -65,13 +69,12 @@ class CanonNameDetector(Detector):
         from model_runner import run_model
         from detectors.story_names import _worker
         result = run_model(_worker.run_qwen35, str(session_dir), timeout=WORKER_TIMEOUT)
-        # Surface only the canon slice (the worker computed M9b clusters internally to shield real
-        # names) AND only CONFIDENT catches — those whose suggested spelling sounds like the heard
-        # token. A not-sound-alike "best guess" is the judge over-reaching (force-mapping an invented
-        # name onto canon when told a world), so it stays out: a flag the reviewer can trust beats a
-        # screen of maybes. The worker still computes the full set; this is the surfacing policy.
+        # Surface the canon slice (the worker computed M9b clusters internally to shield real names),
+        # carrying ALL catches — confident and not. Each flag already holds suggestion_confident +
+        # vote_count (computed in _worker.expand_combined), so the view layer (api.helpers.canon_tier)
+        # sorts them into confidence tiers and decides what shows by default; the detector no longer
+        # hard-drops the non-sound-alike "best guess" catches.
         return {
             "n_word_tokens": result["n_word_tokens"],
-            "flags": [f for f in result["flags"]
-                      if f.get("case") == "M9c" and f.get("suggestion_confident")],
+            "flags": [f for f in result["flags"] if f.get("case") == "M9c"],
         }

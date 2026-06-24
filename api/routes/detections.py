@@ -19,6 +19,7 @@ from api.helpers import (
     FIXTURE_SESSION_ID,
     _derive_story_label,
     _read_transcript_facts,
+    annotate_canon_tiers,
     apply_name_verdicts,
     get_session_dir,
     name_verdict_status,
@@ -80,6 +81,8 @@ def _apply_canon_dedup(detector_sections: dict) -> None:
         return
     canon = set()
     for f in m9c.get("flags", []):
+        if f.get("tier") == "low":  # a low-confidence canon claim must not hide a real m9b inconsistency
+            continue
         if f.get("cleaned"):
             canon.add(f["cleaned"])
         canon.update(f.get("wrong_cleaned") or [])
@@ -112,6 +115,7 @@ def _rollup(sessions_dir, detector_objs):
             data = _read_detections(entry)  # may raise JSONDecodeError -> caller handles
             if data:
                 apply_name_verdicts(data["detectors"], read_name_verdicts(entry))  # human corrections first
+                annotate_canon_tiers(data["detectors"])  # tier m9c + count default-visible (confident+best_guess)
                 _apply_canon_dedup(data["detectors"])  # then m9b defers to m9c on canon names
             results, stale = {}, False
             for det_id, section in (data["detectors"].items() if data else []):
@@ -158,7 +162,8 @@ def _session_detail(session_dir, session_id):
     # verdicts run BEFORE the dedup so a not_canon name releases back to m9b.
     verdicts = name_verdict_status(data["detectors"], verdicts_raw)
     apply_name_verdicts(data["detectors"], verdicts_raw)
-    _apply_canon_dedup(data["detectors"])  # m9b defers to m9c on canon names
+    annotate_canon_tiers(data["detectors"])  # tier m9c flags + count default-visible (confident+best_guess)
+    _apply_canon_dedup(data["detectors"])  # m9b defers to m9c on canon names (skips low-tier claims)
 
     detectors = {}
     for det_id, section in data["detectors"].items():

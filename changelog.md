@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-24 — The canon name-check now shows its best guesses, not just the sure things
+
+The check that catches a known character spelled wrong used to hide any catch whose suggested spelling didn't sound close enough to the heard word — quietly dropping real mistakes it had actually identified, like a badly-garbled Dhritarashtra. It now keeps them, ranked by how sure it is: the confident ones up top, a labeled "best guess" group below for the ones it agreed on across most of its tries, and a "Show all" link for the shakiest. A scored test on real and invented story-worlds backed the change — it recovers noticeably more real misspellings, and the only cost lands on a night where a child made up characters that sound like real ones, which the one-click "made-up name" button already wipes away.
+
 ## 2026-06-24 — You can now overrule the name monitor when it's wrong
 
 Sometimes a name check gets a name wrong — most often when a child invents a character that sounds exactly like a real one (a made-up engine that sounds like Thomas's James), and the "misspelled canon name" check insists it's the real character. You can now tell the monitor the truth right on the page — "this isn't the canon character" or "this spelling is correct, leave it" — and the flags rearrange to match: the false canon claim drops, and the genuinely inconsistent invented name surfaces where it belongs instead. The correction is saved next to the transcript so it survives every re-scan, it leaves the family-name check untouched, and it doubles as a record of where the detectors get things wrong.

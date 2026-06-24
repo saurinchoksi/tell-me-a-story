@@ -258,3 +258,42 @@ def apply_name_verdicts(detector_sections: dict, verdicts: list[dict]) -> None:
                     f["cluster_spellings"] = [
                         s for s in f["cluster_spellings"] if _norm_spelling(s) not in correct
                     ]
+
+
+# --- M9c confidence tiers (view-time) -----------------------------------------
+#
+# The canon detector emits every catch; the view layer sorts them by confidence so the badly-garbled
+# real names (Dhrashtra->Dhritarashtra) the strict sound-alike test drops are recovered in a labeled
+# "best guess" tier, without losing the trust of the confident ones. The threshold lives HERE, not in
+# the detector, so it's tunable without a re-scan. The scored basis: emp/src/tune_surfacing_policy.py.
+
+BEST_GUESS_VOTE_MIN = 4  # a non-sound-alike catch needs >= this many of the judge's 7 rounds to show by default
+
+
+def canon_tier(flag: dict) -> str:
+    """Confidence tier for one M9c catch:
+      - 'confident'  — the suggested spelling sounds like the heard token (shared Double-Metaphone code)
+      - 'best_guess' — not sound-alike, but the order-robust judge agreed in >= BEST_GUESS_VOTE_MIN rounds
+      - 'low'        — not sound-alike and below that vote floor (revealed only under "Show all")
+    Every non-confident M9c flag is judge-only and so carries a vote_count, so the tier is total."""
+    if flag.get("suggestion_confident"):
+        return "confident"
+    if (flag.get("vote_count") or 0) >= BEST_GUESS_VOTE_MIN:
+        return "best_guess"
+    return "low"
+
+
+def annotate_canon_tiers(detector_sections: dict) -> None:
+    """In place, view-time: tag each M9c flag with its `tier`, and set the section's n_flags to the
+    DEFAULT-VISIBLE count (confident + best_guess). The 'low' flags stay in the list — the UI reveals
+    them under "Show all" — but don't inflate the Monitor badge. Run AFTER apply_name_verdicts and
+    BEFORE _apply_canon_dedup, so the dedup can skip 'low' claims. Pure of disk — unit-testable."""
+    m9c = detector_sections.get("m9c-canon")
+    if not m9c:
+        return
+    visible = 0
+    for f in m9c["flags"]:
+        f["tier"] = canon_tier(f)
+        if f["tier"] != "low":
+            visible += 1
+    m9c["n_flags"] = visible

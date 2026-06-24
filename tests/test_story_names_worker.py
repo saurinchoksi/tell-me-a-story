@@ -56,22 +56,23 @@ def test_worker_uses_empty_saved_stories_without_resegmenting(tmp_path):
     assert result == {"n_word_tokens": 0, "flags": []}
 
 
-def test_canon_detector_emits_only_confident_m9c_flags(tmp_path):
-    """CanonNameDetector surfaces only the CONFIDENT M9c slice of the converged worker output:
-    M9b is the separate detector's job, and a not-sound-alike "best guess" (the judge over-reaching,
-    e.g. force-mapping an invented name onto canon) is kept out of the Monitor. The worker (the
-    expensive converged pass) runs exactly once; filtering its result is free."""
+def test_canon_detector_emits_all_m9c_flags_dropping_m9b(tmp_path):
+    """CanonNameDetector surfaces the FULL M9c slice of the converged worker output — confident AND
+    not-sound-alike "best guess" — so the view layer (api.helpers.canon_tier) can tier them and
+    recover the badly-garbled real names. It still drops M9b (the separate detector's job). The
+    worker (the expensive converged pass) runs exactly once; filtering its result to M9c is free."""
     mixed = {
         "n_word_tokens": 100,
         "flags": [
             {"case": "M9c", "token": "Pondavas", "canonical": "Pandavas", "suggestion_confident": True},
             {"case": "M9b", "token": "Jameis", "canonical": "Jammus", "suggestion_confident": True},
             {"case": "M9c", "token": "Dhrashtra", "canonical": "Dhritarashtra", "suggestion_confident": True},
-            {"case": "M9c", "token": "Pataki", "canonical": "Paddy", "suggestion_confident": False},  # best guess -> dropped
+            {"case": "M9c", "token": "Pataki", "canonical": "Paddy", "suggestion_confident": False},  # best guess -> KEPT
         ],
     }
     with patch("model_runner.run_model", return_value=mixed) as mock_run:
         result = CanonNameDetector().run(tmp_path)
     mock_run.assert_called_once()                                  # converged engine runs once
     assert result["n_word_tokens"] == 100                          # denominator unchanged
-    assert [f["token"] for f in result["flags"]] == ["Pondavas", "Dhrashtra"]  # M9b + best-guess out
+    # Every M9c flag carried through (confident + best-guess); only the M9b flag is dropped.
+    assert [f["token"] for f in result["flags"]] == ["Pondavas", "Dhrashtra", "Pataki"]
