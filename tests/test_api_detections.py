@@ -283,8 +283,20 @@ def test_session_detections_joins_segment_context(client):
 def test_session_detections_no_transcript_no_detections(client):
     resp = client.get("/api/sessions/20260103-120000/detections")
     assert resp.status_code == 200
-    assert resp.get_json() == {"session_id": "20260103-120000",
-                               "has_audio": False, "detectors": {}}
+    assert resp.get_json() == {"session_id": "20260103-120000", "has_audio": False,
+                               "stories": None, "detectors": {}}
+
+
+def test_session_detections_includes_story_summary(client):
+    """The detail payload carries the story summary for the page header — even on
+    a transcribed session that was never scanned (no detections.json)."""
+    scanned = client.get("/api/sessions/20260101-120000/detections").get_json()
+    assert scanned["stories"]["label"] == "The Marda Mix-up"
+    assert scanned["stories"]["n_stories"] == 1
+
+    unscanned = client.get("/api/sessions/20260102-120000/detections").get_json()
+    assert unscanned["detectors"] == {}                      # never scanned
+    assert unscanned["stories"]["label"] == "The Marda Mix-up"  # but still identifiable
 
 
 def test_session_detections_reports_has_audio(client):

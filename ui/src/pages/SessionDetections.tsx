@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { getSessionDetections, scanSession, audioURL } from '../api/client';
 import { formatSessionDate, formatTime } from '../utils/time';
 import type { DetectionFlag, SessionDetectionsData } from '../types';
+import StoryHeading from '../components/StoryHeading';
 import './SessionDetections.css';
 
 // Clip window padding (seconds). We play the flagged token's whole containing
@@ -214,6 +215,7 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
             {scanning ? 'Scanning…' : 'Full re-scan'}
           </button>
         </div>
+        <StoryHeading stories={data.stories} />
         <p className="session-detections-subtitle">session {id}</p>
         {data.warning && <p className="session-detections-warning">⚠ {data.warning}</p>}
       </div>

@@ -150,6 +150,18 @@ h1, h2, h3 {
 .health-dot--red    { background: var(--color-error); }
 .health-dot--grey   { background: var(--color-text-muted); opacity: 0.4; }
 
+/* --- Story world chip (shared: Sessions list + per-session story heading) --- */
+
+.story-chip {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 /* --- Button utilities (shared) --- */
 
 .btn {

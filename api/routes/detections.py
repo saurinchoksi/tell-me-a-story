@@ -14,7 +14,13 @@ from pathlib import Path
 
 from flask import Blueprint, current_app, jsonify
 
-from api.helpers import FIXTURE_SESSION_ID, _read_transcript_facts, get_session_dir, validate_session_id
+from api.helpers import (
+    FIXTURE_SESSION_ID,
+    _derive_story_label,
+    _read_transcript_facts,
+    get_session_dir,
+    validate_session_id,
+)
 
 bp = Blueprint("detections", __name__)
 
@@ -126,16 +132,23 @@ def _rollup(sessions_dir, detector_objs):
 def _session_detail(session_dir, session_id):
     from detectors.base import section_is_stale
     has_audio = next(session_dir.glob("audio.*"), None) is not None
-    data = _read_detections(session_dir)
-    if data is None:
-        return {"session_id": session_id, "has_audio": has_audio, "detectors": {}}
-    _apply_canon_dedup(data["detectors"])  # m9b defers to m9c on canon names
 
+    # Read the transcript once: it feeds both the per-flag segment-text join and
+    # the story summary shown in the page header. None when not transcribed.
     transcript_path = session_dir / "transcript-rich.json"
     seg_by_id = {}
+    stories = None
     if transcript_path.exists():
         with open(transcript_path) as f:
-            seg_by_id = {seg["id"]: seg for seg in json.load(f)["segments"]}
+            tj = json.load(f)
+        seg_by_id = {seg["id"]: seg for seg in tj["segments"]}
+        stories = _derive_story_label(tj.get("_stories") or [])
+
+    data = _read_detections(session_dir)
+    if data is None:
+        return {"session_id": session_id, "has_audio": has_audio,
+                "stories": stories, "detectors": {}}
+    _apply_canon_dedup(data["detectors"])  # m9b defers to m9c on canon names
 
     detectors = {}
     for det_id, section in data["detectors"].items():
@@ -153,7 +166,8 @@ def _session_detail(session_dir, session_id):
         stale = transcript_path.exists() and section_is_stale(section, session_dir)
         detectors[det_id] = {**section, "flags": flags, "stale": stale}
 
-    return {"session_id": session_id, "has_audio": has_audio, "detectors": detectors}
+    return {"session_id": session_id, "has_audio": has_audio,
+            "stories": stories, "detectors": detectors}
 
 
 # --- GET (read-only) ----------------------------------------------------------

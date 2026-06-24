@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listSessions } from '../api/client';
 import { formatSessionDate, formatTime } from '../utils/time';
+import { storyTitleLine } from '../utils/stories';
 import type { SessionSummary, ValidationStatus as VStatus } from '../types';
 import SessionNote from '../components/SessionNote';
 import ValidationStatus from '../components/ValidationStatus';
@@ -28,19 +29,6 @@ const STAGE_LABELS: Record<string, string> = {
 
 function stageLabel(key: string): string {
   return STAGE_LABELS[key] ?? key.replace(/_/g, ' ');
-}
-
-/**
- * Lead-story line for a session: the first title plus "+N more", or a bare
- * count when the stories carry no titles (any recognized worlds already show as
- * chips). Lets the row say what it holds instead of just its date.
- */
-function storyTitleLine(st: NonNullable<SessionSummary['stories']>): string {
-  if (st.titles.length === 0) {
-    return st.n_stories > 1 ? `${st.n_stories} stories` : '';
-  }
-  const lead = st.titles[0];
-  return st.n_stories > 1 ? `${lead} + ${st.n_stories - 1} more` : lead;
 }
 
 /** Sortable column keys. Time isn't listed — it sorts with Date via session id. */

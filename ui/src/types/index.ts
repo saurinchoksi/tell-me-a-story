@@ -386,6 +386,8 @@ export interface SessionDetectionsData {
   session_id: string;
   /** Whether an audio file exists — gates the per-flag "play clip" control. */
   has_audio: boolean;
+  /** What this recording holds — derived from the story map; null when none. */
+  stories: StorySummary | null;
   /** Keyed by detector id; {} when the session was never scanned. */
   detectors: Record<string, SessionDetectorResult>;
   /** Set when a scan ran code-only because the LLM judge's venv was absent. */

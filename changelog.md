@@ -6,7 +6,7 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 ## 2026-06-24 — Each session now says what story it holds
 
-The Sessions list and the Monitor used to label every recording only by its date, so you had to open one to know what was inside. Both now carry a short content line — the story titles, plus the recognized world when there is one (the Mahabharata night, the Thomas the Tank Engine night) — taken straight from the breakdown the pipeline already saves. Nothing new had to be computed: the page was already opening each transcript to read its length, so the summary rides along on that same read.
+The Sessions list and the Monitor used to label every recording only by its date, so you had to open one to know what was inside. Both now carry a short content line — the story titles, plus the recognized world when there is one (the Mahabharata night, the Thomas the Tank Engine night) — taken straight from the breakdown the pipeline already saves. The same summary now heads a session's own monitor page too, so it stays recognizable once you've clicked in. Nothing new had to be computed: the page was already opening each transcript to read its length, so the summary rides along on that same read.
 
 ## 2026-06-23 — The three name checks now look and read the same
 
