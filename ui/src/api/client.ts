@@ -18,6 +18,7 @@ import type {
   AxialLabel,
   DetectionsRollup,
   SessionDetectionsData,
+  NameVerdict,
 } from '../types';
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -158,6 +159,21 @@ export async function getSessionDetections(
 export async function scanSession(sessionId: string): Promise<SessionDetectionsData> {
   return fetchJSON<SessionDetectionsData>(
     `/api/sessions/${sessionId}/detections/scan`, { method: 'POST' });
+}
+
+/** Toggle a human name verdict (re-sending an identical one removes it). Returns fresh detail. */
+export async function saveNameVerdict(
+  sessionId: string,
+  verdict: NameVerdict,
+): Promise<SessionDetectionsData> {
+  return fetchJSON<SessionDetectionsData>(
+    `/api/sessions/${sessionId}/name-verdicts`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(verdict),
+    },
+  );
 }
 
 /** Re-scan every session whose results are missing or stale (full pass). */

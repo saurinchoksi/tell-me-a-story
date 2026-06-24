@@ -182,3 +182,73 @@ def discover_sessions(sessions_dir: Path) -> list[dict]:
 
     sessions.sort(key=lambda s: s["id"], reverse=True)
     return sessions
+
+
+# --- Human "set the record straight" verdicts on flagged names ----------------
+#
+# A monitor flags; a human decides. When a detector is wrong about a name (e.g. it
+# maps a child's invented engine onto a canon character that sounds the same), the
+# human records the truth here. It lives in its own file the detectors never write,
+# so it survives every re-scan — and it doubles as per-session precision labels.
+
+def read_name_verdicts(session_dir: Path) -> list[dict]:
+    """Human verdicts correcting a flagged name. Missing file is a legitimate empty
+    state; a corrupt file propagates json.JSONDecodeError (fail loud)."""
+    path = session_dir / "name-verdicts.json"
+    if not path.exists():
+        return []
+    with open(path) as f:
+        return json.load(f)["verdicts"]
+
+
+def _norm_spelling(token: str) -> str:
+    """Light normalize for comparing a display spelling to a flag's `cleaned` token."""
+    return token.lower().strip(".,?!'\"")
+
+
+def name_verdict_status(detector_sections: dict, verdicts: list[dict]) -> list[dict]:
+    """Annotate each verdict with `stale` — True when the name it corrected is still
+    present but its spelling-set has drifted since (a transcript edit shouldn't silently
+    keep a stale correction). Read-only; run on the RAW sections before apply mutates them."""
+    m9c = detector_sections.get("m9c-canon") or {"flags": []}
+    out = []
+    for v in verdicts:
+        stale = False
+        if v["type"] == "not_canon":
+            current = sorted({f["cleaned"] for f in m9c["flags"]
+                              if f.get("canonical") == v["name"]})
+            reviewed = sorted(v.get("cleaned_at_review", current))
+            stale = bool(current) and current != reviewed
+        out.append({**v, "stale": stale})
+    return out
+
+
+def apply_name_verdicts(detector_sections: dict, verdicts: list[dict]) -> None:
+    """In place, view-time: enact human name verdicts. MUST run BEFORE _apply_canon_dedup —
+    dropping a `not_canon` M9c group first means the dedup no longer sees M9c owning the
+    cluster, so M9b surfaces the (correct) inconsistency on its own. Leaves M9a untouched:
+    it is the deliberately un-gated family-name detector, a different kind of call.
+
+    - not_canon (keyed by an M9c canonical): drop that whole M9c group.
+    - correct (keyed by a flag's cleaned token): suppress its rows in M9b/M9c, and stop
+      listing that spelling in a cluster's header."""
+    not_canon = {v["name"] for v in verdicts if v["type"] == "not_canon"}
+    correct = {v["cleaned"] for v in verdicts if v["type"] == "correct"}
+
+    m9c = detector_sections.get("m9c-canon")
+    if m9c and not_canon:
+        m9c["flags"] = [f for f in m9c["flags"] if f.get("canonical") not in not_canon]
+        m9c["n_flags"] = len(m9c["flags"])
+
+    if correct:
+        for det_id in ("m9b-name-consistency", "m9c-canon"):
+            sec = detector_sections.get(det_id)
+            if not sec:
+                continue
+            sec["flags"] = [f for f in sec["flags"] if f.get("cleaned") not in correct]
+            sec["n_flags"] = len(sec["flags"])
+            for f in sec["flags"]:  # don't keep listing a corrected spelling in the header
+                if "cluster_spellings" in f:
+                    f["cluster_spellings"] = [
+                        s for s in f["cluster_spellings"] if _norm_spelling(s) not in correct
+                    ]

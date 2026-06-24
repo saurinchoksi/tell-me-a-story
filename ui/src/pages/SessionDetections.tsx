@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getSessionDetections, scanSession, audioURL } from '../api/client';
+import { getSessionDetections, scanSession, saveNameVerdict, audioURL } from '../api/client';
 import { formatSessionDate, formatTime } from '../utils/time';
-import type { DetectionFlag, SessionDetectionsData } from '../types';
+import type { DetectionFlag, SessionDetectionsData, NameVerdict } from '../types';
 import StoryHeading from '../components/StoryHeading';
 import './SessionDetections.css';
 
@@ -116,6 +116,16 @@ function buildGroups(flags: DetectionFlag[]): FlagGroup[] {
   return [...groups.values()];
 }
 
+/** Distinct {display, cleaned} spellings in a group — for the clickable "mark correct"
+ *  chips. Keyed by `cleaned` (what a verdict matches on); first display wins. */
+function spellingPairs(grp: FlagGroup): { display: string; cleaned: string }[] {
+  const seen = new Map<string, string>();
+  for (const f of grp.flags) {
+    if (!seen.has(f.cleaned)) seen.set(f.cleaned, f.token.replace(/[.,'’"]+$/, ''));
+  }
+  return [...seen.entries()].map(([cleaned, display]) => ({ display, cleaned }));
+}
+
 // Keyed by session id so navigating A→B remounts the view — a fresh <audio>
 // element (the old one unmounts, stopping playback) and clean refs/state,
 // instead of leaking the prior session's audio and flags into the next.
@@ -181,6 +191,17 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
     }
   }
 
+  /** Toggle a human name verdict; the server returns the re-applied detail. */
+  async function applyVerdict(verdict: NameVerdict) {
+    if (!id) return;
+    setError(null);
+    try {
+      setData(await saveNameVerdict(id, verdict));
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
   if (loading) return <p>Loading detections...</p>;
   if (error) return <p className="error">Error: {error}</p>;
   if (!data || !id) return null;
@@ -220,6 +241,36 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
         {data.warning && <p className="session-detections-warning">⚠ {data.warning}</p>}
       </div>
 
+      {data.name_verdicts.length > 0 && (
+        <div className="detection-corrections">
+          <span className="detection-corrections-label">Your corrections</span>
+          {data.name_verdicts.map((v, i) => (
+            <span key={i} className="detection-correction">
+              {v.type === 'not_canon'
+                ? `${v.name} — not canon`
+                : `${v.spelling ?? v.cleaned} — kept`}
+              {v.stale && (
+                <span className="detection-correction-stale" title="The name's spellings changed since you set this — re-check">
+                  ⟳
+                </span>
+              )}
+              <button
+                className="detection-correction-undo"
+                onClick={() =>
+                  applyVerdict(
+                    v.type === 'not_canon'
+                      ? { type: 'not_canon', name: v.name }
+                      : { type: 'correct', cleaned: v.cleaned },
+                  )
+                }
+              >
+                undo
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
       {sections.length === 0 ? (
         <div className="session-detections-empty">
           <h2>No detections</h2>
@@ -256,7 +307,37 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
                       <span className={`detection-flag-type ${grp.badgeClass}`}>{grp.badgeLabel}</span>
                       {grp.world ? <span className="detection-flag-world">{grp.world}</span> : null}
                       <span className="detection-group-count">heard {grp.flags.length}×</span>
-                      <span className="detection-group-spellings">{grp.spellings.join(' · ')}</span>
+                      {result.failure_mode === 'M9b' ? (
+                        <span className="detection-group-spellings">
+                          {spellingPairs(grp).map(({ display, cleaned }) => (
+                            <button
+                              key={cleaned}
+                              className="spelling-chip"
+                              title="Mark this spelling correct — leave it unflagged"
+                              onClick={() => applyVerdict({ type: 'correct', cleaned, spelling: display })}
+                            >
+                              {display}
+                            </button>
+                          ))}
+                        </span>
+                      ) : (
+                        <span className="detection-group-spellings">{grp.spellings.join(' · ')}</span>
+                      )}
+                      {result.failure_mode === 'M9c' && (
+                        <button
+                          className="detection-verdict-btn"
+                          title="It's invented, not a misspelled canon character — drop it from canon and let M9b show the inconsistency"
+                          onClick={() =>
+                            applyVerdict({
+                              type: 'not_canon',
+                              name: grp.ref,
+                              cleaned_at_review: [...new Set(grp.flags.map((f) => f.cleaned))],
+                            })
+                          }
+                        >
+                          Not canon
+                        </button>
+                      )}
                     </div>
                     <div className="detection-flags">
                       {grp.flags.map((flag) => {

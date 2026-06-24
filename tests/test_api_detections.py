@@ -284,7 +284,7 @@ def test_session_detections_no_transcript_no_detections(client):
     resp = client.get("/api/sessions/20260103-120000/detections")
     assert resp.status_code == 200
     assert resp.get_json() == {"session_id": "20260103-120000", "has_audio": False,
-                               "stories": None, "detectors": {}}
+                               "stories": None, "name_verdicts": [], "detectors": {}}
 
 
 def test_session_detections_includes_story_summary(client):
@@ -359,6 +359,89 @@ def test_canon_dedup_drops_whole_cluster_when_m9c_owns_one_token():
     m9b = sections["m9b-name-consistency"]
     assert m9b["n_flags"] == 1
     assert [f["cleaned"] for f in m9b["flags"]] == ["jiraki"]  # the whole James cluster deferred to M9c
+
+
+def test_apply_not_canon_drops_m9c_and_releases_m9b():
+    # The core of the feature: a 'not canon' verdict drops the M9c claim, and because it
+    # runs BEFORE the dedup, M9b's (correct) inconsistency is no longer deferred away.
+    from api.helpers import apply_name_verdicts
+    from api.routes.detections import _apply_canon_dedup
+    sections = {
+        "m9b-name-consistency": {"n_flags": 3, "flags": [
+            {"cleaned": "james", "token": "James", "cluster_id": "jameis"},
+            {"cleaned": "jameis", "token": "Jameis", "cluster_id": "jameis"},
+            {"cleaned": "jammus", "token": "Jammus", "cluster_id": "jameis"},
+        ]},
+        "m9c-canon": {"n_flags": 2, "flags": [
+            {"cleaned": "jameis", "canonical": "James", "wrong_cleaned": ["jameis"]},
+            {"cleaned": "jammus", "canonical": "James", "wrong_cleaned": ["jammus"]},
+        ]},
+    }
+    apply_name_verdicts(sections, [{"type": "not_canon", "name": "James"}])
+    assert sections["m9c-canon"]["n_flags"] == 0          # dropped from M9c
+    _apply_canon_dedup(sections)                          # M9c now owns nothing -> no deferral
+    assert sections["m9b-name-consistency"]["n_flags"] == 3  # the inconsistency surfaces under M9b
+
+
+def test_apply_correct_suppresses_spelling_in_m9b_m9c_but_not_m9a():
+    from api.helpers import apply_name_verdicts
+    sections = {
+        "m9a-family-names": {"n_flags": 1, "flags": [
+            {"cleaned": "james", "token": "James", "matched_canonicals": ["James"]}]},
+        "m9b-name-consistency": {"n_flags": 3, "flags": [
+            {"cleaned": "james", "token": "James", "cluster_id": "jameis",
+             "cluster_spellings": ["James", "Jameis", "Jammus"]},
+            {"cleaned": "jameis", "token": "Jameis", "cluster_id": "jameis",
+             "cluster_spellings": ["James", "Jameis", "Jammus"]},
+            {"cleaned": "jammus", "token": "Jammus", "cluster_id": "jameis",
+             "cluster_spellings": ["James", "Jameis", "Jammus"]},
+        ]},
+        "m9c-canon": {"n_flags": 1, "flags": [{"cleaned": "james", "canonical": "James"}]},
+    }
+    apply_name_verdicts(sections, [{"type": "correct", "cleaned": "james"}])
+    # 'james' rows gone from m9b and m9c...
+    assert [f["cleaned"] for f in sections["m9b-name-consistency"]["flags"]] == ["jameis", "jammus"]
+    assert sections["m9c-canon"]["n_flags"] == 0
+    # ...the un-gated family detector (m9a) is left alone...
+    assert sections["m9a-family-names"]["n_flags"] == 1
+    # ...and the corrected spelling stops being listed in the cluster header.
+    assert all("James" not in f["cluster_spellings"] for f in sections["m9b-name-consistency"]["flags"])
+
+
+def test_name_verdict_status_marks_stale_on_spelling_drift():
+    from api.helpers import name_verdict_status
+    sections = {"m9c-canon": {"flags": [
+        {"cleaned": "jameis", "canonical": "James"},
+        {"cleaned": "jammus", "canonical": "James"},
+    ]}}
+    fresh = name_verdict_status(
+        sections, [{"type": "not_canon", "name": "James", "cleaned_at_review": ["jameis", "jammus"]}])
+    assert fresh[0]["stale"] is False
+    drifted = name_verdict_status(
+        sections, [{"type": "not_canon", "name": "James", "cleaned_at_review": ["jameis"]}])
+    assert drifted[0]["stale"] is True
+
+
+def test_name_verdict_post_toggles_and_persists(client, sessions_dir):
+    sd = sessions_dir / "20260101-120000"
+    r = client.post("/api/sessions/20260101-120000/name-verdicts",
+                    json={"type": "not_canon", "name": "James", "cleaned_at_review": ["jammus"]})
+    assert r.status_code == 200
+    saved = json.loads((sd / "name-verdicts.json").read_text())["verdicts"]
+    assert len(saved) == 1 and saved[0]["name"] == "James" and "at" in saved[0]
+    assert any(v["name"] == "James" for v in r.get_json()["name_verdicts"])  # echoed in detail
+
+    # Re-sending the same verdict toggles it off (undo).
+    client.post("/api/sessions/20260101-120000/name-verdicts",
+                json={"type": "not_canon", "name": "James"})
+    assert json.loads((sd / "name-verdicts.json").read_text())["verdicts"] == []
+
+
+def test_name_verdict_post_validates(client):
+    assert client.post("/api/sessions/20260101-120000/name-verdicts",
+                       json={"type": "correct"}).status_code == 400        # missing 'cleaned'
+    assert client.post("/api/sessions/20260101-120000/name-verdicts",
+                       json={"type": "bogus", "name": "x"}).status_code == 400
 
 
 def test_canon_dedup_noop_when_m9c_found_nothing():

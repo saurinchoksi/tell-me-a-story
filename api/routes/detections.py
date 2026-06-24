@@ -10,15 +10,19 @@ recomputed. The transcript itself is never modified.
 """
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
-from flask import Blueprint, current_app, jsonify
+from flask import Blueprint, current_app, jsonify, request
 
 from api.helpers import (
     FIXTURE_SESSION_ID,
     _derive_story_label,
     _read_transcript_facts,
+    apply_name_verdicts,
     get_session_dir,
+    name_verdict_status,
+    read_name_verdicts,
     validate_session_id,
 )
 
@@ -107,7 +111,8 @@ def _rollup(sessions_dir, detector_objs):
                 continue
             data = _read_detections(entry)  # may raise JSONDecodeError -> caller handles
             if data:
-                _apply_canon_dedup(data["detectors"])  # m9b defers to m9c on canon names
+                apply_name_verdicts(data["detectors"], read_name_verdicts(entry))  # human corrections first
+                _apply_canon_dedup(data["detectors"])  # then m9b defers to m9c on canon names
             results, stale = {}, False
             for det_id, section in (data["detectors"].items() if data else []):
                 results[det_id] = {
@@ -144,10 +149,15 @@ def _session_detail(session_dir, session_id):
         seg_by_id = {seg["id"]: seg for seg in tj["segments"]}
         stories = _derive_story_label(tj.get("_stories") or [])
 
+    verdicts_raw = read_name_verdicts(session_dir)
     data = _read_detections(session_dir)
     if data is None:
-        return {"session_id": session_id, "has_audio": has_audio,
-                "stories": stories, "detectors": {}}
+        return {"session_id": session_id, "has_audio": has_audio, "stories": stories,
+                "name_verdicts": name_verdict_status({}, verdicts_raw), "detectors": {}}
+    # Status is read off the RAW sections (before apply mutates them); then human
+    # verdicts run BEFORE the dedup so a not_canon name releases back to m9b.
+    verdicts = name_verdict_status(data["detectors"], verdicts_raw)
+    apply_name_verdicts(data["detectors"], verdicts_raw)
     _apply_canon_dedup(data["detectors"])  # m9b defers to m9c on canon names
 
     detectors = {}
@@ -166,8 +176,8 @@ def _session_detail(session_dir, session_id):
         stale = transcript_path.exists() and section_is_stale(section, session_dir)
         detectors[det_id] = {**section, "flags": flags, "stale": stale}
 
-    return {"session_id": session_id, "has_audio": has_audio,
-            "stories": stories, "detectors": detectors}
+    return {"session_id": session_id, "has_audio": has_audio, "stories": stories,
+            "name_verdicts": verdicts, "detectors": detectors}
 
 
 # --- GET (read-only) ----------------------------------------------------------
@@ -190,6 +200,46 @@ def session_detections(session_id: str):
         return jsonify({"error": str(e)}), 400
     except FileNotFoundError as e:
         return jsonify({"error": str(e)}), 404
+    return jsonify(_session_detail(session_dir, session_id))
+
+
+@bp.route("/sessions/<session_id>/name-verdicts", methods=["POST"])
+def save_name_verdict(session_id: str):
+    """Toggle a human 'set the record straight' verdict on a flagged name, then return
+    the fresh detail. Re-sending an identical verdict removes it (undo). Read-merge-write
+    of name-verdicts.json — a human-owned file the detectors never touch."""
+    try:
+        session_dir = get_session_dir(current_app.config["SESSIONS_DIR"], session_id)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+
+    body = request.get_json(silent=True)
+    vtype = (body or {}).get("type")
+    if vtype == "not_canon" and not body.get("name"):
+        return jsonify({"error": "not_canon verdict requires 'name'"}), 400
+    if vtype == "correct" and not body.get("cleaned"):
+        return jsonify({"error": "correct verdict requires 'cleaned'"}), 400
+    if vtype not in ("not_canon", "correct"):
+        return jsonify({"error": "verdict 'type' must be 'not_canon' or 'correct'"}), 400
+
+    def same(v):  # identity is type + its key (canonical name, or cleaned spelling)
+        return (v["type"] == vtype and v.get("name") == body.get("name")
+                and v.get("cleaned") == body.get("cleaned"))
+
+    path = session_dir / "name-verdicts.json"
+    data = json.loads(path.read_text()) if path.exists() else {"verdicts": []}
+    verdicts = data["verdicts"]
+    if any(same(v) for v in verdicts):
+        verdicts = [v for v in verdicts if not same(v)]  # toggle off
+    else:
+        entry = {k: v for k, v in body.items() if k != "type"}
+        entry = {"type": vtype, **entry, "at": datetime.now(timezone.utc).isoformat()}
+        verdicts.append(entry)
+    data["verdicts"] = verdicts
+    path.write_text(json.dumps(data, indent=2))
+
     return jsonify(_session_detail(session_dir, session_id))
 
 

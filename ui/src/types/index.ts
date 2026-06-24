@@ -382,12 +382,24 @@ export interface SessionDetectorResult {
   judge_applied?: boolean;
 }
 
+/**
+ * A human "set the record straight" verdict on a flagged name, persisted beside the
+ * transcript so it survives every re-scan. `not_canon` drops a wrongly-claimed canon
+ * name from M9c (releasing it back to M9b); `correct` marks a spelling as right, so it
+ * stops being flagged in M9b/M9c. `stale` is set when the name's spellings drifted since.
+ */
+export type NameVerdict =
+  | { type: 'not_canon'; name: string; cleaned_at_review?: string[]; note?: string; at?: string; stale?: boolean }
+  | { type: 'correct'; cleaned: string; spelling?: string; note?: string; at?: string; stale?: boolean };
+
 export interface SessionDetectionsData {
   session_id: string;
   /** Whether an audio file exists — gates the per-flag "play clip" control. */
   has_audio: boolean;
   /** What this recording holds — derived from the story map; null when none. */
   stories: StorySummary | null;
+  /** Human corrections applied to this session's flags (see NameVerdict). */
+  name_verdicts: NameVerdict[];
   /** Keyed by detector id; {} when the session was never scanned. */
   detectors: Record<string, SessionDetectorResult>;
   /** Set when a scan ran code-only because the LLM judge's venv was absent. */

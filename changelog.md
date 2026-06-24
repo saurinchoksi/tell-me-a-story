@@ -4,6 +4,10 @@ Newest entries at top. Each entry is a few plain sentences — what changed, and
 
 *Claude Code drafts these entries from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-24 — You can now overrule the name monitor when it's wrong
+
+Sometimes a name check gets a name wrong — most often when a child invents a character that sounds exactly like a real one (a made-up engine that sounds like Thomas's James), and the "misspelled canon name" check insists it's the real character. You can now tell the monitor the truth right on the page — "this isn't the canon character" or "this spelling is correct, leave it" — and the flags rearrange to match: the false canon claim drops, and the genuinely inconsistent invented name surfaces where it belongs instead. The correction is saved next to the transcript so it survives every re-scan, it leaves the family-name check untouched, and it doubles as a record of where the detectors get things wrong.
+
 ## 2026-06-24 — Each session now says what story it holds
 
 The Sessions list and the Monitor used to label every recording only by its date, so you had to open one to know what was inside. Both now carry a short content line — the story titles, plus the recognized world when there is one (the Mahabharata night, the Thomas the Tank Engine night) — taken straight from the breakdown the pipeline already saves. The same summary now heads a session's own monitor page too, so it stays recognizable once you've clicked in. Nothing new had to be computed: the page was already opening each transcript to read its length, so the summary rides along on that same read.
