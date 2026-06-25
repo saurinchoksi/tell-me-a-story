@@ -405,6 +405,18 @@
   color: var(--color-text-muted);
 }
 
+/* Cascade the tier color to the "canon" badge too, so a row reads one confidence level
+   (otherwise an amber/grey name sits next to a green badge — a mixed signal). */
+.detection-tier--bestguess .detection-flag-type--canon {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.detection-tier--low .detection-flag-type--canon {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
 .detection-tier-label {
   display: flex;
   align-items: baseline;

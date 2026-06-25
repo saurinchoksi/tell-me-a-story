@@ -80,6 +80,8 @@ def _apply_canon_dedup(detector_sections: dict) -> None:
     if not m9c or not m9b:
         return
     canon = set()
+    # `tier` is set by annotate_canon_tiers, which MUST run before this (both call sites order it so).
+    # If it ever didn't, .get returns None != "low" — every flag is kept, i.e. the pre-tier behavior.
     for f in m9c.get("flags", []):
         if f.get("tier") == "low":  # a low-confidence canon claim must not hide a real m9b inconsistency
             continue

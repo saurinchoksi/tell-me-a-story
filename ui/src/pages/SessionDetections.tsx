@@ -279,8 +279,10 @@ function SessionDetectionsView({ id }: { id: string | undefined }) {
   // default; the lowest tier (judge votes < 4) hides behind "Show all". A made-up-name verdict
   // works on every tier's groups.
   const renderM9cBody = (result: SessionDetectorResult) => {
+    // Default a missing tier to 'low'. The server always sets it, but a monitor must never silently
+    // swallow a flag — surfacing it under "Show all" beats hiding it under a "clean scan" message.
     const tierGroups = (t: string) =>
-      buildGroups(result.flags.filter((f) => (f as CanonNameFlag).tier === t));
+      buildGroups(result.flags.filter((f) => ((f as CanonNameFlag).tier ?? 'low') === t));
     const confident = tierGroups('confident');
     const bestGuess = tierGroups('best_guess');
     const low = tierGroups('low');
