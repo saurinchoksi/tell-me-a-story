@@ -89,6 +89,14 @@ PROMPTS = {
                       _V3_SHOTS + "Now classify this one.\nFlagged spellings: {spellings}"),
 }
 
+# "prod" drives the EXACT shipped M9b judge string (Qwen 3.5 4B), so validation
+# scores the production prompt, never a paraphrase of it.
+try:
+    from detectors.name_consistency_judge import PROMPT as _PROD_PROMPT
+    PROMPTS["prod"] = _PROD_PROMPT
+except Exception:  # pragma: no cover - import guard for partial checkouts
+    pass
+
 
 # --- Clustering (filter OFF; enumerate candidates) ----------------------------
 class _UF:
@@ -168,6 +176,17 @@ def make_judge(backend, model_id):
             return (getattr(res, "text", res) or "").strip()
         return classify
 
+    if backend == "qwen35":
+        # Qwen3.5-4B via the production recipe (mlx_vlm loader + enable_thinking=False,
+        # plain text). The mlx-vlm/mlx-lm paths above mis-drive it; reuse src/qwen35.py
+        # so the bench runs the EXACT runtime the M9c detector ships.
+        from qwen35 import make_reader
+        gen = make_reader(model_id)
+
+        def classify(prompt_text):
+            return gen(prompt_text, max_tokens=32)
+        return classify
+
     if backend == "mlx-lm":
         import mlx_lm
         model, tok = mlx_lm.load(model_id)
@@ -196,7 +215,7 @@ def verdict_of(raw):
 # --- Main ---------------------------------------------------------------------
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--backend", required=True, choices=["mlx-lm", "mlx-vlm"])
+    ap.add_argument("--backend", required=True, choices=["mlx-lm", "mlx-vlm", "qwen35"])
     ap.add_argument("--model", required=True)
     ap.add_argument("--prompt", default="v1", choices=list(PROMPTS))
     ap.add_argument("--runs", type=int, default=3)

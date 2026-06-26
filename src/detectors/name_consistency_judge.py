@@ -2,14 +2,19 @@
 
 The code-only detector drops clusters where every spelling is an ordinary word,
 which loses improvised names that are also dictionary words (Bibi, Bacchus). This
-hands exactly those ambiguous clusters to Gemma-4 E4B (~4B, the build the M9b
-eval found wins at 1.00/1.00 with a few-shot prompt — see emp/src/judge_m9b.py
-and emp/writeup/name-consistency-eval.html). The judge reads a few example lines
-per cluster and decides "character name, or ordinary words?".
+hands exactly those ambiguous clusters to Qwen 3.5 4B and asks, of the flagged
+spellings themselves, whether at least one is a proper name (invented OR borrowed)
+rather than ordinary words.
+
+Qwen replaced the earlier Gemma-4 E4B judge once a Qwen-fit prompt was found: it
+matches Gemma on the M9b answer key (1.00/1.00) and on a held-out synthetic set,
+so the whole pipeline now runs one local model. The tuning story (Gemma wanted
+worked examples; Qwen wanted a broad knowledge-based question with the over-narrow
+words removed) lives in emp/src/judge_m9b.py and emp/writeup/name-consistency-eval.html.
 
 `make_judge()` returns judge(candidates) -> set[cluster_id]. The model runs via the
 shared model_runner — a fresh subprocess of this venv, a clean process so a pyannote
-MPS allocation can't block the Gemma load, freeing GPU memory on exit.
+MPS allocation can't block the model load, freeing GPU memory on exit.
 
 It is NEVER called from the live API (a ~30s model load can't sit in a page-view
 request). Only `detect.py --judge` supplies it; the result survives normal Monitor
@@ -19,53 +24,48 @@ from collections import Counter
 
 from model_runner import run_model
 
-MODEL = "mlx-community/gemma-4-e4b-it-4bit"
 RUNS = 3
 
-# The winning prompt from the M9b sweep (v3: character-context framing + two
-# worked examples). Kept verbatim — the 1.00/1.00 result is tied to this phrasing.
+# The M9b judge prompt, tuned for Qwen 3.5 4B. Qwen follows instructions literally,
+# so it wants a broad, knowledge-based question — judge the spelling itself, and let
+# a *borrowed* name (Bacchus, a real myth name a child reused) count — rather than
+# Gemma's worked-example scaffolding (every Gemma-style addition lowered Qwen here).
+# This exact wording scores 1.00/1.00 on the M9b key and matches Gemma on a held-out
+# synthetic set; tuned in emp/src/judge_m9b.py. Keep it verbatim or re-validate.
+_NAME_DEF = (
+    "a proper NAME of a character, creature, toy, or figure in the story — whether "
+    "the child invented it or borrowed it from a book, show, or myth"
+)
 PROMPT = (
     "You are checking a transcript of a parent telling a young child a bedtime "
-    "story. A group of similar-sounding capitalized words was flagged. Using the "
-    "example lines, decide whether they name a CHARACTER in the story (a person, "
-    "creature, or toy that is spoken to, greeted, or that does something), or are "
-    "just ordinary language.\n\n"
-    "Answer WORD if they are everyday words, interjections (Oh, Yeah, Whoa), "
-    "question words (What, There), or family address terms (Daddy, Mommy) used in "
-    "ordinary speech — even if one odd spelling is mixed in.\n"
-    "Answer NAME if at least one example line uses the word as a character's name "
-    "(the word is greeted, spoken to, or performs an action).\n\n"
-    "Examples:\n"
-    'Flagged spellings: Yeah, Whoa\n'
-    'Example lines:\n- "Yeah, they all said."\n- "Whoa, look at that!"\n'
-    'Answer: WORD\n\n'
-    'Flagged spellings: Zogg, Zog\n'
-    'Example lines:\n- "And Zogg flew up high."\n- "Then Zog landed near the pond."\n'
-    'Answer: NAME\n\n'
-    "Now classify this one.\n"
+    "story. A group of similar-sounding capitalized words was flagged because the "
+    "transcriber may have spelled one name several different ways.\n\n"
+    "Look at the flagged spellings themselves. Decide whether at least ONE of them "
+    "is " + _NAME_DEF + ", as opposed to ordinary English words, interjections (Oh, "
+    "Yeah, Whoa), question words (What, There), or family terms (Daddy, Mommy). A "
+    "name still counts when a similar-sounding ordinary word is mixed into the "
+    "group; the example lines are only context.\n\n"
     "Flagged spellings: {spellings}\n"
     "Example lines:\n{sentences}\n\n"
-    "Answer with exactly one word: NAME or WORD."
+    "Reply with ONLY one word and nothing else: NAME if at least one spelling is "
+    "such a name, or WORD if all of them are ordinary."
 )
 
 
 def _judge_clusters(candidates):
-    """Module-level (picklable for the spawned subprocess). Loads Gemma-4 E4B once and
-    returns the cluster_ids that majority-vote to NAME. Each candidate:
+    """Module-level (picklable for the spawned subprocess). Loads Qwen 3.5 4B once
+    and returns the cluster_ids that majority-vote to NAME. Each candidate:
     {cluster_id, spellings: [...], examples: [...]}."""
-    from mlx_vlm import load, generate
-    from mlx_vlm.prompt_utils import apply_chat_template
+    from qwen35 import make_reader
 
-    model, processor = load(MODEL)
+    gen = make_reader()
     kept = []
     for c in candidates:
         prompt = PROMPT.format(spellings=", ".join(c["spellings"]),
                                sentences="\n".join(f"- {s}" for s in c["examples"]))
         verdicts = []
         for _ in range(RUNS):
-            p = apply_chat_template(processor, model.config, prompt)
-            res = generate(model, processor, p, max_tokens=8, temperature=0.0, verbose=False)
-            up = (getattr(res, "text", res) or "").strip().upper()
+            up = gen(prompt, max_tokens=8).upper()
             verdicts.append("NAME" if ("NAME" in up and "WORD" not in up) else "WORD")
         if Counter(verdicts).most_common(1)[0][0] == "NAME":
             kept.append(c["cluster_id"])
@@ -74,7 +74,7 @@ def _judge_clusters(candidates):
 
 def make_judge():
     """Return judge(candidates) -> set[cluster_id], or raise FileNotFoundError if mlx-vlm
-    isn't installed (callers degrade to code-only on that). Runs Gemma in a fresh
+    isn't installed (callers degrade to code-only on that). Runs Qwen in a fresh
     subprocess (via model_runner) so the ~30s model load gets a clean GPU process and
     frees it on exit. Each candidate: {cluster_id, spellings: [...], examples: [...]}."""
     import importlib.util
