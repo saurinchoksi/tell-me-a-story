@@ -6,7 +6,7 @@ Newest at top. Only the changes that actually shaped the project, written plainl
 
 ## 2026-06-26 — Moved the last detector onto Qwen, so the project runs on one model
 
-The inconsistency judge was the last thing still running on Gemma. I tested whether Qwen could take it over, and once I wrote the prompt the way Qwen reads instructions, it matched Gemma exactly, even on the one case they used to disagree on: a character named Bacchus that the transcriber sometimes wrote as the ordinary word "because." So the whole pipeline now runs on one local model. The lesson: Gemma was never really better at the job, it just had a prompt that fit it. Give Qwen a prompt built for how it reads, and the two come out even.
+The inconsistency judge was the last thing still running on Gemma. I tested whether Qwen could take it over, and once I wrote the prompt the way Qwen reads instructions, it matched Gemma exactly, even on the one case they used to disagree on: a character named Bacchus that the transcriber sometimes wrote as the ordinary word "because." So the whole pipeline now runs on one local model. Gemma was never really better at this job. It just had a prompt that fit it.
 
 ## 2026-06-24 — Overrule wrong name flags
 

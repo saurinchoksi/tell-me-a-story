@@ -226,12 +226,7 @@ def client(tmp_path):
 
 **Fail Loud.** No silent fallbacks. Use `utt["words"]` not `utt.get("words", [])`. If assumptions break, fail immediately — don't hide bugs behind default values. (See `docs/principles.md` for full list.)
 
-**Changelog entries** (`changelog.md`): One entry is a `## YYYY-MM-DD — Title` heading and one short plain-English paragraph. Newest first. An entry should be readable in about 15 seconds.
-
-- *Title* — state what happened, not what area was touched ("Per-stage timing added to the pipeline", not "Pipeline statistics"). Sentence case. Plain words: no jargon, no file/function names, no ticket IDs. One headline per title — no "X + Y" pile-ups.
-- *Body* — two or three sentences, one idea each. Lead with the change; add why it was needed and what it turned up only when they earn their place. Don't repeat a domain noun more than twice — vary it or restructure. Keep a real lesson, but as one plain sentence; don't force one if there isn't one.
-
-Exact diffs live in git history; decision context lives in Linear.
+**Changelog entries** (`changelog.md`): a curated highlights reel of the project, not a diary. Adding or editing an entry → follow the **`changelog` skill**, the single source of truth for its voice, structure, and what earns an entry. (Exact diffs live in git history.)
 
 ## Linear Handoff Protocol
 
