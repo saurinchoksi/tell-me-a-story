@@ -66,7 +66,7 @@ Audio records to an SD card initially, with WiFi sync to the processing machine 
 
 - **MLX Whisper** — Transcription, optimized for Apple Silicon
 - **Pyannote** — Speaker diarization
-- **MLX-LM** — Local LLM inference (Qwen3 8B) for name correction
+- **MLX-LM / MLX-VLM** — Local language models for name correction and story analysis (current models are tracked in the [changelog](changelog.md))
 - **Python** — Pipeline, automated tests (fast/slow split), CLI
 - **Flask** — Validation player with waveform visualization and word-level highlighting
 
