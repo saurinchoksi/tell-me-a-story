@@ -4,6 +4,10 @@ Newest at top. Only the changes that actually shaped the project, written plainl
 
 *Claude Code drafts these from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-29 — Checked the canon name-checker on recordings it had never seen
+
+The canon name-checker had only ever been graded on the recordings I built it from, so I ran it on two it had never seen. On a Mahabharata story it caught the misspelled names, like `Bishma` for "Bhishma". On a story set in a world it didn't recognize, the movie K-pop Demon Hunters, it stayed quiet instead of inventing a name. I took the experimental label off it.
+
 ## 2026-06-26 — Moved the last detector onto Qwen, so the project runs on one model
 
 The inconsistency judge was the last thing still running on Gemma. I tested whether Qwen could take it over, and once I wrote the prompt the way Qwen reads instructions, it matched Gemma exactly, even on the one case they used to disagree on: a character named Bacchus that the transcriber sometimes wrote as the ordinary word `because`. So the whole pipeline now runs on one local model. Gemma was never really better at this job. It just had a prompt that fit it.
