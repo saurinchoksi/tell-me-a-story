@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A local-only pipeline for capturing bedtime stories. Records parent-child storytelling sessions, transcribes with speaker labels, and extracts story elements. Local-only by design—no cloud APIs for family content.
 
+## Re-orienting after a break
+
+Cold session, or just ran `/clear`? This `CLAUDE.md` and `MEMORY.md` auto-load, but the *current* state does not — it lives in files, not the chat. To catch up (for Claude and for Choksi), read newest-first:
+
+1. `changelog.md` — plain-English highlights; ~1-minute skim for what's been built.
+2. `emp/emp.md` — the EMP working log, latest status on top (the detailed eval state). *(gitignored, local only)*
+3. `git log --oneline -15` + open Linear tickets ("what's pending") — the live edges.
+
+The chat window is scratch; these files are the memory. So **close each session with the `close` skill** to capture to disk *before* you `/clear`, never after — that's what keeps this layer current and makes reducing context lossless. Mid-task and just need headroom: `/compact`. Switching to a different task: `/close` then `/clear`, then "catch me up on TMAS".
+
 ## Design Principles
 
 - **Zero Latency** (Bret Victor): Immediate connection between intent and result
