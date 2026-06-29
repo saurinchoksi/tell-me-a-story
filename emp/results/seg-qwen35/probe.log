@@ -1,0 +1,18 @@
+PROBE — loading mlx-community/Qwen3.5-4B-MLX-4bit ...
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 14533.28it/s]
+  model loaded in 2.5s
+  warming up (1 tiny call) ...
+  warmup call: 0.8s
+
+PASS1='terse' on Pandavas (20260117-202237) — per-zone timing:
+    zone 1/9 (480 chars) ->   1.9s  'NONE'
+    zone 2/9 (535 chars) ->   1.8s  'NONE'
+    zone 3/9 (494 chars) ->   1.8s  'NONE'
+    zone 4/9 (374 chars) ->   1.6s  'NONE'
+    zone 5/9 (320 chars) ->   1.6s  'NONE'
+    zone 6/9 (258 chars) ->   1.6s  'START 1'
+    zone 7/9 (349 chars) ->   1.8s  'NONE'
+    zone 8/9 (467 chars) ->   2.0s  'END 85'
+    zone 9/9 (146 chars) ->   1.4s  'END 1'
+
+  build_regions total: 15.5s  -> pre-merge regions [(1, 85), (1, 1)]

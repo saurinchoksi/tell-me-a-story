@@ -1,0 +1,6 @@
+Running 1 detector(s) over 1 session(s):
+
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 32974.09it/s]
+  using 1 saved story region(s)
+  Qwen3.5 canon audit across 1 story region(s)
+  20260211-210718  m9c-canon             26 flags / 1244 tokens

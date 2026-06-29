@@ -1,0 +1,68 @@
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 52891.60it/s]
+re-segmenting 9 session(s) with Qwen3.5 ...
+
+Prefill:   0%|          | 0/8073 [00:00<?, ?tok/s]Prefill:  25%|██▌       | 2048/8073 [00:07<00:22, 264.25tok/s]Prefill:  51%|█████     | 4096/8073 [00:15<00:15, 260.78tok/s]Prefill:  76%|███████▌  | 6144/8073 [00:23<00:07, 257.22tok/s]Prefill: 100%|█████████▉| 8072/8073 [00:31<00:00, 252.29tok/s]Prefill: 100%|█████████▉| 8072/8073 [00:31<00:00, 255.05tok/s]
+  20260414-213156: 19 zones ->  4 events -> 2->1 after merge stories  0-507 []
+  [1/9] 20260414-213156: 1 story(ies), worlds=['-']  (74s)
+Prefill:   0%|          | 0/3347 [00:00<?, ?tok/s]Prefill:  61%|██████    | 2048/3347 [00:07<00:04, 264.21tok/s]Prefill: 100%|█████████▉| 3346/3347 [00:12<00:00, 260.01tok/s]Prefill: 100%|█████████▉| 3346/3347 [00:12<00:00, 260.76tok/s]
+  20260304-205354: 17 zones ->  0 events -> 1->1 after merge stories  0-329 []
+  [2/9] 20260304-205354: 1 story(ies), worlds=['-']  (53s)
+Prefill:   0%|          | 0/3742 [00:00<?, ?tok/s]Prefill:  55%|█████▍    | 2048/3742 [00:07<00:06, 264.16tok/s]Prefill: 100%|█████████▉| 3741/3742 [00:14<00:00, 260.34tok/s]Prefill: 100%|█████████▉| 3741/3742 [00:14<00:00, 260.95tok/s]
+  20260211-210718: 10 zones ->  0 events -> 1->1 after merge stories  0-301 []
+  [3/9] 20260211-210718: 1 story(ies), worlds=['-']  (37s)
+Prefill:   0%|          | 0/3308 [00:00<?, ?tok/s]Prefill:  62%|██████▏   | 2048/3308 [00:07<00:04, 264.38tok/s]Prefill: 100%|█████████▉| 3307/3308 [00:12<00:00, 260.12tok/s]Prefill: 100%|█████████▉| 3307/3308 [00:12<00:00, 260.89tok/s]
+  20260129-204404: 28 zones ->  6 events -> 3->3 after merge stories  6-124 [] | 131-277 [] | 355-594 [Thomas the Tank Engine]
+  [4/9] 20260129-204404: 3 story(ies), worlds=['-', '-', 'Thomas the Tank Engine']  (95s)
+  20260117-202237:  9 zones ->  1 events -> 1->1 after merge stories  0-88 [Mahabharata]
+  [5/9] 20260117-202237: 1 story(ies), worlds=['Mahabharata']  (25s)
+Prefill:   0%|          | 0/3546 [00:00<?, ?tok/s]Prefill:  58%|█████▊    | 2048/3546 [00:07<00:05, 264.17tok/s]Prefill: 100%|█████████▉| 3545/3546 [00:13<00:00, 260.88tok/s]Prefill: 100%|█████████▉| 3545/3546 [00:13<00:00, 261.44tok/s]
+  20251210-203654:  9 zones ->  1 events -> 1->1 after merge stories  0-236 []
+  [6/9] 20251210-203654: 1 story(ies), worlds=['-']  (31s)
+Prefill:   0%|          | 0/3951 [00:00<?, ?tok/s]Prefill:  52%|█████▏    | 2048/3951 [00:07<00:07, 264.43tok/s]Prefill: 100%|█████████▉| 3950/3951 [00:15<00:00, 258.85tok/s]Prefill: 100%|█████████▉| 3950/3951 [00:15<00:00, 259.69tok/s]
+  20251207-202105: 18 zones ->  4 events -> 3->1 after merge stories  0-278 []
+  [7/9] 20251207-202105: 1 story(ies), worlds=['-']  (55s)
+Prefill:   0%|          | 0/2682 [00:00<?, ?tok/s]Prefill:  76%|███████▋  | 2048/2682 [00:07<00:02, 263.74tok/s]Prefill: 100%|█████████▉| 2681/2682 [00:10<00:00, 261.08tok/s]Prefill: 100%|█████████▉| 2681/2682 [00:10<00:00, 261.68tok/s]
+  20251207-195607: 11 zones ->  1 events -> 1->1 after merge stories  0-259 []
+  [8/9] 20251207-195607: 1 story(ies), worlds=['-']  (35s)
+  00000000-000000:  9 zones ->  1 events -> 1->1 after merge stories  0-88 [Mahabharata]
+  [9/9] 00000000-000000: 1 story(ies), worlds=['Mahabharata']  (25s)
+
+done — now re-run the canon detector:  python src/detect.py --detector m9c-canon
+Running 1 detector(s) over 9 session(s):
+
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 169125.16it/s]
+  using 1 saved story region(s)
+  Qwen3.5 canon audit across 1 story region(s)
+  20260414-213156  m9c-canon              0 flags / 2947 tokens
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 243854.88it/s]
+  using 1 saved story region(s)
+  Qwen3.5 canon audit across 1 story region(s)
+  20260304-205354  m9c-canon              0 flags / 709 tokens
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 14619.39it/s]
+  using 1 saved story region(s)
+  Qwen3.5 canon audit across 1 story region(s)
+  20260211-210718  m9c-canon             26 flags / 1244 tokens
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 71331.70it/s]
+  using 3 saved story region(s)
+  Qwen3.5 canon audit across 3 story region(s)
+  20260129-204404  m9c-canon             19 flags / 2713 tokens
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 74104.31it/s]
+  using 1 saved story region(s)
+  Qwen3.5 canon audit across 1 story region(s)
+  20260117-202237  m9c-canon             16 flags / 616 tokens
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 24272.59it/s]
+  using 1 saved story region(s)
+  Qwen3.5 canon audit across 1 story region(s)
+  20251210-203654  m9c-canon              0 flags / 1238 tokens
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 18550.66it/s]
+  using 1 saved story region(s)
+  Qwen3.5 canon audit across 1 story region(s)
+  20251207-202105  m9c-canon              0 flags / 1642 tokens
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 26664.36it/s]
+  using 1 saved story region(s)
+  Qwen3.5 canon audit across 1 story region(s)
+  20251207-195607  m9c-canon              0 flags / 857 tokens
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 81442.80it/s]
+  using 1 saved story region(s)
+  Qwen3.5 canon audit across 1 story region(s)
+  00000000-000000  m9c-canon              0 flags / 616 tokens

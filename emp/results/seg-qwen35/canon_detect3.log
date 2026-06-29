@@ -1,0 +1,12 @@
+Running 1 detector(s) over 2 session(s):
+
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 39718.79it/s]
+Prefill:   0%|          | 0/3742 [00:00<?, ?tok/s]Prefill:  55%|█████▍    | 2048/3742 [00:07<00:06, 264.79tok/s]Prefill: 100%|█████████▉| 3741/3742 [00:14<00:00, 261.26tok/s]Prefill: 100%|█████████▉| 3741/3742 [00:14<00:00, 261.82tok/s]
+  20260211-210718: 10 zones ->  0 events -> 1->1 after merge stories  0-301 []
+  Qwen3.5 canon audit across 1 story region(s)
+  20260211-210718  m9c-canon             26 flags / 1244 tokens
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 13294.15it/s]
+Prefill:   0%|          | 0/8073 [00:00<?, ?tok/s]Prefill:  25%|██▌       | 2048/8073 [00:07<00:22, 264.65tok/s]Prefill:  51%|█████     | 4096/8073 [00:15<00:15, 261.32tok/s]Prefill:  76%|███████▌  | 6144/8073 [00:23<00:07, 257.70tok/s]Prefill: 100%|█████████▉| 8072/8073 [00:52<00:00, 124.74tok/s]Prefill: 100%|█████████▉| 8072/8073 [00:52<00:00, 154.73tok/s]
+  20260414-213156: 19 zones ->  4 events -> 2->1 after merge stories  0-507 []
+  Qwen3.5 canon audit across 1 story region(s)
+  20260414-213156  m9c-canon              0 flags / 2947 tokens

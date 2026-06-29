@@ -1,0 +1,52 @@
+Fetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]Fetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 233016.89it/s]
+
+PASS1 variant  | count  over | mean IoU | false missed
+--------------------------------------------------------
+  --- PASS1 variant 'faithful' (merge=faithful) ---
+      Moon         [   32s] pred 1 vs truth 1 OK
+      Cruel Baby   [   49s] pred 3 vs truth 1 OFF
+      Rubber Ducky [   23s] pred 1 vs truth 1 OK
+      Pandavas     [   23s] pred 1 vs truth 1 OK
+      Portal       [   78s] pred 4 vs truth 3 OFF
+faithful       |  3/5    1  |   0.83   |   3     0
+  --- PASS1 variant 'terse' (merge=faithful) ---
+      Moon         [   21s] pred 1 vs truth 1 OK
+      Cruel Baby   [   33s] pred 4 vs truth 1 OFF
+      Rubber Ducky [   15s] pred 1 vs truth 1 OK
+      Pandavas     [   16s] pred 1 vs truth 1 OK
+      Portal       [   54s] pred 3 vs truth 3 OK
+terse          |  4/5    1  |   0.69   |   3     0
+  --- PASS1 variant 'conservative' (merge=faithful) ---
+      Moon         [   24s] pred 1 vs truth 1 OK
+      Cruel Baby   [   38s] pred 1 vs truth 1 OK
+      Rubber Ducky [   17s] pred 1 vs truth 1 OK
+      Pandavas     [   18s] pred 1 vs truth 1 OK
+      Portal       [   61s] pred 3 vs truth 3 OK
+conservative   |  5/5    0  |   0.94   |   0     0
+  --- PASS1 variant 'cue_first' (merge=faithful) ---
+      Moon         [   25s] pred 1 vs truth 1 OK
+      Cruel Baby   [   39s] pred 1 vs truth 1 OK
+      Rubber Ducky [   19s] pred 1 vs truth 1 OK
+      Pandavas     [   19s] pred 1 vs truth 1 OK
+      Portal       [   63s] pred 3 vs truth 3 OK
+cue_first      |  5/5    0  |   0.94   |   0     0
+
+  best PASS1 (merge=faithful): conservative  (5/5 counts, IoU 0.94)
+  Gemma baseline: 5/5 counts, mean IoU 0.86
+
+merge variant  | count  over | mean IoU | false missed   (PASS1=conservative)
+--------------------------------------------------------
+faithful       |  5/5    0  |   0.94   |   0     0
+terse          |  5/5    0  |   0.94   |   0     0
+
+  best merge: faithful
+
+=== Qwen3.5 segmentation: PASS1='conservative', merge='faithful' ===
+  Moon         pred 1 vs truth 1  OK  IoU [0.67]
+  Cruel Baby   pred 1 vs truth 1  OK  IoU [0.94]
+  Rubber Ducky pred 1 vs truth 1  OK  IoU [1.0]
+  Pandavas     pred 1 vs truth 1  OK  IoU [1.0]
+  Portal       pred 3 vs truth 3  OK  IoU [1.0, 1.0, 1.0]
+
+  FINAL: 5/5 counts, mean IoU 0.94, over-splits 0, false 0, missed 0
+  Gemma:  5/5 counts, mean IoU 0.86, over-splits 0
