@@ -267,7 +267,13 @@ def apply_name_verdicts(detector_sections: dict, verdicts: list[dict]) -> None:
 # "best guess" tier, without losing the trust of the confident ones. The threshold lives HERE, not in
 # the detector, so it's tunable without a re-scan. The scored basis: emp/src/tune_surfacing_policy.py.
 
-BEST_GUESS_VOTE_MIN = 4  # a non-sound-alike catch needs >= this many of the judge's 7 rounds to show by default
+BEST_GUESS_VOTE_MIN = 3  # a non-sound-alike catch needs >= this many of the judge's 7 rounds to show by default
+# 3 (= the judge's catch floor, JUDGE_THRESHOLD->cutoff 3/7): surface every catch that cleared voting.
+# The scored basis (emp/src/tune_surfacing_policy.py, 3 identical runs 2026-06-29): vs the old 4, this
+# lifts held-out Mahabharata recall 6/9->7/9 at 0.86->0.88 precision, and costs NOTHING on the synthetic
+# 7-world spread (34/40 recall, 3 false flags both ways) — the borderline canon name (Pandavas, heard
+# "bandos") consistently votes exactly 3, so 4 hid a real catch for no precision gain. Side effect: the
+# `low` tier is now empty by construction (no judge catch votes < 3), so "Show all" reveals nothing extra.
 
 
 def canon_tier(flag: dict) -> str:

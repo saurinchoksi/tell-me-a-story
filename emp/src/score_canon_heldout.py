@@ -25,14 +25,34 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))                  # so `api.helpers` (the shipped tier policy) imports
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "emp" / "src"))
 
 from detectors.phonetics import clean          # noqa: E402
 from score_names import gold_class             # noqa: E402  (the shared gold-derivation rule)
 from name_truth import sidecar_path            # noqa: E402
+# Reuse the PRODUCTION surfacing policy as the single source of truth, so this eval grades exactly
+# what the Monitor shows. If Choksi retunes BEST_GUESS_VOTE_MIN, the score follows for free — the
+# eval can never drift from the product (the "bent ruler" bug the EMP got burned by once).
+from api.helpers import canon_tier, BEST_GUESS_VOTE_MIN   # noqa: E402
 
 HELDOUT = ["20260211-210718", "20260414-213156"]   # the two never-tuned sessions
+
+# The view layer (api.helpers.annotate_canon_tiers) shows confident + best_guess by default and
+# hides `low` behind "Show all". Scoring all tiers would understate precision by counting low-tier
+# false alarms the user never sees — so grade per policy and headline the shipped default.
+TIER_POLICIES = [
+    ("confident-only",          {"confident"}),
+    ("+best_guess (default)",   {"confident", "best_guess"}),
+    ("all-tiers (Show all)",    {"confident", "best_guess", "low"}),
+]
+
+
+def by_tier(flags, allowed):
+    """The flags whose view-time tier is in `allowed` — the shipped surfacing policy applied to
+    a raw detections.json (which stores per-flag suggestion_confident + vote_count, not `tier`)."""
+    return [f for f in flags if canon_tier(f) in allowed]
 
 # Gold buckets the canon reader is graded on. M9c is the positive; everything else that is a
 # real name (correctly-spelled canon, improvised, family) is a negative it must NOT call canon.
@@ -145,21 +165,31 @@ def report(sid):
         print(f"  -> mark the key first:  python emp/src/name_truth.py {sid} --serve")
         return
 
-    r = score_canon(items, flags)
-    print(f"  by-ear key: {n_marked} names categorized   |   reader flagged {r['flagged']} as canon")
-    print(f"  M9c recall    {_safe(r['caught'], r['gold_m9c'])}   (real canon misspellings caught)")
-    real_flagged = r["matrix"]["M9c"]["flagged"]
-    print(f"  M9c precision {_safe(real_flagged, r['flagged'])}   (flags that land on a real canon error)")
-    print("  confusion (row = ear gold, col = reader):   flagged   none")
-    for row, c in r["matrix"].items():
-        if sum(c.values()):
-            print(f"    {row:>9} |   {c['flagged']:>6}  {c['none']:>5}")
-    for n in r["misses"]:
-        print(f"    MISS  {n!r}  — ear says canon-misspelled, reader stayed silent")
-    for n, g in r["false_pos"]:
+    # Grade per surfacing policy: the recall denominator (gold_m9c) is policy-independent; only what
+    # the reader surfaces changes. The shipped default (+best_guess) is the honest "what ships" line.
+    graded = {label: score_canon(items, by_tier(flags, allowed)) for label, allowed in TIER_POLICIES}
+    gold_m9c = next(iter(graded.values()))["gold_m9c"]
+    print(f"  by-ear key: {n_marked} names categorized   |   gold canon errors: {gold_m9c}")
+    print(f"  {'tier policy':<24} {'recall':<16} {'precision':<16} flags")
+    for label, _ in TIER_POLICIES:
+        r = graded[label]
+        real_flagged = r["matrix"]["M9c"]["flagged"]
+        print(f"  {label:<24} {_safe(r['caught'], r['gold_m9c']):<16} "
+              f"{_safe(real_flagged, r['flagged']):<16} {r['flagged']}")
+
+    # Read both off-diagonals AT THE SHIPPED DEFAULT — that's what the user actually sees.
+    rd = graded["+best_guess (default)"]
+    print("  off-diagonals at the shipped default (+best_guess):")
+    recovered = set(graded["all-tiers (Show all)"]["hits"]) - set(rd["hits"])  # caught only via Show all
+    for n in rd["misses"]:
+        tail = "  [recoverable via Show all]" if n in recovered else ""
+        print(f"    MISS  {n!r}  — ear says canon-misspelled, reader stayed silent{tail}")
+    for n, g in rd["false_pos"]:
         why = "flagged an ordinary word / correct name" if g in ("no-error", "phantom") \
             else f"flagged a {g} name as canon"
         print(f"    FP    {n!r}  ({why})")
+    if not rd["misses"] and not rd["false_pos"]:
+        print("    (clean — no misses, no false positives at the shipped default)")
 
 
 def selftest():
@@ -197,8 +227,22 @@ def selftest():
     assert rp["gold_m9c"] == 1, rp          # the single folded into the phrase — one gold name
     assert rp["caught"] == 1, rp            # spaced phrase joined to the stripped flag
     assert rp["misses"] == [] and rp["matrix"]["phantom"]["flagged"] == 0, rp
+
+    # tier policy: a low-confidence catch is hidden from the shipped default but reachable via
+    # "Show all"; a confident (sound-alike) or sufficiently-voted best-guess catch shows by default.
+    confident = {"case": "M9c", "cleaned": "bishma", "wrong_cleaned": ["bishma"],
+                 "suggestion_confident": True}
+    best_guess = {"case": "M9c", "cleaned": "dhrashtra", "wrong_cleaned": ["dhrashtra"],
+                  "suggestion_confident": False, "vote_count": BEST_GUESS_VOTE_MIN}
+    low = {"case": "M9c", "cleaned": "urzi", "wrong_cleaned": ["urzi"],
+           "suggestion_confident": False, "vote_count": BEST_GUESS_VOTE_MIN - 1}
+    assert (canon_tier(confident), canon_tier(best_guess), canon_tier(low)) \
+        == ("confident", "best_guess", "low")
+    default_flags = by_tier([confident, best_guess, low], {"confident", "best_guess"})
+    assert confident in default_flags and best_guess in default_flags and low not in default_flags
+    assert len(by_tier([confident, best_guess, low], {"confident", "best_guess", "low"})) == 3
     print("selftest OK — recall 1/1, gated precision 1/2, ungated precision 1/3, "
-          "phrase fold+join clean, no false misses")
+          "phrase fold+join clean, no false misses, low-tier hidden from default")
 
 
 def main():

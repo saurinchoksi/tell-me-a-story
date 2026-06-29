@@ -28,13 +28,24 @@ class CanonNameDetector(Detector):
     id = "m9c-canon"
     label = "Canon-name mistranscription (Thomas / Mahabharata / known source)"
     failure_mode = "M9c"
+    # 1.0.0: GRADUATED out of experimental (2026-06-29) after the held-out validation named as the gate
+    #   in emp.md. Scored the SHIPPED detector (this detections.json, not the sealed eval) against the
+    #   two never-tuned sessions' by-ear keys (emp/src/score_canon_heldout.py, now tier-aware):
+    #   held-out Mahabharata 7/9 = 0.78 recall @ 7/8 = 0.88 precision (recognized world); held-out KPop
+    #   0/1 (world unrecognized — the documented 4B world-recognition wall, the known boundary, NOT a
+    #   regression). Contract: precise where it engages, silent (no false flags) where it can't place the
+    #   world; M9b backstops the unrecognized-world errors under "inconsistency". The surfacing floor
+    #   BEST_GUESS_VOTE_MIN was lowered 4->3 (api/helpers.py) at the same time — a VIEW-TIME change, no
+    #   re-scan — recovering the borderline Pandavas catch with ZERO new false flags on the Thomas
+    #   (Portal) or made-up sessions (measured: Portal 0->0). 1.0.0 isn't in config_fingerprint, so this
+    #   bump does not force a re-scan; existing detections keep their scanned output.
     # 0.5.0: emit ALL canon catches (confident AND not), each carrying suggestion_confident + vote_count,
     #   so the VIEW layer (api.helpers.canon_tier) sorts them into confidence TIERS — confident /
-    #   best-guess (judge vote >= 4) / low — instead of the detector hard-dropping the non-sound-alike
-    #   ones. The scored sweep (emp/src/tune_surfacing_policy.py) showed the best-guess tier lifts
-    #   real-canon recall (held-out 0.56 -> 0.78, synthetic spread 0.75 -> 0.85) at a trivial precision
-    #   cost the human verdict button absorbs. The vote threshold lives at view time, so it's tunable
-    #   without a re-scan. (0.4.0 was the order-robust judge surfacing CONFIDENT catches only.)
+    #   best-guess (judge vote >= BEST_GUESS_VOTE_MIN) / low — instead of the detector hard-dropping the
+    #   non-sound-alike ones. The scored sweep (emp/src/tune_surfacing_policy.py) showed the best-guess
+    #   tier lifts real-canon recall (held-out 0.56 -> 0.78, synthetic spread 0.75 -> 0.85) at a trivial
+    #   precision cost the human verdict button absorbs. The vote threshold lives at view time, so it's
+    #   tunable without a re-scan. (0.4.0 was the order-robust judge surfacing CONFIDENT catches only.)
     # 0.4.0: ORDER-ROBUST judge. The single judge call is order-sensitive (a borderline name is
     #   caught in one ordering of the name list, missed in another), so the judge now votes across
     #   several deterministic shuffles and keeps names a majority agrees on — reliable on borderline
@@ -42,7 +53,7 @@ class CanonNameDetector(Detector):
     #   union; 0.2.0 the Gemma worksheet, kept as the baseline _worker.run.) mlx_vlm wobbles a hair
     #   on Metal even at temp 0; voting averages that out too. Qwen3.5 judges the names directly and
     #   is sound-matched against a Qwen3.5 cast; the two catches are unioned, then dictionary-gated.
-    version = "0.5.0-experimental"
+    version = "1.0.0"
     accepts_judge = False
     offline_only = True  # never runs in a web request or a non-offline scan
 

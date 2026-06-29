@@ -362,13 +362,14 @@ def test_canon_dedup_drops_whole_cluster_when_m9c_owns_one_token():
 
 
 def test_canon_tier_derives_three_tiers():
-    # confident = sounds alike; best_guess = not sound-alike but judge vote >= 4; low = below that.
+    # confident = sounds alike; best_guess = not sound-alike but judge vote >= BEST_GUESS_VOTE_MIN
+    # (3, = the judge's catch floor); low = below that (structurally empty now, no catch votes < 3).
     from api.helpers import canon_tier
     assert canon_tier({"suggestion_confident": True, "vote_count": 7}) == "confident"
     assert canon_tier({"suggestion_confident": True}) == "confident"                      # confident wins
     assert canon_tier({"suggestion_confident": False, "vote_count": 5}) == "best_guess"
-    assert canon_tier({"suggestion_confident": False, "vote_count": 4}) == "best_guess"   # at the floor
-    assert canon_tier({"suggestion_confident": False, "vote_count": 3}) == "low"
+    assert canon_tier({"suggestion_confident": False, "vote_count": 3}) == "best_guess"   # at the floor
+    assert canon_tier({"suggestion_confident": False, "vote_count": 2}) == "low"
     assert canon_tier({"suggestion_confident": False}) == "low"                           # no votes -> low
 
 
@@ -379,7 +380,7 @@ def test_annotate_canon_tiers_tags_flags_and_counts_default_visible():
     sections = {"m9c-canon": {"n_flags": 4, "flags": [
         {"cleaned": "pondavas", "canonical": "Pandavas", "suggestion_confident": True},
         {"cleaned": "dhrashtra", "canonical": "Dhritarashtra", "suggestion_confident": False, "vote_count": 5},
-        {"cleaned": "yudhisthir", "canonical": "Yudhishthira", "suggestion_confident": False, "vote_count": 3},
+        {"cleaned": "yudhisthir", "canonical": "Yudhishthira", "suggestion_confident": False, "vote_count": 2},
         {"cleaned": "duryodhan", "canonical": "Duryodhana", "suggestion_confident": True},
     ]}}
     annotate_canon_tiers(sections)
