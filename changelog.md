@@ -6,11 +6,11 @@ Newest at top. Only the changes that actually shaped the project, written plainl
 
 ## 2026-06-26 — Moved the last detector onto Qwen, so the project runs on one model
 
-The inconsistency judge was the last thing still running on Gemma. I tested whether Qwen could take it over, and once I wrote the prompt the way Qwen reads instructions, it matched Gemma exactly, even on the one case they used to disagree on: a character named Bacchus that the transcriber sometimes wrote as the ordinary word "because." So the whole pipeline now runs on one local model. Gemma was never really better at this job. It just had a prompt that fit it.
+The inconsistency judge was the last thing still running on Gemma. I tested whether Qwen could take it over, and once I wrote the prompt the way Qwen reads instructions, it matched Gemma exactly, even on the one case they used to disagree on: a character named Bacchus that the transcriber sometimes wrote as the ordinary word `because`. So the whole pipeline now runs on one local model. Gemma was never really better at this job. It just had a prompt that fit it.
 
 ## 2026-06-24 — Overrule wrong name flags
 
-Sometimes a detector flags a name when it shouldn't. For example, the detector marks "Jammus" (a train engine my daughter and I made up) as a misspelling of "James" (a real character from Thomas & Friends), because the two sound almost identical. They aren't the same character; we just invented one that sounds like a real one. I can now correct that false flag right on the monitor page, and it stays corrected through every future scan.
+Sometimes a detector flags a name it shouldn't, so I added a way to set it straight. It marked "Jammus" (a train engine my daughter and I made up) as a misspelling of "James" (a real Thomas & Friends character), because the two sound almost identical. They aren't the same character. We invented one that just sounds like a real one. Now I can correct that false flag right on the monitor page, and it stays corrected through every future scan.
 
 ## 2026-06-19 — Moved the story tools onto Qwen 3.5 4B
 
@@ -18,7 +18,7 @@ I wanted the story work to run on one small model instead of juggling more than 
 
 ## 2026-06-18 — Built the per-story canon name-checker
 
-For each story it lists the characters of whatever world the story is set in, then flags any the transcriber spelled wrong. In a Mahabharata story it knows the cast includes Bhishma, so when the transcript says "Bishma" it catches the misspelling.
+For each story, it lists the characters of whatever world the story is set in, then flags any the transcriber spelled wrong. In a Mahabharata story it knows the cast includes Bhishma, so when the transcript says `Bishma`, it catches the misspelling.
 
 ## 2026-06-17 — Got world-recognition working
 
@@ -40,9 +40,9 @@ The first detector now runs over every recording and shows its catches on a new 
 
 Built the family-name detector and checked it on two recordings it had never seen, against answers I marked by ear. It caught every mis-transcribed name a fresh listen turned up, including spellings of my daughter's name it had never been shown. It raised one false alarm, on an ordinary word that happens to sound like her name.
 
-## 2026-05-28 — Built sweeps to count the failures you miss by hand
+## 2026-05-28 — Built sweeps to find the failures I'd miss by hand
 
-Three read-only passes that hunt for failures you'd never see reading the page: speech the transcriber dropped entirely, words stamped at the wrong moment, and stretches where it got stuck repeating one little word ("Right. Right. Right."). Each one surfaced far more cases than counting only what made it onto the page.
+Three read-only passes that hunt for failures I'd never catch just reading the page: speech the transcriber dropped entirely, words stamped at the wrong moment, and stretches where it got stuck repeating one little word (`Right. Right. Right.`). Each one turned up far more cases than I'd find by counting only what made it onto the page.
 
 ## 2026-03-03 — Built cross-session speaker ID
 
@@ -50,31 +50,34 @@ Taught the pipeline to recognize who's speaking and carry that across recordings
 
 ## 2026-02-18 — Ran the pipeline end to end from one command
 
-Drop a recording in a folder, run one script, and get back a transcript split by who's speaking, with a timestamp on every word.
+Now I can drop a recording in a folder, run one script, and get back a transcript split by who's speaking, with a timestamp on every word.
 
 ## 2026-02-07 — Got name correction working on the real recording
 
 Ran the whole pipeline on the real Mahabharata recording for the first time, name correction included, and it fixed the mangled Sanskrit names cleanly. What made it work was handing the model the whole transcript at once instead of one line at a time. Line by line, with no surrounding context, it had invented wrong fixes like turning "dad" into a Sanskrit name.
 
-## 2026-02-07 — Caught hallucinations where two systems disagree
+## 2026-02-07 — Flag Whisper's made-up words for review
 
-The tell for a hallucinated word isn't the model's confidence score, it's the shape: it usually sits alone, a one-word segment by itself. The strongest sign is two systems disagreeing, a word the transcriber wrote in a spot where the speaker detector heard only silence. Three simple filters built on those signs catch the made-up words and leave the real quiet ones alone.
+Whisper sometimes writes words that were never said. The validation tool flags two kinds for me to review: a word Whisper itself barely believes, where its confidence on that word is near zero, and a word sitting where the speaker detector heard only silence. These just point me at the suspect spots; they don't change the transcript.
+
 
 ## 2026-02-03 — Save the raw transcript, compute the rest on demand
 
-The pipeline keeps three files: the raw transcript exactly as Whisper produced it, the speaker data, and an enriched transcript with corrections layered on top. The raw one is never overwritten, so if a correction later turns out wrong, I can always see what Whisper actually heard, like the original "fondos" before it was fixed to "Pandavas."
+The pipeline keeps three files: the raw transcript exactly as Whisper produced it, the speaker data, and an enriched transcript with corrections layered on top. The raw one is never overwritten, so if a correction later turns out wrong, I can always see what Whisper actually heard, like the original `fondos` before it was fixed to "Pandavas."
 
-## 2026-01-27 — Built the review tool
+## 2026-01-27 — Built the validation tool
 
-A player that listens back to a recording with the transcript running alongside. I can mark where it went wrong segment by segment, and hovering a word lights up its audio, so I can hear whether "Yudhishthira" was really said there.
+Used Claude Code to whip up a "validation tool" where I can listen to a recording and view the transcript running alongside. I mark where the transcript has errors segment by segment.
 
 ## 2026-01-24 — Settled how to handle Whisper's hallucinations
 
-If someone really spoke but Whisper couldn't make out the words, we keep the spot and mark it unintelligible, like my daughter's too-quiet sentence. If Whisper invented words out of pure silence, we delete them. So the transcript never throws away something that was actually said.
+If someone really spoke but Whisper couldn't make out the words, we keep the spot and mark it unintelligible, like my daughter's too-quiet sentence. If Whisper invented words out of pure silence, we delete them.
+
+[show some type of example here to make it concrete and clear]
 
 ## 2026-01-22 — The first transcript that reads as a conversation
 
-Combined transcription with speaker detection and got the first transcript that reads like an actual back-and-forth, scattered fragments pulled together into real turns. Seeing my daughter remember Duryodhana and Yudhishthira, in print, is the whole point of this.
+Combined Whisper's output with speaker detection and got the artifact that feels like a real transcript.
 
 > SPEAKER_01: Dad, why do the Fondos and the Goros want to be king?
 > SPEAKER_00: Uh-huh. Well, so the oldest brother of the Goros, his name was, do you remember?
@@ -82,8 +85,10 @@ Combined transcription with speaker detection and got the first transcript that 
 
 ## 2026-01-21 — Child speech needs the large Whisper model
 
-Compared Whisper's small and large models on the same stretch of audio. The small one produced silence where my daughter speaks; the large one caught her full sentence. With the wrong model, ten seconds of her voice simply vanish.
+Compared Whisper's small, medium, and large models on the same stretch of audio. For catching a quiet, young child's speech I need Whisper large. The other models frequently output nothing even though I can hear her talking.
 
-## 2026-01-20 — Day one
+[show a lil example here tomato it concrete and clear]
 
-First transcription: a 5.6-minute Mahabharata bedtime story through Whisper. It worked, but mangled every Sanskrit name ("Yudhishthira" became "you this there," "Pandavas" became "fondos"). Fixing that became the project's first real problem.
+## 2026-01-20 — Day one!
+
+I hooked up Whisper and ran my first transcription: a ~5 min bedtime convo with my daughter about the Mahabharata. It mostly worked. Looking at the transcript felt a lil magical, but I noticed mangled Sanskrit names throughout. Like "Yudhishthira" became `you this there`. "Pandavas" became `fondos`. 🤔
