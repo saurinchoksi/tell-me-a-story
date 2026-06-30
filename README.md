@@ -1,16 +1,34 @@
 # Tell Me a Story
 
-A local system for capturing bedtime stories. Audio goes in, speaker-labeled transcripts come out.
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)
+![Platform: Apple Silicon](https://img.shields.io/badge/platform-Apple%20Silicon-lightgrey.svg)
+![Processing: 100% local](https://img.shields.io/badge/processing-100%25%20local-brightgreen.svg)
 
-Every night, my daughter and I tell stories together. Characters recur, plot threads tangle across weeks of bedtime improv, and she asks questions I never saw coming.
+A local system for capturing bedtime stories. Audio goes in, speaker-labeled transcripts come out, and the system flags its own likely mistakes for a human to check.
 
-I wanted to capture those conversations — to eventually "see" the stories we're building together. So I built my own pipeline.
+Every night, my daughter and I tell stories together. Characters recur and plot threads tangle across weeks of bedtime improv.
+
+I wanted to capture those conversations, and eventually "see" the stories we're building together. So I built my own pipeline.
+
+## Contents
+
+- [The Mahabharata](#the-mahabharata)
+- [What It Does](#what-it-does)
+- [Hallucination Handling](#hallucination-handling)
+- [Catching Its Own Mistakes](#catching-its-own-mistakes)
+- [Why Local](#why-local)
+- [Capture Device](#capture-device)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Running It](#running-it)
+- [Background](#background)
 
 ## The Mahabharata
 
-Our test recordings are of my daughter asking questions about the Mahabharata — the ancient Indian epic I grew up with, now being passed down to her. "Why did Duryodhana want to be king?" "What happened to the Pandavas?" These are real questions from a four-year-old, and in some ways, the soul of the project.
+Our test recordings are of my daughter asking questions about the Mahabharata — the ancient Indian epic I grew up with, now being passed down to her. "Why did Duryodhana want to be king?" "What happened to the Pandavas?" These are real questions from a four-year-old, and in some ways, the heart of the project.
 
-The Mahabharata is the first content domain, not the only one. The pipeline is built to handle any storytelling session — improvised adventures, fairy tale retellings, interdimensional portal hopping tales, whatever. Where the Mahabharata shapes things (like name correction), it's pluggable: swap the reference library, swap the prompt, and the same pipeline works for different stories.
+The Mahabharata is the first content domain, not the only one. The pipeline is built to handle any storytelling session — improvised adventures, fairy tale retellings, interdimensional portal hopping tales, whatever.
 
 ## What It Does
 
@@ -20,11 +38,11 @@ Five-stage pipeline that turns a raw audio recording into a speaker-labeled, cor
 
 2. **Diarization** — Identifies *who* is speaking and *when*, producing time-stamped speaker segments independent of the transcript. A father and daughter sound quite different, which helps — but toddler interjections are still the hardest case.
 
-3. **LLM Normalization** — A local language model reads the full transcript and corrects words that sound like names but got mangled by the transcriber. For our Mahabharata sessions, "Durian" becomes "Duryodhana" and "fondos" becomes "Pandavas." For a different storytelling domain, you'd swap the prompt.
+3. **LLM Normalization** — A local language model reads the full transcript and corrects words that sound like names but got mangled by the transcriber. For our Mahabharata sessions, "Durian" becomes "Duryodhana" and "fondos" becomes "Pandavas."
 
-4. **Dictionary Normalization** — A deterministic pass catches spelling variants the LLM misses, using a reference library of known names and their common mishearings. Our Mahabharata library has 56 entries. You'd build a different library for different content — or skip this stage entirely if your stories don't have specialized vocabulary.
+4. **Speaker Enrichment** — Merges the diarization segments onto the transcript at word level, so every word knows who said it and how confident that attribution is. Words that fall in silence gaps or between speakers get flagged rather than guessed at.
 
-5. **Speaker Enrichment** — Merges the diarization segments onto the transcript at word level, so every word knows who said it and how confident that attribution is. Words that fall in silence gaps or between speakers get flagged rather than guessed at.
+5. **Identify** — Recognizes *who* each speaker actually is across recordings, not just "speaker A vs. speaker B" inside one session. From a short voice sample of each of us, it labels me and my daughter even on a session it has never heard, and marks an attribution "suggested" rather than forcing a confident match when a silly voice or a far-from-the-mic moment makes it unsure.
 
 Each stage adds information without destroying what came before. Original transcriptions are preserved alongside corrections, and every change is tracked with an audit trail. The raw transcript is saved separately and never modified — it's the honest record of what the transcriber heard.
 
@@ -48,9 +66,23 @@ Speech transcription models hallucinate — they generate confident-sounding tex
 
 Three detection filters flag suspect content: silence gaps where no speaker was detected, near-zero probability words where the transcriber itself wasn't confident, and duplicate segments that repeat at processing boundaries. These are review aids, not automated deletion — the filters surface candidates for human judgment.
 
+## Catching Its Own Mistakes
+
+The transcriber mishears names constantly, and names are the heart of these stories. So the system runs its own checks and flags suspect words for me to review, instead of trusting the transcript blind.
+
+It looks for three kinds of name error, sorted by where the right spelling should come from:
+
+- **Family names** — our own names (my daughter's name alone is the single most common mistake). A phonetic match against a small roster catches these with plain code, no model needed.
+- **Made-up names** — characters invented on the spot, where the only tell is *inconsistency*: the same name spelled several ways across one story. Code clusters the spellings; a small local model settles the ambiguous cases.
+- **Known characters** — names with a real source, like the Mahabharata or Thomas & Friends. A local model reads the story's names, works out which world the story is in, and flags a misheard canon name along with its correct spelling.
+
+Everything surfaces in a review screen (the Monitor), with a play button on each flag so I can check the audio by ear before accepting a fix. Nothing is auto-corrected on the model's say-so.
+
+Each detector is validated honestly: I mark the right answers by ear on recordings the detector has never seen, then score it against that held-out key and read *both* kinds of error — false alarms and misses — before trusting it. More in the [build log](changelog.md) and the case studies at [saurinchoksi.com](https://saurinchoksi.com).
+
 ## Why Local
 
-For recordings of my kid, I wanted everything to run on local hardware with no network dependency. No API keys, no data leaving the house.
+For recordings of my kid, I wanted everything to run on local hardware with no cloud dependency. No API keys, no data leaving the house.
 
 The constraint forced me to understand the full pipeline — model behavior, hallucination patterns, speaker alignment — rather than outsourcing it to a service.
 
@@ -58,7 +90,7 @@ It also let me work with technology I was excited about.
 
 ## Capture Device
 
-On the horizon: an ESP32-based capture device so recording disappears into the background. Tap to start, tap to stop — not always listening, no screens, no attention-grabbing LEDs, operable in the dark. A bedside storytelling tool, not a surveillance device.
+On the horizon: an ESP32-based capture device so recording disappears into the background. Tap to start, tap to stop — not always listening, no screens, no attention-grabbing LEDs, operable in the dark.
 
 Audio records to an SD card initially, with WiFi sync to the processing machine planned for later.
 
@@ -66,13 +98,37 @@ Audio records to an SD card initially, with WiFi sync to the processing machine 
 
 - **MLX Whisper** — Transcription, optimized for Apple Silicon
 - **Pyannote** — Speaker diarization
-- **MLX-LM / MLX-VLM** — Local language models for name correction and story analysis (current models are tracked in the [changelog](changelog.md))
+- **Qwen 3.5 4B (via MLX-VLM)** — one small local model for all the language work: name correction, story splitting, and world recognition (consolidated from two models down to one in June 2026; tracked in the [changelog](changelog.md))
 - **Python** — Pipeline, automated tests (fast/slow split), CLI
 - **Flask** — Validation player with waveform visualization and word-level highlighting
 
+## Project Structure
+
+```
+tell-me-a-story/
+├── src/
+│   ├── pipeline.py          # end-to-end pipeline
+│   ├── process_inbox.py     # batch ingestion from the inbox
+│   ├── transcribe.py        # transcription (MLX Whisper)
+│   ├── diarize.py           # diarization (pyannote)
+│   ├── normalize.py         # name correction
+│   ├── identify.py          # cross-session speaker ID
+│   ├── stories.py           # story segmentation
+│   └── detectors/           # error-detection framework
+│       ├── family_names.py      # family names
+│       ├── name_consistency.py  # made-up names
+│       └── story_names/         # known characters (canon)
+├── api/                     # Flask API layer
+├── ui/                      # validation player (waveform + word highlighting)
+├── data/                    # name reference library
+├── docs/                    # technical notes
+├── tests/                   # test suite (fast/slow split)
+└── changelog.md             # build log
+```
+
 ## Requirements
 
-- Apple Silicon Mac (for MLX Whisper and MLX-LM)
+- Apple Silicon Mac (for MLX Whisper and MLX-VLM)
 - Python 3.14
 - Hugging Face token (for Pyannote model download)
 - FFmpeg (for audio format conversion)
