@@ -88,7 +88,8 @@ Audio flows through stages:
 
 4. **pipeline.py** — Orchestrates all stages:
    - `run_pipeline()` — runs transcription, diarization, enrichment
-   - `enrich_transcript()` — runs four enrichment passes:
+   - `enrich_transcript()` — runs five enrichment passes:
+     - **Word realignment / Pass 0** (`realign.py`, TMAS-54) — torchaudio MMS_FA forced alignment re-times each segment's words from its trusted `text`, fixing Whisper's segment-initial drift and rescuing the real words `clean_transcript` dropped (Mode 11). Runs FIRST so the speaker/gap passes below key off corrected timings. Skipped when no session audio is reachable (so it's inert in unit tests). Retroactive equivalent for existing sessions: `realign_session.py` (surgical, id-preserving).
      - **Diarization enrichment** (`speaker.py`) — Adds `_speaker` labels to each word by temporal overlap
      - **Gap detection** (`speaker.py`) — Injects `[unintelligible]` segments where speaker detected but no transcript
      - **LLM normalization** (`normalize.py`) — MLX-LM/Qwen3-8B corrects phonetic mishearings of proper nouns (subprocess isolates GPU memory from pyannote to prevent OOM). Generic by default; content-specific prompts passed explicitly.
@@ -184,8 +185,8 @@ The field names that matter when reading session data (the gotchas below have co
 - **`axial-labels.json`** — EMP failure-mode coding; **present only on coded sessions**. Shape: `{"labels": [ {segmentId, codes, createdAt, updatedAt}, ... ]}`.
   - `codes` is a **list** of mode tags (`"M1"`–`"M10"` or `"NotA"`) — *not* a single `mode` string. A segment may carry several (e.g. `["M1","M9"]`); count each.
   - There is **no `text` and no `notes`** field here. To get a segment's words, join by `segmentId` to `transcript-rich.json`.
-  - `segmentId` is usually the integer index into `transcript-rich.json`'s `segments`, but injected gap segments use a string like `"gap_782.052"` (the gap's start time).
-- **`transcript-rich.json`** — enriched transcript. Shape: `{text, segments, language, audio, _processing, ...}`. `segments` is a list; each has `id` (== its list index), `start`, `end`, **`text`** (the words — they live here, not in axial-labels), `words` (word-level timestamps), and `_speaker`.
+  - `segmentId` joins to a segment's **`id` field — NOT the array index** (the two diverge: ids have gaps where empty segments were dropped). Injected gap segments use a string id like `"gap_782.052"` (the gap's start time). Verified across all 9 coded sessions (TMAS-54): every label resolves by `id`.
+- **`transcript-rich.json`** — enriched transcript. Shape: `{text, segments, language, audio, _processing, ...}`. `segments` is a list; each has `id` (Whisper's original segment id — **NOT the array index**; has gaps where empty segments were dropped), `start`, `end`, **`text`** (the words — they live here, not in axial-labels), `words` (word-level timestamps, plus `_align_conf` after the TMAS-54 realignment pass), and `_speaker`. **Because axial-labels bind to `id`, any tool that rewrites the transcript must preserve every `id`** — surgically, in place; never a full `--re-enrich` on a coded session. The validator also formats word numeric fields directly (`probability.toFixed`), so a null/missing numeric word field crashes the whole render — keep them populated.
 - **`transcript-raw.json`** — same shape, pre-enrichment (before normalization/gap-injection); `--re-enrich` rebuilds rich from raw.
 - **`validation-notes.json`** — open-coding notes. Shape: `{"notes": [ ... ]}` — timestamped, segment-attached free-text observations (the human's prose, distinct from the `codes` in axial-labels).
 - **`diarization.json`** — pyannote speaker segments (speaker label + start/end).

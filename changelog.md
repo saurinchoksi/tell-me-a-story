@@ -4,6 +4,10 @@ Newest at top. Only the changes that actually shaped the project, written plainl
 
 *Claude Code drafts these from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-06-30 — Re-timed every word so I can click one and hear it
+
+Whisper's word timings were off in a consistent way: it marked a word as starting back in the silence, before anyone actually spoke. The opening "Okay," was tagged at 1.70 seconds, but my daughter doesn't say it until 2.06. So I lined every word back up against the audio, matching the words I already trust to where each one really lands. The same pass brought back real words an earlier cleanup step had been quietly deleting, like the "you believe" missing from "Can you believe that?". Now I can click any word in the reviewer and hear exactly that word, only that word.
+
 ## 2026-06-29 — Checked the canon name-checker on recordings it had never seen
 
 The canon name-checker had only ever been graded on the recordings I built it from, so I ran it on two it had never seen. On a Mahabharata story it caught the misspelled names, like `Bishma` for "Bhishma". On a story set in a world it didn't recognize, the movie K-pop Demon Hunters, it stayed quiet instead of inventing a name. I took the experimental label off it.
