@@ -30,14 +30,17 @@ export default function WordSpan({
   onHoverRange,
   onHoverEnd,
 }: WordSpanProps) {
-  const probClass = getWordProbabilityClass(word.probability);
+  // A rescued/realigned word may lack a Whisper probability; coalesce so a
+  // single missing value can never crash the whole render (.toFixed on null).
+  const prob = word.probability ?? 0;
+  const probClass = getWordProbabilityClass(prob);
   const speakerLabel = word._speaker?.label ?? null;
   const mismatch = dominantSpeaker !== null && speakerLabel !== null && speakerLabel !== dominantSpeaker;
   const speakerClass = getSpeakerClass(speakerLabel);
   const hasCorrection = word._corrections && word._corrections.length > 0;
 
   const tooltip = [
-    `prob: ${word.probability.toFixed(3)}`,
+    `prob: ${prob.toFixed(3)}`,
     `${word.start.toFixed(2)}s → ${word.end.toFixed(2)}s`,
     `dur: ${(word.end - word.start).toFixed(2)}s`,
     speakerLabel ? `${speakerLabel} (${(word._speaker?.coverage ?? 0).toFixed(2)})` : 'no speaker',

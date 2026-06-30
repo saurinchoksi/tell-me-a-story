@@ -162,7 +162,10 @@ def realign_segment(audio, seg, bundle, next_start=None, pad=FA_PAD):
             else:  # punctuation-only token: zero-width at the previous end
                 s = e = new[-1]["end"] if new else seg["start"]
                 c = 0.0
-            word = {"word": surf, "start": s, "end": e, "probability": None,
+            # A rescued word has no Whisper probability (it was dropped); use the
+            # alignment confidence as the stand-in so `probability` stays a number
+            # (the validator formats it with .toFixed and a null blanks the page).
+            word = {"word": surf, "start": s, "end": e, "probability": round(c, 3),
                     "_align_conf": round(c, 3)}
             if dom_speaker is not None:
                 word["_speaker"] = dom_speaker

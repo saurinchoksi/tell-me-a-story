@@ -64,6 +64,8 @@ def test_rescue_brings_back_dropped_words(monkeypatch):
     assert status == "rescued"
     assert "".join(x["word"] for x in words) == " can you believe that"
     assert all("_align_conf" in x for x in words)
+    # probability must stay numeric (a null crashes the validator's .toFixed)
+    assert all(isinstance(x["probability"], (int, float)) for x in words)
     assert words[1]["_speaker"] == {"label": "S2"}        # rescued word inherits dominant
 
 
