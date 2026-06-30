@@ -64,6 +64,52 @@ def enrich_transcript(
     llm_count = 0
     dict_count = 0
 
+    # Pass 0: Forced-alignment word realignment (TMAS-54). Runs FIRST so every
+    # downstream pass (per-word speaker labels, gap detection, dominant speaker)
+    # keys off corrected word timings. Needs the session audio (located via
+    # cache_dir); when audio isn't available the pass is skipped with no
+    # processing entry, so enrichment unit tests that run without audio are
+    # unaffected. Aligns from segment text, so it also rescues the TMAS-53
+    # zero-duration words clean_transcript pruned from words[] but not from text.
+    audio_path = None
+    if cache_dir is not None:
+        audio_path = next(iter(sorted(Path(cache_dir).glob("audio.*"))), None)
+    if audio_path is not None:
+        started_at = datetime.now(timezone.utc).isoformat()
+        try:
+            t0 = time.monotonic()
+            import numpy as np
+            from realign import load_aligner, realign_transcript
+            from mlx_whisper.audio import load_audio
+            audio = np.array(load_audio(str(audio_path))).astype(np.float32)
+            transcript, realign_stats = realign_transcript(
+                transcript, audio, load_aligner())
+            processing.append({
+                "stage": "word_realignment",
+                "model": "torchaudio-MMS_FA",
+                "status": "success",
+                "started_at": started_at,
+                "duration_seconds": round(time.monotonic() - t0, 2),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                **{k: realign_stats[k] for k in
+                   ("realigned", "rescued", "rescued_words", "guarded", "skipped")},
+            })
+            if verbose:
+                logger.info(
+                    f"Word realignment: {realign_stats['realigned']} realigned, "
+                    f"{realign_stats['rescued']} rescued "
+                    f"(+{realign_stats['rescued_words']} words), "
+                    f"{realign_stats['guarded']} guarded")
+        except Exception as e:
+            logger.warning(f"Word realignment failed: {e}")
+            processing.append({
+                "stage": "word_realignment",
+                "status": "error",
+                "error": str(e),
+                "started_at": started_at,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+
     # Pass 1: Diarization enrichment
     try:
         started_at = datetime.now(timezone.utc).isoformat()
