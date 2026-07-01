@@ -687,9 +687,7 @@ if __name__ == "__main__":
 
         processing = result["transcript"]["_processing"]
         for entry in processing:
-            if entry["stage"] == "llm_normalization":
-                print(f"\nLLM Normalization: {entry.get('corrections_applied', 0)} corrections")
-            elif entry["stage"] == "dictionary_normalization":
+            if entry["stage"] == "dictionary_normalization":
                 print(f"Dictionary Normalization: {entry.get('corrections_applied', 0)} corrections")
 
         # Print timing summary

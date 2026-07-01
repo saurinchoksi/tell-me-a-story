@@ -92,9 +92,9 @@ Audio flows through stages:
    - `enrich_transcript()` — runs the interpretive enrichment passes:
      - **Diarization enrichment** (`speaker.py`) — Adds `_speaker` labels to each word by temporal overlap
      - **Gap detection** (`speaker.py`) — Injects `[unintelligible]` segments where speaker detected but no transcript
-     - **LLM normalization** (`normalize.py`) — MLX-LM/Qwen3-8B corrects phonetic mishearings of proper nouns (subprocess isolates GPU memory from pyannote to prevent OOM). Generic by default; content-specific prompts passed explicitly.
-     - **Dictionary normalization** (`dictionary.py`) — Reference library corrects known variant spellings. Skipped when no library path provided (content-agnostic default).
-     - Corrections are applied via `corrections.py`, which preserves `_original` and `_corrections` audit trails
+     - **Name normalization — REMOVED 2026-07-01.** The old world-blind LLM normalizer (`normalize.py`, Qwen3-8B) was deleted: with no story/world context it free-associated "correct" spellings from model priors and confidently substituted *wrong* names — confirmed by ear on a Mahabharata session it mapped the child's "Fondos" (the Pandavas) onto "Bhishma" (an enemy-side character). Transcripts now carry the honest Whisper words. Its **world-grounded replacement is being built** (segment → recognize the story's world → correct names only within that world's cast, on Qwen3.5-4B, hybrid auto-apply-sound-alike/queue-best-guess with a human-blessed per-world dictionary) — see the plan + `emp/emp.md` top. Dropping the 8B pass made the pipeline **single-model on Qwen3.5-4B** (fits an 8GB machine).
+     - **Dictionary normalization** (`dictionary.py`) — Reference library corrects known variant spellings. Skipped when no library path provided (content-agnostic default; production passes none).
+     - Corrections are applied via `corrections.py`, which rewrites word tokens, heals each segment's `text` from its words, and preserves `_original` (the original token minus leading whitespace, **punctuation included**) + `_corrections` audit trails
    - `save_computed()` — writes `transcript-raw.json`, `transcript-rich.json`, `diarization.json`
    - `to_utterances()` — consolidates same-speaker word runs into utterances
    - `format_transcript()` — renders utterances as `SPEAKER: text` lines

@@ -4,6 +4,10 @@ Newest at top. Only the changes that actually shaped the project, written plainl
 
 *Claude Code drafts these from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-07-01 — Removed the name-fixer that was renaming the heroes as the enemy
+
+The pipeline had a step that tried to fix mis-heard names, but it ran with no idea which story it was in, so it reached for whatever famous name sounded closest. On a Mahabharata night it heard "Pandavas" as `fondos` and then confidently rewrote that as `Bhishma`, a character on the enemy's side, right through the war. I listened back with my daughter's telling in my ears and it was plainly wrong, so I took the step out, and the transcript now keeps the words Whisper actually heard instead of a confident wrong guess. Dropping it also removed the one heavy model the pipeline still loaded, so it now runs on a single small model that fits an 8GB machine.
+
 ## 2026-07-01 — Hold Option to hear just one word
 
 When I click a word in the reviewer it plays from there and keeps going, which is what I want when I'm listening through a stretch. But often I just want to hear one word by itself, to check whether Whisper got it right. So now if I hold Option while I click, it plays only that word and stops clean, even a fast little word like "to" or "it" that used to get clipped off at the end. A plain click still plays on from where I clicked, same as before.
