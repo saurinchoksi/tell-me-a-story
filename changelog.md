@@ -75,7 +75,7 @@ Whisper sometimes writes words that were never said. The validation tool flags t
 
 ## 2026-02-03 — Save the raw transcript, compute the rest on demand
 
-The pipeline keeps three files: the raw transcript exactly as Whisper produced it, the speaker data, and an enriched transcript with corrections layered on top. The raw one is never overwritten, so if a correction later turns out wrong, I can always see what Whisper actually heard, like the original `fondos` before it was fixed to "Pandavas."
+The pipeline keeps three files: the raw transcript with the words as Whisper first heard them, the speaker data, and an enriched transcript with corrections layered on top. The raw one is never overwritten, so if a correction later turns out wrong, I can always see what Whisper actually heard, like the original `fondos` before it was fixed to "Pandavas."
 
 ## 2026-01-27 — Built the validation tool
 
