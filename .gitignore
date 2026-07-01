@@ -44,6 +44,9 @@ experiments/
 # EMP per-session HTML visuals (contain transcript text)
 emp/results/visuals/
 
+# TMAS-46 gap-classify Whisper feature cache (contains transcribed family speech)
+emp/results/gap-classify/whisper-cache.json
+
 # Private real-name data (family roster); count.py reads it for M9a counting only, never committed
 emp/results/pivot-notes.private.json*
 
