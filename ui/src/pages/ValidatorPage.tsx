@@ -201,6 +201,12 @@ export default function ValidatorPage() {
     [],
   );
 
+  // ⌥-click a word → play just that word (sample-accurate), leaving plain click
+  // as seek-and-play-from-here. Stable identity so SegmentCard stays memoized.
+  const handlePlayWord = useCallback((start: number, end: number) => {
+    waveformRef.current?.playWord(start, end);
+  }, []);
+
   const handleHoverRange = useCallback(
     (start: number, end: number) => {
       waveformRef.current?.highlightRange(start, end);
@@ -533,6 +539,7 @@ export default function ValidatorPage() {
                 speakerNames={state.speakerNames}
                 speakerColorMap={state.speakerColorMap}
                 onSeek={handleSeek}
+                onPlayWord={handlePlayWord}
                 onContextMenu={handleContextMenu}
                 onHoverRange={handleHoverRange}
                 onHoverEnd={handleHoverEnd}

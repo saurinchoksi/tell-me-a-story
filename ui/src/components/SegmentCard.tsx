@@ -44,6 +44,7 @@ interface SegmentCardProps {
   speakerNames: Map<string, string>;
   speakerColorMap: Map<string, string>;
   onSeek: (time: number) => void;
+  onPlayWord: (start: number, end: number) => void;
   onContextMenu: (e: React.MouseEvent, segmentIndex: number, wordIndex: number) => void;
   onHoverRange?: (start: number, end: number) => void;
   onHoverEnd?: () => void;
@@ -62,6 +63,7 @@ function SegmentCardInner({
   speakerNames,
   speakerColorMap,
   onSeek,
+  onPlayWord,
   onContextMenu,
   onHoverRange,
   onHoverEnd,
@@ -172,6 +174,7 @@ function SegmentCardInner({
               wordIndex={wi}
               dominantSpeaker={dominant}
               onSeek={onSeek}
+              onPlayWord={onPlayWord}
               onContextMenu={onContextMenu}
               onHoverRange={onHoverRange}
               onHoverEnd={onHoverEnd}

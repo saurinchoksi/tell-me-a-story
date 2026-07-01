@@ -21,6 +21,8 @@ export interface WaveformPlayerHandle {
   isPlaying(): boolean;
   highlightRange(start: number, end: number): void;
   clearHighlight(): void;
+  /** Play a single word slice, sample-accurately, via Web Audio (see playWord below). */
+  playWord(start: number, end: number): void;
 }
 
 interface WaveformPlayerProps {
@@ -45,6 +47,12 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
     const rafRef = useRef<number>(0);
     const savedTimeRef = useRef(0);
     const savedRateRef = useRef(playbackRate);
+    // Web Audio single-word preview (⌥-click a word). We reuse WaveSurfer's
+    // already-decoded AudioBuffer (getDecodedData) and play a slice through our
+    // own context — an AudioBufferSourceNode's duration arg stops on the exact
+    // sample, which the <audio> timeupdate cadence can't do for short words.
+    const audioCtxRef = useRef<AudioContext | null>(null);
+    const wordSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
     // Keep callback refs stable so WaveSurfer events always call latest versions
     const onTimeUpdateRef = useRef(onTimeUpdate);
@@ -70,6 +78,43 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
         rafRef.current = 0;
       }
     }, []);
+
+    // Waveform region highlight — one source of truth for hover + word preview.
+    const paintRegion = useCallback((start: number, end: number) => {
+      const regions = regionsRef.current;
+      if (!regions) return;
+      regions.clearRegions();
+      // Tiny gaps would render as zero-width; show at least 1px-worth of audio
+      const safeEnd = end > start ? end : start + 0.01;
+      regions.addRegion({
+        start,
+        end: safeEnd,
+        color: 'rgba(191, 162, 101, 0.35)',
+        drag: false,
+        resize: false,
+      });
+    }, []);
+
+    const clearRegions = useCallback(() => {
+      regionsRef.current?.clearRegions();
+    }, []);
+
+    // Stop an in-flight word preview (new click, session switch, or unmount) and
+    // clear its highlight. Idempotent — safe to call when nothing is playing.
+    const stopWordPreview = useCallback(() => {
+      const src = wordSourceRef.current;
+      if (src) {
+        src.onended = null;
+        try {
+          src.stop();
+        } catch {
+          // already stopped/ended — fine
+        }
+        src.disconnect();
+        wordSourceRef.current = null;
+      }
+      clearRegions();
+    }, [clearRegions]);
 
     // Create/recreate WaveSurfer when audioUrl changes
     useEffect(() => {
@@ -141,12 +186,13 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
       wsRef.current = ws;
 
       return () => {
+        stopWordPreview();
         stopRAF();
         ws.destroy();
         wsRef.current = null;
         regionsRef.current = null;
       };
-    }, [audioUrl, startRAF, stopRAF]);
+    }, [audioUrl, startRAF, stopRAF, stopWordPreview]);
 
     // Update playback rate without recreating
     useEffect(() => {
@@ -155,6 +201,15 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
         savedRateRef.current = playbackRate;
       }
     }, [playbackRate]);
+
+    // Release the Web Audio context on final unmount (reused across sessions until then)
+    useEffect(() => {
+      return () => {
+        stopWordPreview();
+        void audioCtxRef.current?.close();
+        audioCtxRef.current = null;
+      };
+    }, [stopWordPreview]);
 
     useImperativeHandle(ref, () => ({
       play() { wsRef.current?.play(); },
@@ -169,22 +224,45 @@ const WaveformPlayer = forwardRef<WaveformPlayerHandle, WaveformPlayerProps>(
       getCurrentTime() { return wsRef.current?.getCurrentTime() ?? 0; },
       setPlaybackRate(rate: number) { wsRef.current?.setPlaybackRate(rate); },
       isPlaying() { return wsRef.current?.isPlaying() ?? false; },
-      highlightRange(start: number, end: number) {
-        const regions = regionsRef.current;
-        if (!regions) return;
-        regions.clearRegions();
-        // Tiny gaps would render as zero-width; show at least 1px-worth of audio
-        const safeEnd = end > start ? end : start + 0.01;
-        regions.addRegion({
-          start,
-          end: safeEnd,
-          color: 'rgba(191, 162, 101, 0.35)',
-          drag: false,
-          resize: false,
-        });
-      },
-      clearHighlight() {
-        regionsRef.current?.clearRegions();
+      highlightRange: paintRegion,
+      clearHighlight: clearRegions,
+      playWord(start: number, end: number) {
+        const ws = wsRef.current;
+        if (!ws) return;
+        const buf = ws.getDecodedData();
+        if (!buf) {
+          // Buffer not decoded yet — fall back to a plain seek + play
+          ws.setTime(start);
+          ws.play();
+          return;
+        }
+        // Stop the main transport and any prior preview so nothing overlaps
+        if (ws.isPlaying()) ws.pause();
+        stopWordPreview();
+
+        let ctx = audioCtxRef.current;
+        if (!ctx) {
+          ctx = new AudioContext();
+          audioCtxRef.current = ctx;
+        }
+        // Created/resumed inside the click gesture → satisfies autoplay policy
+        if (ctx.state === 'suspended') void ctx.resume();
+
+        // ~30ms pad each side so onset/coda isn't clipped, clamped to the buffer
+        const PAD = 0.03;
+        const from = Math.max(0, start - PAD);
+        const to = Math.min(buf.duration, end + PAD);
+        const dur = Math.max(0, to - from);
+
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(ctx.destination);
+        src.onended = () => {
+          if (wordSourceRef.current === src) stopWordPreview();
+        };
+        wordSourceRef.current = src;
+        paintRegion(start, end);
+        src.start(0, from, dur); // the duration arg is the sample-accurate stop
       },
     }));
 

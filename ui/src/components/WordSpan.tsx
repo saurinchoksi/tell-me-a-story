@@ -15,6 +15,7 @@ interface WordSpanProps {
   wordIndex: number;
   dominantSpeaker: string | null;
   onSeek: (time: number) => void;
+  onPlayWord: (start: number, end: number) => void;
   onContextMenu: (e: React.MouseEvent, segmentIndex: number, wordIndex: number) => void;
   onHoverRange?: (start: number, end: number) => void;
   onHoverEnd?: () => void;
@@ -26,6 +27,7 @@ export default function WordSpan({
   wordIndex,
   dominantSpeaker,
   onSeek,
+  onPlayWord,
   onContextMenu,
   onHoverRange,
   onHoverEnd,
@@ -45,6 +47,7 @@ export default function WordSpan({
     `dur: ${(word.end - word.start).toFixed(2)}s`,
     speakerLabel ? `${speakerLabel} (${(word._speaker?.coverage ?? 0).toFixed(2)})` : 'no speaker',
     hasCorrection ? `was: "${word._original}"` : null,
+    '⌥-click: play just this word',
   ].filter(Boolean).join(' | ');
 
   return (
@@ -61,7 +64,14 @@ export default function WordSpan({
       data-start={word.start}
       data-end={word.end}
       data-tooltip={tooltip}
-      onClick={() => onSeek(word.start)}
+      onClick={(e) => {
+        if (e.altKey) {
+          e.preventDefault();
+          onPlayWord(word.start, word.end);
+        } else {
+          onSeek(word.start);
+        }
+      }}
       onContextMenu={(e) => onContextMenu(e, segmentIndex, wordIndex)}
       onMouseEnter={() => onHoverRange?.(word.start, word.end)}
       onMouseLeave={() => onHoverEnd?.()}
