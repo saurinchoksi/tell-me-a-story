@@ -15,11 +15,22 @@ Safety:
     (this is the single check that protects every EMP axial label),
   - atomic write (tmp + os.replace) — the file ends fully updated or untouched.
 
+By default it targets transcript-rich.json. Pass --target raw to instead realign
+transcript-raw.json in place — the one-time backfill that bakes corrected timings
+(and rescued M11 words) into raw so it agrees with rich. This matters because word
+realignment now runs BEFORE the raw snapshot in run_pipeline (it's transcript repair,
+not enrichment), so a --re-enrich no longer realigns; an un-backfilled raw with pruned
+words would let the normalization text-heal rebuild `text` from the incomplete words[],
+erasing the rescued words. The (id, text) signature guard makes the backfill safe on
+coded sessions too (realign never touches text).
+
 Dry-run by default (shows stats + the safety check); pass --write to commit.
 
-    venv/bin/python src/realign_session.py 20251207-195607            # preview
-    venv/bin/python src/realign_session.py 20251207-195607 --write    # commit
-    venv/bin/python src/realign_session.py --write                    # all sessions
+    venv/bin/python src/realign_session.py 20251207-195607            # preview (rich)
+    venv/bin/python src/realign_session.py 20251207-195607 --write    # commit (rich)
+    venv/bin/python src/realign_session.py --write                    # all sessions (rich)
+    venv/bin/python src/realign_session.py --target raw               # preview raw backfill
+    venv/bin/python src/realign_session.py --target raw --write       # commit raw backfill (all)
 
 After a --write, re-run the regenerable derivatives (they are deliberately not
 synced and safe to regenerate against the new word timings):
@@ -46,10 +57,10 @@ SESSIONS = ROOT / "sessions"
 BACKUP_SIDECARS = ("axial-labels.json", "validation-notes.json")
 
 
-def discover(args):
+def discover(args, filename):
     if args:
         return args
-    return sorted((p.parent.name for p in SESSIONS.glob("*/transcript-rich.json")),
+    return sorted((p.parent.name for p in SESSIONS.glob(f"*/{filename}")),
                   reverse=True)
 
 
@@ -62,11 +73,11 @@ def id_signature(transcript):
     return [(s.get("id"), s.get("text")) for s in transcript.get("segments", [])]
 
 
-def process(sid, bundle, write, tag):
+def process(sid, bundle, write, tag, filename, with_sidecars):
     sdir = SESSIONS / sid
-    path = sdir / "transcript-rich.json"
+    path = sdir / filename
     if not path.exists():
-        print(f"  {sid}: no transcript-rich.json — skipped")
+        print(f"  {sid}: no {filename} — skipped")
         return None
     audio_files = sorted(sdir.glob("audio.*"))
     if not audio_files:
@@ -91,7 +102,8 @@ def process(sid, bundle, write, tag):
           f"skipped={stats['skipped']} / {stats['segments']} segs  [ids preserved ✓]")
 
     if write:
-        for name in ("transcript-rich.json", *BACKUP_SIDECARS):
+        backup_names = [filename] + (list(BACKUP_SIDECARS) if with_sidecars else [])
+        for name in backup_names:
             src = sdir / name
             if src.exists():
                 shutil.copy2(src, sdir / f"{name}.pre-{tag}-{stamp()}")
@@ -106,17 +118,23 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("sessions", nargs="*", help="session ids (default: all)")
     ap.add_argument("--write", action="store_true", help="commit (default: dry-run)")
+    ap.add_argument("--target", choices=["rich", "raw"], default="rich",
+                    help="which transcript to realign in place (default: rich; "
+                         "'raw' is the one-time backfill so raw agrees with rich)")
     ap.add_argument("--tag", default="realign")
     args = ap.parse_args()
 
-    sids = discover(args.sessions)
+    filename = "transcript-raw.json" if args.target == "raw" else "transcript-rich.json"
+    with_sidecars = args.target == "rich"
+
+    sids = discover(args.sessions, filename)
     mode = "WRITE" if args.write else "DRY-RUN"
-    print(f"[{mode}] realigning {len(sids)} session(s)\nloading aligner...")
+    print(f"[{mode}] realigning {filename} in {len(sids)} session(s)\nloading aligner...")
     bundle = load_aligner()
 
     results = []
     for sid in sids:
-        r = process(sid, bundle, args.write, args.tag)
+        r = process(sid, bundle, args.write, args.tag, filename, with_sidecars)
         if r:
             results.append(r)
 

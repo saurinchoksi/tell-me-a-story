@@ -87,9 +87,9 @@ Audio flows through stages:
 3. **speaker.py** — Pure data transforms: speaker labeling + gap detection. No torch/pyannote imports.
 
 4. **pipeline.py** — Orchestrates all stages:
-   - `run_pipeline()` — runs transcription, diarization, enrichment
-   - `enrich_transcript()` — runs five enrichment passes:
-     - **Word realignment / Pass 0** (`realign.py`, TMAS-54) — torchaudio MMS_FA forced alignment re-times each segment's words from its trusted `text`, fixing Whisper's segment-initial drift and rescuing the real words `clean_transcript` dropped (Mode 11). Runs FIRST so the speaker/gap passes below key off corrected timings. Skipped when no session audio is reachable (so it's inert in unit tests). Retroactive equivalent for existing sessions: `realign_session.py` (surgical, id-preserving).
+   - `run_pipeline()` — runs transcription, word realignment, diarization, enrichment
+   - **Word realignment** (`realign_words()` → `realign.py`, TMAS-54) — torchaudio MMS_FA forced alignment re-times each segment's words from its trusted `text`, fixing Whisper's segment-initial drift and rescuing the real words `clean_transcript` dropped (Mode 11). It is transcript *repair*, not enrichment: `run_pipeline` runs it right after `clean_transcript` and **before the raw snapshot**, so `transcript-raw.json` and `transcript-rich.json` agree on timings and `--re-enrich` reuses the corrected timings instead of re-running this deterministic aligner. Runs before `diarize()` too — the two are independent (both need only the audio). One-time backfill / retroactive fix for existing sessions: `realign_session.py` (surgical, id-preserving; `--target raw` bakes corrected timings into `transcript-raw.json`).
+   - `enrich_transcript()` — runs the interpretive enrichment passes:
      - **Diarization enrichment** (`speaker.py`) — Adds `_speaker` labels to each word by temporal overlap
      - **Gap detection** (`speaker.py`) — Injects `[unintelligible]` segments where speaker detected but no transcript
      - **LLM normalization** (`normalize.py`) — MLX-LM/Qwen3-8B corrects phonetic mishearings of proper nouns (subprocess isolates GPU memory from pyannote to prevent OOM). Generic by default; content-specific prompts passed explicitly.

@@ -64,51 +64,10 @@ def enrich_transcript(
     llm_count = 0
     dict_count = 0
 
-    # Pass 0: Forced-alignment word realignment (TMAS-54). Runs FIRST so every
-    # downstream pass (per-word speaker labels, gap detection, dominant speaker)
-    # keys off corrected word timings. Needs the session audio (located via
-    # cache_dir); when audio isn't available the pass is skipped with no
-    # processing entry, so enrichment unit tests that run without audio are
-    # unaffected. Aligns from segment text, so it also rescues the TMAS-53
-    # zero-duration words clean_transcript pruned from words[] but not from text.
-    audio_path = None
-    if cache_dir is not None:
-        audio_path = next(iter(sorted(Path(cache_dir).glob("audio.*"))), None)
-    if audio_path is not None:
-        started_at = datetime.now(timezone.utc).isoformat()
-        try:
-            t0 = time.monotonic()
-            import numpy as np
-            from realign import load_aligner, realign_transcript
-            from mlx_whisper.audio import load_audio
-            audio = np.array(load_audio(str(audio_path))).astype(np.float32)
-            transcript, realign_stats = realign_transcript(
-                transcript, audio, load_aligner())
-            processing.append({
-                "stage": "word_realignment",
-                "model": "torchaudio-MMS_FA",
-                "status": "success",
-                "started_at": started_at,
-                "duration_seconds": round(time.monotonic() - t0, 2),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                **{k: realign_stats[k] for k in
-                   ("realigned", "rescued", "rescued_words", "guarded", "skipped")},
-            })
-            if verbose:
-                logger.info(
-                    f"Word realignment: {realign_stats['realigned']} realigned, "
-                    f"{realign_stats['rescued']} rescued "
-                    f"(+{realign_stats['rescued_words']} words), "
-                    f"{realign_stats['guarded']} guarded")
-        except Exception as e:
-            logger.warning(f"Word realignment failed: {e}")
-            processing.append({
-                "stage": "word_realignment",
-                "status": "error",
-                "error": str(e),
-                "started_at": started_at,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
+    # Word realignment (transcript repair) now runs in run_pipeline BEFORE the raw
+    # snapshot — see realign_words() — so enrich_transcript holds only interpretive
+    # passes. On --re-enrich, transcript-raw.json already carries corrected timings,
+    # so the passes below key off them without re-running the deterministic aligner.
 
     # Pass 1: Diarization enrichment
     try:
@@ -337,6 +296,57 @@ def save_computed(session_dir: str, transcript_raw: dict, transcript: dict, diar
         json.dump(diarization, f, indent=2)
 
 
+def realign_words(transcript: dict, audio_path: str, verbose: bool = True) -> tuple[dict, dict]:
+    """Forced-alignment word realignment — transcript repair, not enrichment (TMAS-54).
+
+    Re-times each segment's words from its trusted `text`, fixing Whisper's
+    segment-initial drift and rescuing the words `clean_transcript` pruned from
+    `words[]` but kept in `text`. Runs in run_pipeline as part of transcript
+    cleanup (right after clean_transcript, BEFORE the raw snapshot) so
+    transcript-raw.json and transcript-rich.json agree on timings, and --re-enrich
+    reuses the corrected timings instead of re-running this deterministic aligner.
+
+    Independent of diarization — both consume only the audio; neither reads the
+    other's output. A failure is caught and recorded in the returned entry
+    (status='error') without aborting the run.
+
+    Returns (transcript, processing_entry).
+    """
+    started_at = datetime.now(timezone.utc).isoformat()
+    t0 = time.monotonic()
+    try:
+        import numpy as np
+        from realign import load_aligner, realign_transcript
+        from mlx_whisper.audio import load_audio
+        audio = np.array(load_audio(str(audio_path))).astype(np.float32)
+        transcript, stats = realign_transcript(transcript, audio, load_aligner())
+        entry = {
+            "stage": "word_realignment",
+            "model": "torchaudio-MMS_FA",
+            "status": "success",
+            "started_at": started_at,
+            "duration_seconds": round(time.monotonic() - t0, 2),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **{k: stats[k] for k in
+               ("realigned", "rescued", "rescued_words", "guarded", "skipped")},
+        }
+        if verbose:
+            logger.info(
+                f"Word realignment: {stats['realigned']} realigned, "
+                f"{stats['rescued']} rescued (+{stats['rescued_words']} words), "
+                f"{stats['guarded']} guarded")
+    except Exception as e:
+        logger.warning(f"Word realignment failed: {e}")
+        entry = {
+            "stage": "word_realignment",
+            "status": "error",
+            "error": str(e),
+            "started_at": started_at,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+    return transcript, entry
+
+
 def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None) -> dict:
     """Run full pipeline on an audio file.
 
@@ -375,6 +385,14 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     raw_transcript = transcribe(audio_path, model=TRANSCRIPTION_MODEL)
     transcript = clean_transcript(raw_transcript)
     transcription_duration = round(time.monotonic() - t0, 2)
+
+    # Word realignment — the final step of transcript cleanup (transcribe → clean →
+    # realign). Runs BEFORE the raw snapshot so transcript-raw carries corrected
+    # timings, and before diarize() (the two are independent). See realign_words().
+    if verbose:
+        print("\nRealigning word timings...")
+    transcript, realignment_entry = realign_words(transcript, audio_path, verbose=verbose)
+
     transcript_raw = copy.deepcopy(transcript)
 
     transcription_entry = make_transcription_entry(compute_file_hash(audio_path), transcript_time)
@@ -438,7 +456,7 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
     # Fold audio info into enriched transcript
     transcript["audio"] = audio_info
 
-    processing = [transcription_entry, diarization_entry] + enrichment_processing
+    processing = [transcription_entry, realignment_entry, diarization_entry] + enrichment_processing
     if embedding_entry is not None:
         processing.append(embedding_entry)
     transcript["_processing"] = processing

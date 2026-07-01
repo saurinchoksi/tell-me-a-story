@@ -185,6 +185,38 @@ def test_enrich_skips_dictionary_when_no_library():
     mock_load_lib.assert_not_called()
 
 
+def test_enrich_does_not_realign(tmp_path):
+    """Realignment left the enrichment loop: enrich_transcript emits no word_realignment
+    stage and never re-times words — so --re-enrich reuses transcript-raw's corrected
+    timings, even when a session audio file sits in cache_dir."""
+    transcript = {"segments": [{
+        "id": 0, "text": " hello world",
+        "words": [
+            {"word": " hello", "start": 0.11, "end": 0.52, "probability": 0.9, "_align_conf": 0.88},
+            {"word": " world", "start": 0.52, "end": 1.03, "probability": 0.8, "_align_conf": 0.91},
+        ],
+    }]}
+    before = copy.deepcopy(transcript["segments"][0]["words"])
+    diarization = {"segments": []}
+    (tmp_path / "audio.m4a").write_bytes(b"not real audio")  # present but must be ignored
+
+    diar_entry = {"stage": "diarization_enrichment"}
+    gap_entry = {"stage": "gap_detection", "gaps_found": 0}
+    llm_entry = {"stage": "llm_normalization", "model": "m", "status": "success",
+                 "from_cache": False, "timestamp": "t"}
+    with patch("pipeline.llm_normalize", return_value=([], llm_entry)), \
+         patch("pipeline.extract_text", return_value="hello world"), \
+         patch("pipeline.apply_corrections", return_value=(transcript, 0)), \
+         patch("pipeline.segment_transcript", return_value=[]), \
+         patch("pipeline.enrich_with_diarization", side_effect=lambda t, d: (t, diar_entry)), \
+         patch("pipeline.detect_unintelligible_gaps", side_effect=lambda t, d: (t, gap_entry)):
+        result, processing, _ = enrich_transcript(
+            transcript, diarization, cache_dir=tmp_path, verbose=False)
+
+    assert not any(p["stage"] == "word_realignment" for p in processing)
+    assert result["segments"][0]["words"] == before  # timings untouched by enrichment
+
+
 def test_enrich_passes_cache_dir_to_llm_normalize(tmp_path):
     """enrich_transcript threads cache_dir through to llm_normalize, so a re-enrich can
     reuse the cached corrections instead of reloading the model."""

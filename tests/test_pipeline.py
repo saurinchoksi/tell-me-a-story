@@ -129,6 +129,8 @@ def _apply_pipeline_mocks(stack, **overrides):
     defaults = {
         "transcribe": MagicMock(return_value=copy.deepcopy(_FAKE_TRANSCRIPT)),
         "clean_transcript": MagicMock(side_effect=lambda x: x),
+        "realign_words": MagicMock(side_effect=lambda t, p, verbose=True: (
+            t, {"stage": "word_realignment", "model": "torchaudio-MMS_FA", "status": "success"})),
         "diarize": MagicMock(return_value={"segments": []}),
         "get_audio_info": MagicMock(return_value={"duration": 10.0}),
         "compute_file_hash": MagicMock(return_value="sha256:fake"),
@@ -166,7 +168,7 @@ def test_pipeline_both_normalizations_succeed():
         result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 7
+    assert len(processing) == 8
 
     transcription = _find_stage(processing, "transcription")
     assert transcription["status"] == "success"
@@ -226,7 +228,7 @@ def test_pipeline_llm_fails_dictionary_continues():
         result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 7
+    assert len(processing) == 8
 
     llm_entry = _find_stage(processing, "llm_normalization")
     assert llm_entry["status"] == "error"
@@ -261,7 +263,7 @@ def test_pipeline_empty_corrections():
         result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 7
+    assert len(processing) == 8
 
     assert _find_stage(processing, "llm_normalization")["status"] == "success"
     assert _find_stage(processing, "llm_normalization")["corrections_applied"] == 0
@@ -296,7 +298,7 @@ def test_pipeline_diarization_enrichment_succeeds():
         result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 7
+    assert len(processing) == 8
 
     enrichment_entry = _find_stage(processing, "diarization_enrichment")
     assert enrichment_entry["status"] == "success"
@@ -324,7 +326,7 @@ def test_pipeline_diarization_enrichment_fails_gracefully():
         result = run_pipeline("/fake/20260101-120000/audio.m4a", verbose=False)
 
     processing = result["transcript"]["_processing"]
-    assert len(processing) == 7
+    assert len(processing) == 8
 
     enrichment_entry = _find_stage(processing, "diarization_enrichment")
     assert enrichment_entry["status"] == "error"
@@ -481,6 +483,7 @@ def test_pipeline_processing_stage_order():
     stages = [e["stage"] for e in result["transcript"]["_processing"]]
     assert stages == [
         "transcription",
+        "word_realignment",
         "diarization",
         "diarization_enrichment",
         "gap_detection",
@@ -488,3 +491,39 @@ def test_pipeline_processing_stage_order():
         "dictionary_normalization",
         "embedding_extraction",
     ]
+
+
+def test_pipeline_realign_runs_before_raw_snapshot():
+    """Realignment runs before the raw snapshot, so transcript-raw.json carries the
+    corrected word timings (raw and rich agree) — and before diarization."""
+    def fake_realign(transcript, audio_path, verbose=True):
+        # Mark every word as realigned so we can detect the snapshot ordering.
+        for seg in transcript["segments"]:
+            for wd in seg["words"]:
+                wd["_align_conf"] = 0.9
+        return transcript, {"stage": "word_realignment",
+                            "model": "torchaudio-MMS_FA", "status": "success"}
+
+    enrichment_processing = [
+        {"stage": "diarization_enrichment", "status": "success"},
+        {"stage": "gap_detection", "gaps_found": 0, "status": "success"},
+        {"stage": "llm_normalization", "status": "success", "corrections_applied": 0},
+        {"stage": "dictionary_normalization", "status": "success", "corrections_applied": 0},
+    ]
+    with contextlib.ExitStack() as stack:
+        _apply_pipeline_mocks(
+            stack,
+            realign_words=MagicMock(side_effect=fake_realign),
+            enrich_transcript=MagicMock(
+                return_value=(copy.deepcopy(_FAKE_TRANSCRIPT), enrichment_processing,
+                              {"llm_count": 0, "dict_count": 0})
+            ),
+        )
+        result = run_pipeline("/sessions/20260401-120000/audio.m4a", verbose=False)
+
+    # The raw snapshot was taken AFTER realign, so it carries the _align_conf marks.
+    raw_words = result["transcript_raw"]["segments"][0]["words"]
+    assert raw_words and all("_align_conf" in w for w in raw_words)
+
+    stages = [e["stage"] for e in result["transcript"]["_processing"]]
+    assert stages.index("word_realignment") < stages.index("diarization")
