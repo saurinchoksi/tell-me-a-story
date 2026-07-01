@@ -4,9 +4,13 @@ Newest at top. Only the changes that actually shaped the project, written plainl
 
 *Claude Code drafts these from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-07-01 — Hold Option to hear just one word
+
+When I click a word in the reviewer it plays from there and keeps going, which is what I want when I'm listening through a stretch. But often I just want to hear one word by itself, to check whether Whisper got it right. So now if I hold Option while I click, it plays only that word and stops clean, even a fast little word like "to" or "it" that used to get clipped off at the end. A plain click still plays on from where I clicked, same as before.
+
 ## 2026-06-30 — Re-timed every word so I can click one and hear it
 
-Whisper's word timings were off in a consistent way: it marked a word as starting back in the silence, before anyone actually spoke. The opening "Okay," was tagged at 1.70 seconds, but my daughter doesn't say it until 2.06. So I lined every word back up against the audio, matching the words I already trust to where each one really lands. The same pass brought back real words an earlier cleanup step had been quietly deleting, like the "you believe" missing from "Can you believe that?". Now I can click any word in the reviewer and hear exactly that word, only that word.
+Whisper's word timings were off in a consistent way: it marked a word as starting back in the silence, before anyone actually spoke. The opening "Okay," was tagged at 1.70 seconds, but my daughter doesn't say it until 2.06. So I lined every word back up against the audio, matching the words I already trust to where each one really lands. The same pass brought back real words an earlier cleanup step had been quietly deleting, like the "you believe" missing from "Can you believe that?". Now clicking a word in the reviewer lands right on it, instead of a beat early.
 
 ## 2026-06-29 — Checked the canon name-checker on recordings it had never seen
 
