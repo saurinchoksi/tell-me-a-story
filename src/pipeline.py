@@ -19,7 +19,6 @@ from diarize import diarize
 from embeddings import load_embedding_model, extract_speaker_embeddings, save_embeddings, MODEL as EMBEDDING_MODEL
 from speaker import enrich_with_diarization, detect_unintelligible_gaps, DIARIZATION_MODEL
 from mutagen import File as MutagenFile
-from normalize import llm_normalize, MODEL as LLM_MODEL
 from dictionary import load_library, build_variant_map, normalize_variants, make_processing_entry as make_dictionary_entry
 from corrections import extract_text, apply_corrections
 # Story segmentation runs on Qwen3.5 (5/5 story counts, 0.86->0.94 region overlap vs Gemma;
@@ -42,8 +41,8 @@ def enrich_transcript(
 ) -> tuple[dict, list[dict], dict]:
     """Run all enrichment stages on a transcript.
 
-    Runs diarization enrichment, gap detection, LLM normalization, and
-    dictionary normalization in sequence. Each stage is wrapped in
+    Runs diarization enrichment, gap detection, and dictionary
+    normalization in sequence. Each stage is wrapped in
     try/except so failures are recorded but don't block subsequent stages.
 
     Does NOT set _processing on the transcript — the caller assembles that.
@@ -58,10 +57,9 @@ def enrich_transcript(
     Returns:
         Tuple of (enriched_transcript, processing_entries, counts_dict).
         processing_entries: list of stage dicts for _processing.
-        counts_dict: {"llm_count": N, "dict_count": M}.
+        counts_dict: {"dict_count": M}.
     """
     processing = []
-    llm_count = 0
     dict_count = 0
 
     # Word realignment (transcript repair) now runs in run_pipeline BEFORE the raw
@@ -108,29 +106,13 @@ def enrich_transcript(
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
-    # Pass 3: LLM normalization
-    try:
-        started_at = datetime.now(timezone.utc).isoformat()
-        t0 = time.monotonic()
-        text = extract_text(transcript)
-        llm_corrections, llm_entry = llm_normalize(text, model=LLM_MODEL, cache_dir=cache_dir)
-        transcript, llm_count = apply_corrections(transcript, llm_corrections, "llm")
-        llm_entry["corrections_applied"] = llm_count
-        llm_entry["started_at"] = started_at
-        llm_entry["duration_seconds"] = round(time.monotonic() - t0, 2)
-        processing.append(llm_entry)
-        if verbose:
-            logger.info(f"LLM normalization: {llm_count} corrections applied")
-    except Exception as e:
-        logger.warning(f"LLM normalization failed: {e}")
-        processing.append({
-            "stage": "llm_normalization",
-            "model": LLM_MODEL,
-            "status": "error",
-            "error": str(e),
-            "started_at": started_at,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+    # (Removed 2026-07-01) The world-blind LLM normalizer (Qwen3-8B) used to run here as
+    # Pass 3. Confirmed by ear to substitute wrong names — it mapped the child's "Fondos"
+    # (the Pandavas) onto "Bhishma" (a different, enemy-side character) — so it was removed;
+    # the transcript now carries the honest Whisper words. Its world-grounded replacement
+    # (segment -> recognize world -> correct only within that world's cast, on Qwen3.5-4B)
+    # slots in AFTER story segmentation and is tracked in the plan. Dropping this pass also
+    # drops the 8B model, making the pipeline single-model on Qwen3.5-4B (8GB-machine safe).
 
     # Pass 4: Dictionary normalization
     lib_path = library_path or _DEFAULT_LIBRARY_PATH
@@ -209,7 +191,7 @@ def enrich_transcript(
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             })
 
-    return transcript, processing, {"llm_count": llm_count, "dict_count": dict_count}
+    return transcript, processing, {"dict_count": dict_count}
 
 
 def get_audio_info(filepath: str) -> dict | None:
@@ -640,7 +622,6 @@ if __name__ == "__main__":
 
         print(f"\nSaved to: {session_dir}/transcript-rich.json")
         print(f"  Enrichment: {enrich_duration}s")
-        print(f"  LLM corrections: {counts['llm_count']}")
         print(f"  Dictionary corrections: {counts['dict_count']}")
     else:
         # Full pipeline mode
