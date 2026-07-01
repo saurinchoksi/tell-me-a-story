@@ -239,25 +239,29 @@ def client(tmp_path):
 
 **Changelog entries** (`changelog.md`): a curated highlights reel of the project, not a diary. Adding or editing an entry → follow the **`changelog` skill**, the single source of truth for its voice, structure, and what earns an entry. (Exact diffs live in git history.)
 
-## Linear Handoff Protocol
+## Linear Protocol
 
-Linear handles task tracking for most TMAS work. **The EMP (Evals Mini Project) is an exception: it is doc-canonical via `/Users/choksi/dev/tell-me-a-story/emp/emp.md`** — no parallel Linear maintenance during in-progress work. Create a Linear ticket for EMP work only at ship-time, when the write-up is ready to ship.
+Linear is the planning + backlog record for TMAS, and **Claude owns the full ticket lifecycle — open, update, and close.** Choksi is never obligated to touch Linear; he uses it only to drop the occasional mobile idea. When work needs his sign-off — an ear-check, a taste call, anything outward-facing Claude can't verify itself — that sign-off happens **in chat**, and Claude reflects it into Linear and closes the ticket. There is no "Choksi closes it in Linear" step.
+
+**The EMP is an exception:** it is doc-canonical via `/Users/choksi/dev/tell-me-a-story/emp/emp.md` — no parallel Linear maintenance during in-progress work. Create a Linear ticket for EMP work only at ship-time, when the write-up is ready to ship.
 
 For all other TMAS work:
 
-**Status flow:** Backlog → In Progress → In Review → Done
+**Status flow:** Backlog → In Progress → (In Review) → Done
 
 **When picking up a task:**
 - Move ticket to In Progress
 - Read the full description — Context, Goal, Intent, Desired Result, References
 
-**When implementation is complete — in this order:**
-1. Add a comment to the ticket with:
+**When implementation is complete:**
+1. Add a comment as the durable record (this is what makes the ticket useful for re-orientation later):
    - **Outcome:** What was built, what changed, key results
-   - **Surfaced:** Surprises, decisions made, open questions, anything worth flagging in review
-2. Move ticket to **In Review**
+   - **Surfaced:** Surprises, decisions made, open questions, follow-ons
+2. Set the status:
+   - **Needs Choksi's sign-off** — something Claude can't verify by itself (ear-check, taste, outward-facing): move to **In Review** and say so in chat. When he confirms there, Claude moves it to **Done**.
+   - **Fully verified by Claude** (tests/typecheck/behavior confirmed, nothing only-he-can-judge): Claude closes it **Done** directly.
 
-The comment is the briefing for Choksi's review — write it first so the review has full context. A ticket moved to In Review without this comment is incomplete. **Choksi** reviews and closes the ticket; there is no Desktop hand-off. **Never** move a ticket straight from In Progress to Done — always go through In Review first.
+Write the Outcome/Surfaced comment before closing either way — it is the record, not a review hand-off.
 
 **Ticket description format:**
 ```
