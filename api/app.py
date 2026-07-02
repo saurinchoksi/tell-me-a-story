@@ -51,6 +51,7 @@ def create_app(sessions_dir=None, profiles_path=None, detectors=None) -> Flask:
     from api.routes.notes import bp as notes_bp
     from api.routes.axial_labels import bp as axial_labels_bp
     from api.routes.detections import bp as detections_bp
+    from api.routes.name_corrections import bp as name_corrections_bp
 
     app.register_blueprint(sessions_bp, url_prefix="/api")
     app.register_blueprint(profiles_bp, url_prefix="/api")
@@ -59,6 +60,7 @@ def create_app(sessions_dir=None, profiles_path=None, detectors=None) -> Flask:
     app.register_blueprint(notes_bp, url_prefix="/api")
     app.register_blueprint(axial_labels_bp, url_prefix="/api")
     app.register_blueprint(detections_bp, url_prefix="/api")
+    app.register_blueprint(name_corrections_bp, url_prefix="/api")
 
     return app
 

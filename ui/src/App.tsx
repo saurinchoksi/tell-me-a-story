@@ -6,6 +6,7 @@ import ProfileGallery from './pages/ProfileGallery';
 import ProfileDetail from './pages/ProfileDetail';
 import ValidatorPage from './pages/ValidatorPage';
 import Monitor from './pages/Monitor';
+import NameReview from './pages/NameReview';
 import SessionDetections from './pages/SessionDetections';
 import './App.css';
 
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/sessions/:id/speakers" element={<SessionSpeakers />} />
           <Route path="/sessions/:id/detections" element={<SessionDetections />} />
           <Route path="/monitor" element={<Monitor />} />
+          <Route path="/name-review" element={<NameReview />} />
           <Route path="/profiles" element={<ProfileGallery />} />
           <Route path="/profiles/:id" element={<ProfileDetail />} />
         </Route>

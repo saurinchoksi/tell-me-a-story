@@ -10,6 +10,7 @@ export default function Layout() {
           <NavLink to="/sessions">Sessions</NavLink>
           <NavLink to="/profiles">Profiles</NavLink>
           <NavLink to="/monitor">Monitor</NavLink>
+          <NavLink to="/name-review">Names</NavLink>
         </div>
       </nav>
       <main className="layout-main">

@@ -243,3 +243,23 @@
   color: var(--color-text-muted);
   margin: 0;
 }
+
+.monitor-name-banner {
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+}
+
+.monitor-name-banner a {
+  display: inline-block;
+  background: #fff6e6;
+  border: 1px solid #e0b25a;
+  border-radius: 8px;
+  padding: 0.3rem 0.8rem;
+  color: #8a5a00;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.monitor-name-banner a:hover {
+  background: #ffedcc;
+}

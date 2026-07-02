@@ -427,3 +427,36 @@ export interface ConfirmSpeakersResponse {
   created_profiles: string[];
   identifications: IdentificationData;
 }
+
+// --- Name-correction queue (namefix bless loop) ---
+
+export interface NameCorrectionOccurrence {
+  segment_id: number | string;
+  word_index: number;
+  start: number;
+  token: string;
+}
+
+export interface NameCorrectionSessionEntry {
+  session_id: string;
+  story_id: number;
+  occurrences: NameCorrectionOccurrence[];
+}
+
+export interface NameCorrectionItem {
+  heard: string;
+  heard_cleaned: string;
+  canonical: string;
+  method: string;
+  sessions: NameCorrectionSessionEntry[];
+}
+
+export interface NameCorrectionsWorld {
+  world: string;
+  names: NameCorrectionItem[];
+}
+
+export interface NameCorrectionsRollup {
+  n_pending_groups: number;
+  worlds: NameCorrectionsWorld[];
+}

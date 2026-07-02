@@ -252,3 +252,34 @@ export async function saveAxialLabels(
     body: JSON.stringify({ labels }),
   });
 }
+
+// --- Name-correction queue (namefix bless loop) ---
+
+import type { NameCorrectionsRollup } from '../types';
+
+export async function getNameCorrections(): Promise<NameCorrectionsRollup> {
+  return fetchJSON<NameCorrectionsRollup>('/api/name-corrections');
+}
+
+export async function blessNameCorrection(
+  sessionId: string,
+  heardCleaned: string,
+  canonical?: string,
+): Promise<{ status: string; applied_occurrences: number; n_pending: number }> {
+  return fetchJSON(`/api/sessions/${sessionId}/name-corrections/bless`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ heard_cleaned: heardCleaned, ...(canonical ? { canonical } : {}) }),
+  });
+}
+
+export async function rejectNameCorrection(
+  sessionId: string,
+  heardCleaned: string,
+): Promise<{ status: string; n_pending: number }> {
+  return fetchJSON(`/api/sessions/${sessionId}/name-corrections/reject`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ heard_cleaned: heardCleaned }),
+  });
+}

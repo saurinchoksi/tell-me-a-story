@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getDetectionsRollup, scanAllDetections } from '../api/client';
+import { getDetectionsRollup, scanAllDetections, getNameCorrections } from '../api/client';
 import { formatSessionDate, formatTime } from '../utils/time';
 import type { DetectionRunSummary, DetectionsRollup } from '../types';
 import './Monitor.css';
@@ -37,12 +37,17 @@ export default function Monitor() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [pendingNames, setPendingNames] = useState(0);
 
   useEffect(() => {
     getDetectionsRollup()
       .then(setRollup)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+    // the name-review queue count is additive info — a failure here never blocks the monitor
+    getNameCorrections()
+      .then((nc) => setPendingNames(nc.n_pending_groups))
+      .catch(() => {});
   }, []);
 
   async function handleRescanAll() {
@@ -89,6 +94,13 @@ export default function Monitor() {
           reads results, transcripts are never modified
         </p>
         {rollup.warning && <p className="monitor-warning">⚠ {rollup.warning}</p>}
+        {pendingNames > 0 && (
+          <p className="monitor-name-banner">
+            <Link to="/name-review">
+              {pendingNames} name{pendingNames === 1 ? '' : 's'} need your review →
+            </Link>
+          </p>
+        )}
       </div>
 
       <div className="monitor-cards">
