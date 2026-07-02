@@ -22,18 +22,16 @@ the report ("already coded") — this sweep's number is the UNCODED residue, so 
 double-counted against the existing failure-mode pivot.
 
 READ-ONLY. Committable summary (counts only, no transcript text) to
-emp/results/garbage-census/summary.md; per-session detail + check-by-ear cards (pre-cut
-clips — transcript text, so gitignored) to emp/results/visuals/<sid>/garbage-*.
+emp/results/garbage-census/summary.md; the ear-check page (earcheck lib: audio + verdict +
+"what I hear" saving to a co-edited sidecar) -> gitignored emp/results/visuals/.
 
-Usage: python emp/src/garbage_census.py [--cards N]
+Usage:
+    python emp/src/garbage_census.py [--cards N]
+    python emp/src/garbage_census.py --serve      # serve the card page with live saving
 """
 import argparse
-import base64
-import html
 import json
 import re
-import shutil
-import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -44,6 +42,14 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from filters import near_zero_probability  # noqa: E402
 from populate_mode10 import STRETCHES  # noqa: E402
+import earcheck  # noqa: E402
+
+SIDECAR = ROOT / "emp/results/visuals/garbage-hearings.json"
+PAGE = ROOT / "emp/results/visuals/garbage-census-earcheck.html"
+PICKS_PATH = ROOT / "emp/results/visuals/garbage-picks.json"
+CLIPDIR = ROOT / "emp/results/visuals/garbage-clips"
+SERVE_CMD = "python emp/src/garbage_census.py --serve"
+PORT = 8770
 
 NON_LATIN = re.compile(r"[^\x00-\x7f]")
 LATIN_LETTER = re.compile(r"[a-zA-Z]")
@@ -129,15 +135,30 @@ def census_session(session_dir: Path):
     return findings
 
 
-def cut_clip(session_dir: Path, start: float, end: float, out: Path):
-    ff = shutil.which("ffmpeg") or "ffmpeg"
-    frm = max(0.0, (start or 0) - 1.5)
-    dur = ((end or start or 0) - (start or 0)) + 1.5 + 1.0
-    cmd = [ff, "-y", "-ss", f"{frm:.3f}", "-i", str(session_dir / "audio.m4a"),
-           "-t", f"{dur:.3f}", "-ac", "1", "-ar", "22050", "-c:a", "libmp3lame",
-           "-q:a", "6", str(out)]
-    r = subprocess.run(cmd, capture_output=True, text=True)
-    return r.returncode == 0 and out.exists()
+def render_page() -> str:
+    """Ear-check page from the saved picks (earcheck lib: hear-box + verdicts — the
+    standing rule: every listening artifact takes 'what I hear')."""
+    picks = json.loads(PICKS_PATH.read_text())
+    cards = []
+    for i, f in enumerate(picks):
+        cid = f"{f['session']}-{f['segment_id']}-{f['start']:.1f}"
+        clip = earcheck.cut_clip_b64(ROOT / "sessions" / f["session"] / "audio.m4a",
+                                     f["start"], f.get("end") or f["start"],
+                                     CLIPDIR / f"g{i}.mp3")
+        cards.append({
+            "id": cid,
+            "header": f"{i+1}. [{earcheck.esc(f['cls'])}] {earcheck.esc(f['session'])} "
+                      f"seg {earcheck.esc(f['segment_id'])} @ {f['start']:.1f}s",
+            "body_html": f"transcript token: <span class='tok'>{earcheck.esc(f['token'])}</span>",
+            "clip": clip,
+            "verdicts": ["junk (nothing said)", "real speech, wrong token",
+                         "token is right", "can't tell"],
+        })
+    return earcheck.build_page(
+        "Garbage census: the worst uncoded finds",
+        "Mechanically-flagged non-name junk. Play each clip; type what you actually hear; "
+        "pick a verdict.",
+        cards, SIDECAR, SERVE_CMD)
 
 
 def main():
@@ -178,7 +199,7 @@ def main():
     (outdir / "summary.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 
-    # ---- check-by-ear cards for the worst N uncoded (script + repeat + zeroprob clusters, by duration) ----
+    # ---- pick the worst N uncoded (script + repeat + zeroprob, by duration), persist, page ----
     cands = []
     for sid, fs in all_findings.items():
         for f in fs:
@@ -190,40 +211,15 @@ def main():
     order = {"script": 0, "repeat": 1, "zeroprob": 2, "symbol": 3}
     cands.sort(key=lambda f: (order[f["cls"]], -f["span"]))
     picks = cands[:a.cards]
-
-    cards_html = ""
-    clipdir = ROOT / "emp/results/visuals/garbage-clips"
-    clipdir.mkdir(parents=True, exist_ok=True)
-    for i, f in enumerate(picks):
-        sdir = ROOT / "sessions" / f["session"]
-        clip = clipdir / f"g{i}.mp3"
-        ok = cut_clip(sdir, f["start"], f["end"], clip)
-        audio_tag = ""
-        if ok:
-            b = base64.b64encode(clip.read_bytes()).decode()
-            audio_tag = f'<audio controls preload="none" src="data:audio/mpeg;base64,{b}"></audio>'
-        cards_html += (f'<div class="card"><div class="h">{i+1}. [{f["cls"]}] '
-                       f'{esc(f["session"])} seg {esc(f["segment_id"])} @ {f["start"]:.1f}s</div>'
-                       f'<div class="tok">{esc(f["token"])}</div>{audio_tag}</div>')
-
-    page = ("<!doctype html><html><head><meta charset='utf-8'>"
-            "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-            "<title>Garbage census — check by ear</title><style>"
-            "body{font-family:-apple-system,sans-serif;max-width:640px;margin:0 auto;padding:16px;background:#fafafa}"
-            ".card{background:#fff;border-radius:12px;padding:12px 16px;margin:10px 0;box-shadow:0 1px 4px rgba(0,0,0,.08)}"
-            ".h{font-size:.78rem;color:#888}.tok{font-family:ui-monospace,monospace;font-weight:600;margin:.3em 0}"
-            "audio{width:100%}</style></head><body>"
-            "<h2>Non-name garbage: the worst uncoded finds</h2>"
-            "<p style='color:#666;font-size:.88rem'>Question per card: was anything really said here, "
-            "and is the transcript's token junk?</p>" + cards_html + "</body></html>")
-    out = ROOT / "emp/results/visuals/garbage-census-earcheck.html"
-    out.write_text(page)
-    print(f"\ncards: {out}")
-
-
-def esc(x):
-    return html.escape(str(x))
+    PICKS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    PICKS_PATH.write_text(json.dumps(picks, indent=2, ensure_ascii=False))
+    PAGE.write_text(render_page())
+    print(f"\npage: {PAGE} ({len(picks)} cards; serve: {SERVE_CMD})")
 
 
 if __name__ == "__main__":
-    main()
+    if "--serve" in sys.argv:
+        PAGE.write_text(render_page())
+        earcheck.serve(render_page, SIDECAR, PORT)
+    else:
+        main()

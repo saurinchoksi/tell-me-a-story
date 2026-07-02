@@ -15,16 +15,18 @@ the gap, and report per gap: recovered words or nothing. Ear-check cards (embedd
 for every gap that yielded words — a recovered phrase is only real once a human confirms it
 (the prompt can force text into noise; that is exactly what the cards test).
 
-READ-ONLY. Committable memo (counts only) -> emp/results/missed-speech-probe/summary.md;
-cards (transcript text + audio) -> emp/results/visuals/missed-speech-probe.html (gitignored).
+READ-ONLY on session data. Committable memo (counts only) ->
+emp/results/missed-speech-probe/summary.md; the ear-check page (earcheck lib: audio +
+verdict + "what I hear", saving to a co-edited sidecar) -> gitignored
+emp/results/visuals/missed-speech-probe.html. Probe rows persist to a JSON so the page
+regenerates without the GPU.
 
-Usage: python emp/src/missed_speech_probe.py [session ...]   (default: the 2 Mahabharata sessions)
+Usage:
+    python emp/src/missed_speech_probe.py [session ...]   # run the model (default: the 2 Mahabharata sessions)
+    python emp/src/missed_speech_probe.py --page-only     # rebuild the page from saved rows (no GPU)
+    python emp/src/missed_speech_probe.py --serve         # serve the page with live saving
 """
-import base64
-import html
 import json
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -36,12 +38,19 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from gap_analysis import find_gaps, load_session  # noqa: E402
 import worldcast  # noqa: E402
+import earcheck  # noqa: E402
 
 MODEL = "mlx-community/whisper-large-v3-mlx"
 MIN_GAP = 1.0     # same floor as the missed-speech sweep's default findings
 PAD = 1.0         # context each side of the gap
 
 DEFAULT_SESSIONS = ["20260117-202237", "20260211-210718"]  # both Mahabharata world
+ROWS_PATH = ROOT / "emp/results/visuals/missed-speech-rows.json"
+SIDECAR = ROOT / "emp/results/visuals/missed-speech-hearings.json"
+PAGE = ROOT / "emp/results/visuals/missed-speech-probe.html"
+CLIPDIR = ROOT / "emp/results/visuals/missed-speech-clips"
+SERVE_CMD = "python emp/src/missed_speech_probe.py --serve"
+PORT = 8769
 
 
 def mahabharata_prompt() -> str:
@@ -51,13 +60,29 @@ def mahabharata_prompt() -> str:
     return namefix.build_prompt("Mahabharata", cast)
 
 
-def cut_clip(sdir: Path, start: float, end: float, out: Path) -> bool:
-    ff = shutil.which("ffmpeg") or "ffmpeg"
-    frm = max(0.0, start - 1.5)
-    cmd = [ff, "-y", "-ss", f"{frm:.3f}", "-i", str(sdir / "audio.m4a"),
-           "-t", f"{end - frm + 1.0:.3f}", "-ac", "1", "-ar", "22050",
-           "-c:a", "libmp3lame", "-q:a", "6", str(out)]
-    return subprocess.run(cmd, capture_output=True).returncode == 0 and out.exists()
+def render_page() -> str:
+    """The ear-check page from the saved rows (no GPU). Every yielding gap = one card with
+    the candidate text, the clip, verdicts, and the "what I hear" box (the standing rule)."""
+    rows = json.loads(ROWS_PATH.read_text())
+    cards = []
+    for i, r in enumerate(y for y in rows if y["recovered"]):
+        cid = f"{r['session']}-{r['start']:.1f}"
+        clip = earcheck.cut_clip_b64(ROOT / "sessions" / r["session"] / "audio.m4a",
+                                     r["start"], r["end"], CLIPDIR / f"ms{i}.mp3")
+        cards.append({
+            "id": cid,
+            "header": f"{i+1}. {earcheck.esc(r['session'])} · {r['start']:.1f}–{r['end']:.1f}s "
+                      f"({r['dur']}s, {earcheck.esc(str(r['speaker']))})",
+            "body_html": f"re-decode heard: <span class='tok'>&ldquo;{earcheck.esc(r['recovered'])}&rdquo;</span>",
+            "clip": clip,
+            "verdicts": ["really said", "partly right", "not said", "can't tell"],
+        })
+    return earcheck.build_page(
+        "Missed-speech probe: candidate recoveries",
+        "Each stretch had a voice on the speaker-detector but NO transcript at all. The line "
+        "shown is what a context-primed re-listen produced. Play the clip; type what YOU hear; "
+        "pick a verdict.",
+        cards, SIDECAR, SERVE_CMD)
 
 
 def main(session_ids):
@@ -92,8 +117,7 @@ def main(session_ids):
                     if gs <= mid <= ge:
                         inside.append((w.get("word") or "").strip())
             rows.append({"session": sid, "start": gs, "end": ge, "dur": round(ge - gs, 2),
-                         "speaker": g.get("speaker"), "recovered": " ".join(inside),
-                         "sdir": sdir})
+                         "speaker": g.get("speaker"), "recovered": " ".join(inside)})
             print(f"    {gs:7.1f}-{ge:7.1f} ({ge-gs:4.1f}s) -> "
                   f"{' '.join(inside)[:60] or '(nothing)'}", file=sys.stderr)
 
@@ -122,31 +146,20 @@ def main(session_ids):
     (outdir / "summary.md").write_text("\n".join(memo) + "\n")
     print("\n".join(memo))
 
-    # ---- ear-check cards for every yielding gap ----
-    clipdir = ROOT / "emp/results/visuals/missed-speech-clips"
-    clipdir.mkdir(parents=True, exist_ok=True)
-    cards = ""
-    for i, r in enumerate(yielded):
-        clip = clipdir / f"ms{i}.mp3"
-        tag = ""
-        if cut_clip(r["sdir"], r["start"], r["end"], clip):
-            b = base64.b64encode(clip.read_bytes()).decode()
-            tag = f'<audio controls preload="none" src="data:audio/mpeg;base64,{b}"></audio>'
-        cards += (f'<div class="card"><div class="h">{i+1}. {html.escape(r["session"])} '
-                  f'{r["start"]:.1f}-{r["end"]:.1f}s ({r["dur"]}s, {html.escape(str(r["speaker"]))})</div>'
-                  f'<div class="tok">re-decode heard: &ldquo;{html.escape(r["recovered"])}&rdquo;</div>'
-                  f'{tag}<div class="q">Is that really said in the clip?</div></div>')
-    page = ("<!doctype html><html><head><meta charset='utf-8'>"
-            "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-            "<title>Missed-speech probe — ear check</title><style>"
-            "body{font-family:-apple-system,sans-serif;max-width:640px;margin:0 auto;padding:16px;background:#fafafa}"
-            ".card{background:#fff;border-radius:12px;padding:12px 16px;margin:10px 0;box-shadow:0 1px 4px rgba(0,0,0,.08)}"
-            ".h{font-size:.78rem;color:#888}.tok{font-family:ui-monospace,monospace;font-weight:600;margin:.3em 0}"
-            ".q{font-size:.84rem;color:#a67c00;margin-top:.4em}audio{width:100%}"
-            "</style></head><body><h2>Missed-speech probe: candidate recoveries</h2>" + cards + "</body></html>")
-    (ROOT / "emp/results/visuals/missed-speech-probe.html").write_text(page)
-    print(f"\ncards: emp/results/visuals/missed-speech-probe.html ({len(yielded)} yielding gaps)")
+    # ---- persist rows; build the ear-check page (earcheck lib: hear-box + verdicts) ----
+    ROWS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    ROWS_PATH.write_text(json.dumps(rows, indent=2, ensure_ascii=False))
+    PAGE.write_text(render_page())
+    print(f"\npage: {PAGE} ({len(yielded)} yielding gaps; serve: {SERVE_CMD})")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or DEFAULT_SESSIONS)
+    args = [a for a in sys.argv[1:] if not a.startswith("-")]
+    if "--serve" in sys.argv:
+        PAGE.write_text(render_page())
+        earcheck.serve(render_page, SIDECAR, PORT)
+    elif "--page-only" in sys.argv:
+        PAGE.write_text(render_page())
+        print(f"rebuilt {PAGE} from saved rows (no model run)")
+    else:
+        main(args or DEFAULT_SESSIONS)

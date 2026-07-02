@@ -132,3 +132,31 @@
   vertical-align: middle;
   accent-color: #2f9e44;
 }
+
+/* in-place clip playback */
+.name-occ-play {
+  border: 1px solid var(--color-border, #ccc);
+  background: var(--color-surface, #fff);
+  border-radius: 6px;
+  width: 1.7rem;
+  height: 1.45rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+  color: var(--color-accent, #A86840);
+}
+
+.name-occ-play:hover {
+  background: var(--color-accent-bg, rgba(168, 104, 64, 0.15));
+}
+
+/* session links: match the app palette instead of default browser blue */
+.name-occurrences a {
+  color: var(--color-text-muted, #5C5348);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--color-text-muted, #5C5348);
+}
+
+.name-occurrences a:hover {
+  color: var(--color-accent, #A86840);
+  border-bottom-color: var(--color-accent, #A86840);
+}

@@ -1,0 +1,159 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Review checklist — 0/8 done</title><style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:760px;margin:0 auto;padding:18px;background:#faf8f5;color:#1a1a1a;line-height:1.5}
+h1{font-size:1.3rem;margin:.2em 0}
+.sub{color:#666;font-size:.88rem;margin-bottom:1em}
+.card{background:#fff;border-radius:12px;padding:14px 16px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.07);border-left:5px solid #ccc}
+.card.k-ear{border-left-color:#4a90d9}.card.k-tap{border-left-color:#2f9e44}
+.card.k-eye{border-left-color:#a67c00}.card.k-edit{border-left-color:#8a5a3a}
+.card.s-done{opacity:.55}.card.s-skipped{opacity:.4}
+.head{display:flex;align-items:center;gap:.7rem}
+.kind{font-size:.78rem}.mins{font-size:.75rem;color:#888}
+.btns{margin-left:auto;display:flex;gap:.3rem}
+.st{font-size:.72rem;border:1px solid #ccc;background:#fff;border-radius:6px;padding:.15rem .5rem;cursor:pointer}
+.st.on.st-done{background:#2f9e44;color:#fff;border-color:#2f9e44}
+.st.on.st-pending{background:#a67c00;color:#fff;border-color:#a67c00}
+.st.on.st-skipped{background:#888;color:#fff;border-color:#888}
+.title{font-weight:700;margin:.35em 0 .2em}
+.what{font-size:.9rem}.why{font-size:.84rem;color:#555;margin:.3em 0}
+.where{font-size:.8rem;margin:.3em 0}code{background:#f3efe9;padding:.1em .4em;border-radius:4px}
+.note{width:100%;box-sizing:border-box;min-height:2.4em;border:1px solid #e5e0d8;border-radius:8px;padding:.4em .6em;font:inherit;font-size:.86rem;margin-top:.4em;background:#fffdf9}
+.stat{font-size:.72rem;color:#888;min-height:1em}.stat.warn{color:#a67c00}.stat.ok{color:#2f9e44}
+.progress{position:sticky;top:0;background:#faf8f5;padding:.4em 0;font-size:.9rem;font-weight:600;z-index:2}
+</style></head><body>
+<h1>What's waiting on you</h1>
+<p class="sub">The human-verdict queue from the name-fixer arc, roughly in leverage order. Statuses and notes save to <code>review-checklist-notes.json</code> when served (<code>python emp/src/review_checklist.py --serve</code>); Claude reads the same file, so your notes are the handoff.</p>
+<div class="progress" id="prog">0/8 done</div>
+
+<div class="card k-ear s-pending" id="card-missed-speech-cards">
+  <div class="head">
+    <span class="kind">🎧 listen</span>
+    <span class="mins">~10 min</span>
+    <div class="btns"><button class="st st-pending on" data-id="missed-speech-cards" data-status="pending">pending</button><button class="st st-done" data-id="missed-speech-cards" data-status="done">done</button><button class="st st-skipped" data-id="missed-speech-cards" data-status="skipped">skipped</button></div>
+  </div>
+  <div class="title">The 19 missed-speech recovery cards</div>
+  <div class="what">A context-primed re-listen produced words inside 19 of 20 stretches where the pipeline had NO transcript at all (“Vishma&#x27;s father was the king”, “met a woman and fell in love with her”). Each card: the candidate text + the audio. The call per card: is that really said?</div>
+  <div class="why"><b>Why:</b> If even half are real, this is the first traction ever on the dropped-speech problem (8 prior approaches recovered nothing) and becomes its own arc.</div>
+  <div class="where"><code>python emp/src/missed_speech_probe.py --serve  →  localhost:8769  (type what you hear per card; it saves)</code></div>
+  <textarea class="note" data-id="missed-speech-cards" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <div class="stat" data-id="missed-speech-cards"></div>
+</div>
+<div class="card k-tap s-pending" id="card-thomas-queue">
+  <div class="head">
+    <span class="kind">👆 taps</span>
+    <span class="mins">~3 min</span>
+    <div class="btns"><button class="st st-pending on" data-id="thomas-queue" data-status="pending">pending</button><button class="st st-done" data-id="thomas-queue" data-status="done">done</button><button class="st st-skipped" data-id="thomas-queue" data-status="skipped">skipped</button></div>
+  </div>
+  <div class="title">The Thomas night&#x27;s 6 queued names (incl. the invented engines)</div>
+  <div class="what">The gate wanted to write Jammus→Thomas and Jameis→Thomas; it was stopped and everything queued. Your taps decide: reject the invented-engine rewrites, rule on the other four (Thomas→Gordon, James→Thomas, Michael→Thomas, Sir→Thomas).</div>
+  <div class="why"><b>Why:</b> Clears the only session the rollout held back; confirms the queue handles the invented-copy class end to end.</div>
+  <div class="where"><code>cd ui &amp;&amp; npm run dev → http://localhost:5174/name-review  (▶ plays each spot in place now)</code></div>
+  <textarea class="note" data-id="thomas-queue" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <div class="stat" data-id="thomas-queue"></div>
+</div>
+<div class="card k-ear s-pending" id="card-garbage-cards">
+  <div class="head">
+    <span class="kind">🎧 listen</span>
+    <span class="mins">~8 min</span>
+    <div class="btns"><button class="st st-pending on" data-id="garbage-cards" data-status="pending">pending</button><button class="st st-done" data-id="garbage-cards" data-status="done">done</button><button class="st st-skipped" data-id="garbage-cards" data-status="skipped">skipped</button></div>
+  </div>
+  <div class="title">The 15 worst garbage-census finds</div>
+  <div class="what">Non-name junk the census flagged mechanically: the non-Latin hallucinations, stuck repeats, zero-confidence clusters. Per card: was anything really said, and is the token junk?</div>
+  <div class="why"><b>Why:</b> Your verdicts turn the census counts into the next arc&#x27;s ground truth (54 uncoded finds total).</div>
+  <div class="where"><code>python emp/src/garbage_census.py --serve  →  localhost:8770</code></div>
+  <textarea class="note" data-id="garbage-cards" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <div class="stat" data-id="garbage-cards"></div>
+</div>
+<div class="card k-edit s-pending" id="card-case-study-edit">
+  <div class="head">
+    <span class="kind">✍️ edit</span>
+    <span class="mins">~20 min</span>
+    <div class="btns"><button class="st st-pending on" data-id="case-study-edit" data-status="pending">pending</button><button class="st st-done" data-id="case-study-edit" data-status="done">done</button><button class="st st-skipped" data-id="case-study-edit" data-status="skipped">skipped</button></div>
+  </div>
+  <div class="title">Case-study draft: your edit pass</div>
+  <div class="what">The namefix eval story (Problem → Action → Result) drafted for the portfolio. My genuine first draft — cut and reshape freely; the before/after pair is already banked for the voice bible.</div>
+  <div class="why"><b>Why:</b> This is the EMP&#x27;s Sierra deliverable — the eval-frameworks evidence, ready when you are.</div>
+  <div class="where"><code>open emp/writeup/namefix-eval.html</code></div>
+  <textarea class="note" data-id="case-study-edit" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <div class="stat" data-id="case-study-edit"></div>
+</div>
+<div class="card k-eye s-pending" id="card-site-panel-read">
+  <div class="head">
+    <span class="kind">👀 read</span>
+    <span class="mins">~3 min</span>
+    <div class="btns"><button class="st st-pending on" data-id="site-panel-read" data-status="pending">pending</button><button class="st st-done" data-id="site-panel-read" data-status="done">done</button><button class="st st-skipped" data-id="site-panel-read" data-status="skipped">skipped</button></div>
+  </div>
+  <div class="title">Read the live “Fix names” panel</div>
+  <div class="what">The rewritten stage description on the TMAS page (present-tense, your voice rules, clean-room numbers in the lanes). Does it land as you?</div>
+  <div class="why"><b>Why:</b> It&#x27;s live on saurinchoksi.com; your final wording also completes the before/after voice pair.</div>
+  <div class="where"><code>https://saurinchoksi.com/portfolio/tell-me-a-story.html — Fix names stage</code></div>
+  <textarea class="note" data-id="site-panel-read" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <div class="stat" data-id="site-panel-read"></div>
+</div>
+<div class="card k-eye s-pending" id="card-changelog-approve">
+  <div class="head">
+    <span class="kind">👀 read</span>
+    <span class="mins">~1 min</span>
+    <div class="btns"><button class="st st-pending on" data-id="changelog-approve" data-status="pending">pending</button><button class="st st-done" data-id="changelog-approve" data-status="done">done</button><button class="st st-skipped" data-id="changelog-approve" data-status="skipped">skipped</button></div>
+  </div>
+  <div class="title">Changelog entry: “The new name-fixer listens instead of guessing”</div>
+  <div class="what">One entry covering the namefix arc, in the work-log voice.</div>
+  <div class="why"><b>Why:</b> The changelog header says you review and approve; it&#x27;s already live via the site&#x27;s changelog page.</div>
+  <div class="where"><code>changelog.md (top entry)</code></div>
+  <textarea class="note" data-id="changelog-approve" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <div class="stat" data-id="changelog-approve"></div>
+</div>
+<div class="card k-ear s-pending" id="card-rekey-heldouts">
+  <div class="head">
+    <span class="kind">🎧 listen</span>
+    <span class="mins">~30–45 min</span>
+    <div class="btns"><button class="st st-pending on" data-id="rekey-heldouts" data-status="pending">pending</button><button class="st st-done" data-id="rekey-heldouts" data-status="done">done</button><button class="st st-skipped" data-id="rekey-heldouts" data-status="skipped">skipped</button></div>
+  </div>
+  <div class="title">Re-mark the name-truth keys for both held-out sessions</div>
+  <div class="what">Fresh marking pages generated over the corrected/honest transcripts. Your by-ear pass rebuilds the answer keys the June scoring can no longer use.</div>
+  <div class="why"><b>Why:</b> Unblocks the deferred detector-dictionary migration (its ship-gate needs valid keys) and restores trustworthy precision numbers for M9c.</div>
+  <div class="where"><code>python emp/src/name_truth.py 20260211-210718 --serve  (then the same for 20260414-213156)</code></div>
+  <textarea class="note" data-id="rekey-heldouts" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <div class="stat" data-id="rekey-heldouts"></div>
+</div>
+<div class="card k-ear s-pending" id="card-pandavas-spotcheck">
+  <div class="head">
+    <span class="kind">🎧 listen</span>
+    <span class="mins">~3 min (optional)</span>
+    <div class="btns"><button class="st st-pending on" data-id="pandavas-spotcheck" data-status="pending">pending</button><button class="st st-done" data-id="pandavas-spotcheck" data-status="done">done</button><button class="st st-skipped" data-id="pandavas-spotcheck" data-status="skipped">skipped</button></div>
+  </div>
+  <div class="title">Spot-check the 7 applied fixes on the Pandavas night</div>
+  <div class="what">Yudhisthir→Yudhishthira and Pondavas→Pandavas were auto-applied to the coded session (invariants held, backup kept). You already gave it an ad-hoc listen (‘all looks well’) — the artifact makes it per-spot and durable.</div>
+  <div class="why"><b>Why:</b> Optional belt-and-suspenders — the same chain scored 0-wrong on the held-out.</div>
+  <div class="where"><code>python emp/src/namefix_spotcheck.py 20260117-202237 --serve  →  localhost:8771  (7 cards, one per applied fix)</code></div>
+  <textarea class="note" data-id="pandavas-spotcheck" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <div class="stat" data-id="pandavas-spotcheck"></div>
+</div>
+<script>
+const served = location.protocol.startsWith('http');
+function post(payload, statEl) {
+  if (!served) { if(statEl){statEl.textContent='⚠ run --serve to save';statEl.className='stat warn';} return; }
+  fetch('/save', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(r=>r.ok?r.json():Promise.reject())
+    .then(()=>{ if(statEl){statEl.textContent='saved';statEl.className='stat ok';setTimeout(()=>statEl.textContent='',1200);} })
+    .catch(()=>{ if(statEl){statEl.textContent='⚠ save failed';statEl.className='stat warn';} });
+}
+document.querySelectorAll('.st').forEach(b=>b.addEventListener('click',()=>{
+  const id=b.dataset.id, status=b.dataset.status;
+  const card=document.getElementById('card-'+id);
+  card.className=card.className.replace(/s-(pending|done|skipped)/,'s-'+status);
+  card.querySelectorAll('.st').forEach(x=>x.classList.toggle('on',x===b));
+  const done=document.querySelectorAll('.card.s-done').length;
+  document.getElementById('prog').textContent=done+'/8 done';
+  post({id:id, field:'status', value:status}, card.querySelector('.stat'));
+}));
+let timers={};
+document.querySelectorAll('.note').forEach(t=>t.addEventListener('input',()=>{
+  const id=t.dataset.id;
+  clearTimeout(timers[id]);
+  timers[id]=setTimeout(()=>post({id:id, field:'notes', value:t.value},
+    document.querySelector('.stat[data-id="'+id+'"]')), 600);
+}));
+</script>
+</body></html>

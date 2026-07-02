@@ -35,7 +35,7 @@ ITEMS = [
              "per card: is that really said?",
      "why": "If even half are real, this is the first traction ever on the dropped-speech "
             "problem (8 prior approaches recovered nothing) and becomes its own arc.",
-     "where": "open emp/results/visuals/missed-speech-probe.html"},
+     "where": "python emp/src/missed_speech_probe.py --serve  →  localhost:8769  (type what you hear per card; it saves)"},
     {"id": "thomas-queue", "kind": "tap", "mins": "~3 min",
      "title": "The Thomas night's 6 queued names (incl. the invented engines)",
      "what": "The gate wanted to write Jammus→Thomas and Jameis→Thomas; it was stopped and "
@@ -43,7 +43,7 @@ ITEMS = [
              "on the other four (Thomas→Gordon, James→Thomas, Michael→Thomas, Sir→Thomas).",
      "why": "Clears the only session the rollout held back; confirms the queue handles the "
             "invented-copy class end to end.",
-     "where": "cd ui && npm run dev → http://localhost:5174/name-review"},
+     "where": "cd ui && npm run dev → http://localhost:5174/name-review  (▶ plays each spot in place now)"},
     {"id": "garbage-cards", "kind": "ear", "mins": "~8 min",
      "title": "The 15 worst garbage-census finds",
      "what": "Non-name junk the census flagged mechanically: the non-Latin hallucinations, "
@@ -51,7 +51,7 @@ ITEMS = [
              "and is the token junk?",
      "why": "Your verdicts turn the census counts into the next arc's ground truth (54 "
             "uncoded finds total).",
-     "where": "open emp/results/visuals/garbage-census-earcheck.html"},
+     "where": "python emp/src/garbage_census.py --serve  →  localhost:8770"},
     {"id": "case-study-edit", "kind": "edit", "mins": "~20 min",
      "title": "Case-study draft: your edit pass",
      "what": "The namefix eval story (Problem → Action → Result) drafted for the portfolio. "
@@ -84,10 +84,10 @@ ITEMS = [
     {"id": "pandavas-spotcheck", "kind": "ear", "mins": "~3 min (optional)",
      "title": "Spot-check the 7 applied fixes on the Pandavas night",
      "what": "Yudhisthir→Yudhishthira and Pondavas→Pandavas were auto-applied to the coded "
-             "session (invariants held, backup kept). A quick listen at those spots confirms "
-             "the rollout on a second session.",
+             "session (invariants held, backup kept). You already gave it an ad-hoc listen "
+             "(‘all looks well’) — the artifact makes it per-spot and durable.",
      "why": "Optional belt-and-suspenders — the same chain scored 0-wrong on the held-out.",
-     "where": "validator: /sessions/20260117-202237/validate"},
+     "where": "python emp/src/namefix_spotcheck.py 20260117-202237 --serve  →  localhost:8771  (7 cards, one per applied fix)"},
 ]
 
 STATUSES = ["pending", "done", "skipped"]

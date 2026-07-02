@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useRef } from 'react';
 import {
   getNameCorrections,
   blessNameCorrection,
   rejectNameCorrection,
+  audioURL,
 } from '../api/client';
 import type { NameCorrectionOccurrence } from '../types';
 import { formatTime } from '../utils/time';
@@ -29,6 +31,43 @@ export default function NameReview() {
 
   const occKey = (sid: string, o: NameCorrectionOccurrence) =>
     `${sid}|${o.segment_id}|${o.word_index}`;
+
+  // Shared clip player (the SessionDetections pattern): one <audio> element; the source
+  // swaps to whichever session the clicked occurrence belongs to, seeks just before the
+  // word, and auto-stops a few seconds later.
+  const PREROLL = 1.5;
+  const WINDOW = 2.5;
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const srcSessionRef = useRef<string | null>(null);
+  const stopAtRef = useRef<number | null>(null);
+  const [playingKey, setPlayingKey] = useState<string | null>(null);
+
+  function playClip(sessionId: string, key: string, start: number) {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playingKey === key) {
+      audio.pause();
+      return;
+    }
+    if (srcSessionRef.current !== sessionId) {
+      audio.src = audioURL(sessionId);
+      srcSessionRef.current = sessionId;
+    }
+    stopAtRef.current = start + WINDOW;
+    audio.currentTime = Math.max(0, start - PREROLL);
+    audio.play().then(() => setPlayingKey(key)).catch(() => setPlayingKey(null));
+  }
+
+  function handleTimeUpdate() {
+    const audio = audioRef.current;
+    if (!audio || stopAtRef.current == null) return;
+    if (audio.currentTime >= stopAtRef.current) audio.pause();
+  }
+
+  function handleStopped() {
+    stopAtRef.current = null;
+    setPlayingKey(null);
+  }
 
   function refresh() {
     getNameCorrections()
@@ -83,6 +122,13 @@ export default function NameReview() {
 
   return (
     <div className="name-review">
+      <audio
+        ref={audioRef}
+        preload="none"
+        onTimeUpdate={handleTimeUpdate}
+        onPause={handleStopped}
+        onEnded={handleStopped}
+      />
       <h1>Name review</h1>
       <p className="name-review-sub">
         The pipeline wasn&apos;t sure about these. Bless applies the fix everywhere and the
@@ -136,6 +182,14 @@ export default function NameReview() {
                       const k = occKey(s.session_id, o);
                       return (
                         <li key={`${k}-${i}`}>
+                          <button
+                            className="name-occ-play"
+                            onClick={() => playClip(s.session_id, k, o.start)}
+                            title="Play the audio around this word"
+                            aria-label={playingKey === k ? 'Pause' : 'Play'}
+                          >
+                            {playingKey === k ? '❚❚' : '▶'}
+                          </button>{' '}
                           <label className="name-occ-check">
                             <input
                               type="checkbox"
