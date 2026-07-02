@@ -28,6 +28,17 @@ class CanonNameDetector(Detector):
     id = "m9c-canon"
     label = "Canon-name mistranscription (Thomas / Mahabharata / known source)"
     failure_mode = "M9c"
+    # 1.1.0: split-prompt CAST (2026-07-01) — the phonetic layer now matches against characters AND
+    #   group/family names (worldcast.cached_cast_split, shared with the namefix stage), because the
+    #   old single cast prompt reliably dropped the groups (Pandavas/Kauravas — 14 of 36 items on the
+    #   held-out by-ear key) and even omitted Bhishma. Re-validated before shipping: held-out
+    #   Mahabharata recall 7/9 (= 1.0.0, same two transliteration-tail misses); the June PRECISION
+    #   ruler is stale for the reverted-to-honest transcript (its key describes spellings that are no
+    #   longer on screen), and 9 of the 11 flags it calls "FP" (fondos/goros/koros/bushma/bushna/
+    #   bondos/fondo/beam ->) are July-ear-confirmed REAL garbles; true residue = machado (judge
+    #   over-reach, best_guess tier, human veto absorbs) + the known dushashin quibble. KPop held-out:
+    #   0 flags — the groups addition invents nothing on an unrecognized world (the wall stands,
+    #   generality intact). config_fingerprint now hashes the two split prompts -> forces a re-scan.
     # 1.0.0: GRADUATED out of experimental (2026-06-29) after the held-out validation named as the gate
     #   in emp.md. Scored the SHIPPED detector (this detections.json, not the sealed eval) against the
     #   two never-tuned sessions' by-ear keys (emp/src/score_canon_heldout.py, now tier-aware):
@@ -53,7 +64,7 @@ class CanonNameDetector(Detector):
     #   union; 0.2.0 the Gemma worksheet, kept as the baseline _worker.run.) mlx_vlm wobbles a hair
     #   on Metal even at temp 0; voting averages that out too. Qwen3.5 judges the names directly and
     #   is sound-matched against a Qwen3.5 cast; the two catches are unioned, then dictionary-gated.
-    version = "1.0.0"
+    version = "1.1.0"
     accepts_judge = False
     offline_only = True  # never runs in a web request or a non-offline scan
 
@@ -71,7 +82,8 @@ class CanonNameDetector(Detector):
             "seed_base": _qwen35.JUDGE_SEED_BASE,
             "judge_prompt": _qwen35.JUDGE_PROMPT,
             "recognize_prompt": _qwen35.RECOGNIZE_PROMPT,
-            "cast_prompt": _qwen35.CAST_PROMPT,
+            "cast_prompt_characters": __import__("worldcast").CHARACTERS_PROMPT,
+            "cast_prompt_groups": __import__("worldcast").GROUPS_PROMPT,
             "surface": "all-tiers",   # all canon catches emitted; the view layer tiers them (see run())
         }, sort_keys=True).encode()
         return "sha256:" + hashlib.sha256(payload).hexdigest()

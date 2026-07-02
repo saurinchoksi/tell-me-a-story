@@ -4,6 +4,10 @@ Newest at top. Only the changes that actually shaped the project, written plainl
 
 *Claude Code drafts these from each session's work; Saurin Choksi reviews and approves.*
 
+## 2026-07-02 — The new name-fixer listens instead of guessing
+
+Built the replacement for the name-fixer I removed yesterday, around the opposite idea: instead of guessing what a garbled name should be from its spelling, give Whisper another listen. The pipeline now works out which story world it's in from the names alone, asks a small model for that world's cast, including the group names like "Pandavas" that a kid says constantly, and replays a few seconds of audio around each suspect name with that cast in Whisper's ear. On the same Mahabharata night the old fixer ruined, it turned `Bushma` into "Bhishma" and `fondos` into "Pandavas" right through the war, and my by-ear check caught none of its fixes wrong. The few it isn't sure about wait on a new review screen, like `Bheem`, which means Bhima in one line and Arjuna in another and only I can say which. One tap applies or rejects each, and a name I bless is remembered for every night after. On a made-up story it does nothing at all, since an invented name has no right spelling to fix toward.
+
 ## 2026-07-01 — Removed the name-fixer that was renaming the heroes as the enemy
 
 The pipeline had a step that tried to fix mis-heard names, but it ran with no idea which story it was in, so it reached for whatever famous name sounded closest. On a Mahabharata night it heard "Pandavas" as `fondos` and then confidently rewrote that as `Bhishma`, a character on the enemy's side, right through the war. I listened back with my daughter's telling in my ears and it was plainly wrong, so I took the step out, and the transcript now keeps the words Whisper actually heard instead of a confident wrong guess. Dropping it also removed the one heavy model the pipeline still loaded, so it now runs on a single small model that fits an 8GB machine.

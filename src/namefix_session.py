@@ -72,10 +72,34 @@ def score_vs_key(session_dir: Path, result: dict) -> None:
         print(f"    AUTO-WRONG: {w}")
 
 
+def demote_group(session_dir: Path, heard_cleaned: str) -> bool:
+    """Move one auto group into the pending queue in the CACHED namefix result — for the
+    ambiguity class no gate can call (the same sound meaning different characters, e.g.
+    "Bheem" = Bhima in one line, Arjuna in another). A demotion is always safe: it turns
+    an automatic write into a human decision. The reverse (promoting) is deliberately not
+    offered. Returns True if a group moved."""
+    from model_cache import _load, _save
+    data = _load(session_dir)
+    entry = data.get("stages", {}).get("namefix")
+    if not entry:
+        return False
+    out = entry["output"]
+    for i, g in enumerate(out.get("auto", [])):
+        if g.get("heard_cleaned") == heard_cleaned:
+            g["action"] = "queued"
+            g["demoted"] = "human: ambiguous referent — same sound, different characters"
+            out["pending"].append(out["auto"].pop(i))
+            _save(session_dir, data)
+            return True
+    return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("session_id")
     ap.add_argument("--write", action="store_true", help="apply (default: dry-run)")
+    ap.add_argument("--demote", metavar="HEARD_CLEANED",
+                    help="move this auto group to the pending queue (in the cached result)")
     args = ap.parse_args()
 
     session_dir = get_session_dir(ROOT / "sessions", args.session_id)
@@ -86,6 +110,13 @@ def main():
     transcript = json.loads(rich_path.read_text())
     if not transcript.get("_stories"):
         raise SystemExit("no _stories on this transcript — run segmentation first")
+
+    if args.demote:
+        moved = demote_group(session_dir, args.demote)
+        print(f"[namefix-session] demote {args.demote!r}: "
+              f"{'moved to pending' if moved else 'NOT FOUND in cached autos'}")
+        if not moved:
+            raise SystemExit(1)
 
     print(f"[namefix-session] {args.session_id}  mode={'WRITE' if args.write else 'dry-run'}")
     # Same cache as the pipeline stage: a dry-run computes and caches; a subsequent --write

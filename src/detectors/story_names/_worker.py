@@ -221,7 +221,13 @@ def run_qwen35(session_dir):
             world = _qwen35.recognize_world(gen, names)
             if not world:
                 continue  # no recognized world -> no canon check (same contract as Gemma run)
-            cast = _qwen35.generate_cast(gen, world)
+            # Split-prompt cast (characters + GROUPS, unioned; worldcast) — the single
+            # "25 best-known characters/families/places" prompt reliably DROPPED the group
+            # names (Pandavas, Kauravas, Crystal Gems...), which are exactly what a child's
+            # garbled group-word needs to sound-match against. Found in the 2026-07-01
+            # namefix validation (emp/emp.md); shared with the namefix correction stage.
+            import worldcast
+            cast = worldcast.correction_cast(worldcast.cached_cast_split(gen, world))
             judge_flags = _qwen35.judge_names_voted(gen, world, names, singles)  # order-robust vote
             phon_flags = _qwen35.phonetic_flags(cards, singles, cast)
             combined = _qwen35.combine(judge_flags, phon_flags)
