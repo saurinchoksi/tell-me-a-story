@@ -163,7 +163,7 @@ def main(session_id, agree, lead, window):
     # Dictionary gate (the M9c lesson, and E10a's father->Vidura leak): an ordinary English
     # word in the re-decode never maps onto a cast name — unless the story itself uses it as
     # a proper name (the `singles` recall guard, same as gate_canon_flags).
-    from detectors.story_names._audit import _is_ordinary_word
+    from detectors.story_names._audit import _is_ordinary_word, _NCD
 
     t0 = time.time()
     decisions = []
@@ -196,7 +196,14 @@ def main(session_id, agree, lead, window):
             continue
         tok, canonical, how = picked
         action = "auto"
-        if agree == "gemma":
+        # Common-word protection (Choksi's by-ear verdict, 2026-07-01): a BLIND token that is
+        # a real dictionary word ("arrows", "Beam") is NEVER auto-overwritten, even when it's
+        # capitalized in-story (the `singles` exemption is exactly how both wrong autos —
+        # arrows->Kauravas/Arjuna — leaked). Non-words (Bushma, Koros, Urzi) still auto-fix;
+        # real words queue for the human bless.
+        if _NCD._is_common(blind_c):
+            action = "queued"
+        elif agree == "gemma":  # the common-word queue is FINAL — agreement can't override it
             gp = gemma_pick.get(round(p["start"], 1), None)
             agree_ok = bool(gp) and gp != "none" and bool(codes(gp) & codes(clean(canonical)))
             action = "auto" if agree_ok else "queued"
