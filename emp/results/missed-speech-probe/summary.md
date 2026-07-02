@@ -11,3 +11,9 @@ place as a missed-speech treatment, where 8 prior approaches recovered nothing.
 | session | gaps | yielded words |
 |---|---|---|
 | 20260211-210718 | 20 | 19 |
+
+## Human verdicts (Choksi by ear, 2026-07-02)
+Of the 19 yielding gaps: **17 "really said", 1 "partly right" (sentence right, one name
+garbled), 1 "can't tell", 0 "not said".** The candidate recoveries are essentially all
+genuine dropped speech — the context-primed re-decode is a working missed-speech treatment,
+human-confirmed. (Per-gap hearings live in the gitignored sidecar.)

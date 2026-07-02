@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Review checklist — 0/8 done</title><style>
+<title>Review checklist — 2/8 done</title><style>
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:760px;margin:0 auto;padding:18px;background:#faf8f5;color:#1a1a1a;line-height:1.5}
 h1{font-size:1.3rem;margin:.2em 0}
 .sub{color:#666;font-size:.88rem;margin-bottom:1em}
@@ -24,19 +24,19 @@ h1{font-size:1.3rem;margin:.2em 0}
 </style></head><body>
 <h1>What's waiting on you</h1>
 <p class="sub">The human-verdict queue from the name-fixer arc, roughly in leverage order. Statuses and notes save to <code>review-checklist-notes.json</code> when served (<code>python emp/src/review_checklist.py --serve</code>); Claude reads the same file, so your notes are the handoff.</p>
-<div class="progress" id="prog">0/8 done</div>
+<div class="progress" id="prog">2/8 done</div>
 
-<div class="card k-ear s-pending" id="card-missed-speech-cards">
+<div class="card k-ear s-done" id="card-missed-speech-cards">
   <div class="head">
     <span class="kind">🎧 listen</span>
     <span class="mins">~10 min</span>
-    <div class="btns"><button class="st st-pending on" data-id="missed-speech-cards" data-status="pending">pending</button><button class="st st-done" data-id="missed-speech-cards" data-status="done">done</button><button class="st st-skipped" data-id="missed-speech-cards" data-status="skipped">skipped</button></div>
+    <div class="btns"><button class="st st-pending" data-id="missed-speech-cards" data-status="pending">pending</button><button class="st st-done on" data-id="missed-speech-cards" data-status="done">done</button><button class="st st-skipped" data-id="missed-speech-cards" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">The 19 missed-speech recovery cards</div>
   <div class="what">A context-primed re-listen produced words inside 19 of 20 stretches where the pipeline had NO transcript at all (“Vishma&#x27;s father was the king”, “met a woman and fell in love with her”). Each card: the candidate text + the audio. The call per card: is that really said?</div>
   <div class="why"><b>Why:</b> If even half are real, this is the first traction ever on the dropped-speech problem (8 prior approaches recovered nothing) and becomes its own arc.</div>
   <div class="where"><code>python emp/src/missed_speech_probe.py --serve  →  localhost:8769  (type what you hear per card; it saves)</code></div>
-  <textarea class="note" data-id="missed-speech-cards" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <textarea class="note" data-id="missed-speech-cards" placeholder="your notes / verdicts (auto-saves when served)">Choksi&#x27;s verdicts 2026-07-02: 17 of 19 &#x27;really said&#x27;, 1 &#x27;partly right&#x27; (65.9s — heard &quot;Bhishma&#x27;s father was the king&quot;, re-decode had the name garbled), 1 can&#x27;t-tell (449.9s). ZERO &#x27;not said&#x27;. Technique human-confirmed.</textarea>
   <div class="stat" data-id="missed-speech-cards"></div>
 </div>
 <div class="card k-tap s-pending" id="card-thomas-queue">
@@ -117,17 +117,17 @@ h1{font-size:1.3rem;margin:.2em 0}
   <textarea class="note" data-id="rekey-heldouts" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
   <div class="stat" data-id="rekey-heldouts"></div>
 </div>
-<div class="card k-ear s-pending" id="card-pandavas-spotcheck">
+<div class="card k-ear s-done" id="card-pandavas-spotcheck">
   <div class="head">
     <span class="kind">🎧 listen</span>
     <span class="mins">~3 min (optional)</span>
-    <div class="btns"><button class="st st-pending on" data-id="pandavas-spotcheck" data-status="pending">pending</button><button class="st st-done" data-id="pandavas-spotcheck" data-status="done">done</button><button class="st st-skipped" data-id="pandavas-spotcheck" data-status="skipped">skipped</button></div>
+    <div class="btns"><button class="st st-pending" data-id="pandavas-spotcheck" data-status="pending">pending</button><button class="st st-done on" data-id="pandavas-spotcheck" data-status="done">done</button><button class="st st-skipped" data-id="pandavas-spotcheck" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">Spot-check the 7 applied fixes on the Pandavas night</div>
   <div class="what">Yudhisthir→Yudhishthira and Pondavas→Pandavas were auto-applied to the coded session (invariants held, backup kept). You already gave it an ad-hoc listen (‘all looks well’) — the artifact makes it per-spot and durable.</div>
   <div class="why"><b>Why:</b> Optional belt-and-suspenders — the same chain scored 0-wrong on the held-out.</div>
   <div class="where"><code>python emp/src/namefix_spotcheck.py 20260117-202237 --serve  →  localhost:8771  (7 cards, one per applied fix)</code></div>
-  <textarea class="note" data-id="pandavas-spotcheck" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <textarea class="note" data-id="pandavas-spotcheck" placeholder="your notes / verdicts (auto-saves when served)">7/7 &#x27;fix is right&#x27; — the rollout write fully verified per spot.</textarea>
   <div class="stat" data-id="pandavas-spotcheck"></div>
 </div>
 <script>

@@ -2,8 +2,8 @@
   "_about": "Review-checklist verdicts + notes. Edited live via review_checklist.py --serve, or by hand. Regenerating the HTML never touches this file.",
   "items": {
     "missed-speech-cards": {
-      "status": "pending",
-      "notes": ""
+      "status": "done",
+      "notes": "Choksi's verdicts 2026-07-02: 17 of 19 'really said', 1 'partly right' (65.9s — heard \"Bhishma's father was the king\", re-decode had the name garbled), 1 can't-tell (449.9s). ZERO 'not said'. Technique human-confirmed."
     },
     "thomas-queue": {
       "status": "pending",
@@ -30,8 +30,8 @@
       "notes": ""
     },
     "pandavas-spotcheck": {
-      "status": "pending",
-      "notes": ""
+      "status": "done",
+      "notes": "7/7 'fix is right' — the rollout write fully verified per spot."
     }
   }
 }
