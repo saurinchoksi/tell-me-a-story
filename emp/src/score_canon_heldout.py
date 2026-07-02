@@ -149,8 +149,28 @@ def load_items(sid):
     return json.loads(p.read_text()).get("items", {})
 
 
+def _stale_key_warning(sid):
+    """Settled 2026-07-02: a key is stamped with the transcript it was marked against;
+    grading a different transcript state is the bent-ruler mistake (hit 3x). Warn loudly."""
+    import json as _json
+    kp = ROOT / "emp" / "results" / "visuals" / sid / "name-truth.json"
+    key_data = _json.loads(kp.read_text()) if kp.exists() else {}
+    stamp = key_data.get("_transcript_fingerprint")
+    import hashlib, json as _json
+    rich = _json.loads((ROOT / "sessions" / sid / "transcript-rich.json").read_text())
+    parts = [w.get("word", "") for seg in rich.get("segments", []) for w in seg.get("words", [])]
+    now = hashlib.sha256("\n".join(parts).encode()).hexdigest()[:16]
+    if stamp is None:
+        print(f"  !! KEY UNSTAMPED — marked before fingerprinting existed; treat scores as "
+              f"indicative only (re-save in name_truth --serve to stamp)")
+    elif stamp != now:
+        print(f"  !! STALE KEY — marked against transcript {stamp}, current is {now}. "
+              f"Scores below grade a DIFFERENT transcript state; re-mark before trusting.")
+
+
 def report(sid):
     print(f"\n{'=' * 72}\n{sid}\n{'=' * 72}")
+    _stale_key_warning(sid)
     flags = load_flags(sid)
     items = load_items(sid)
     if flags is None:

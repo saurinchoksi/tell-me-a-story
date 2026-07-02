@@ -107,7 +107,22 @@ def load_notes(sid):
     return data
 
 
+def transcript_fingerprint(sid):
+    """Word-level fingerprint of the session's CURRENT transcript (matches the detections /
+    namefix convention). A key is only an honest ruler for the transcript state it was
+    marked against — the stamp lets every scorer check before grading."""
+    import hashlib
+    rich = json.loads((ROOT / "sessions" / sid / "transcript-rich.json").read_text())
+    parts = [w.get("word", "") for seg in rich.get("segments", []) for w in seg.get("words", [])]
+    return hashlib.sha256("\n".join(parts).encode()).hexdigest()[:16]
+
+
 def save_notes(sid, data):
+    # Stamp every save with the transcript state the human is marking against (settled
+    # 2026-07-02: keys carry a transcript fingerprint; scorers warn on mismatch).
+    data["_transcript_fingerprint"] = transcript_fingerprint(sid)
+    data["_marked_at"] = __import__("datetime").datetime.now(
+        __import__("datetime").timezone.utc).isoformat()
     path = sidecar_path(sid)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
