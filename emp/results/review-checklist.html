@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Review checklist — 2/9 done</title><style>
+<title>Review checklist — 3/9 done</title><style>
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:760px;margin:0 auto;padding:18px;background:#faf8f5;color:#1a1a1a;line-height:1.5}
 h1{font-size:1.3rem;margin:.2em 0}
 .sub{color:#666;font-size:.88rem;margin-bottom:1em}
@@ -26,7 +26,7 @@ h1{font-size:1.3rem;margin:.2em 0}
 </style></head><body>
 <h1>What's waiting on you</h1>
 <p class="sub">The human-verdict queue from the name-fixer arc, roughly in leverage order. Statuses and notes save to <code>review-checklist-notes.json</code> when served (<code>python emp/src/review_checklist.py --serve</code>); Claude reads the same file, so your notes are the handoff.</p>
-<div class="progress" id="prog">2/9 done</div>
+<div class="progress" id="prog">3/9 done</div>
 
 <div class="card k-ear s-done" id="card-missed-speech-cards">
   <div class="head">
@@ -67,17 +67,17 @@ h1{font-size:1.3rem;margin:.2em 0}
   <textarea class="note" data-id="thomas-queue" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
   <div class="stat" data-id="thomas-queue"></div>
 </div>
-<div class="card k-ear s-pending" id="card-garbage-cards">
+<div class="card k-ear s-done" id="card-garbage-cards">
   <div class="head">
     <span class="kind">🎧 listen</span>
-    <span class="mins">~8 min</span><span class="live">5/15 cards marked</span>
-    <div class="btns"><button class="st st-pending on" data-id="garbage-cards" data-status="pending">pending</button><button class="st st-done" data-id="garbage-cards" data-status="done">done</button><button class="st st-skipped" data-id="garbage-cards" data-status="skipped">skipped</button></div>
+    <span class="mins">~8 min</span><span class="live">15/15 cards marked</span>
+    <div class="btns"><button class="st st-pending" data-id="garbage-cards" data-status="pending">pending</button><button class="st st-done on" data-id="garbage-cards" data-status="done">done</button><button class="st st-skipped" data-id="garbage-cards" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">The 15 worst garbage-census finds</div>
   <div class="what">Non-name junk the census flagged mechanically: the non-Latin hallucinations, stuck repeats, zero-confidence clusters. Per card: was anything really said, and is the token junk?</div>
   <div class="why"><b>Why:</b> Your verdicts turn the census counts into the next arc&#x27;s ground truth (54 uncoded finds total).</div>
   <div class="where"><code>python emp/src/garbage_census.py --serve  →  localhost:8770</code></div>
-  <textarea class="note" data-id="garbage-cards" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <textarea class="note" data-id="garbage-cards" placeholder="your notes / verdicts (auto-saves when served)">Choksi 2026-07-02: 15/15 marked — 14 &#x27;real speech, wrong token&#x27; (the 314–324s zero-confidence cluster is real Bhima/Arjuna talk) + 1 &#x27;junk (nothing said)&#x27;. Hearings captured per card.</textarea>
   <div class="stat" data-id="garbage-cards"></div>
 </div>
 <div class="card k-edit s-pending" id="card-case-study-edit">
