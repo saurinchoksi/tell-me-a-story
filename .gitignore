@@ -60,3 +60,4 @@ emp/emp.md
 # World-classifier cold test: answer key + predictions reference REAL held-out sessions
 emp/results/worlds-bench/cold*
 data/worlds-cache/
+*.json.bak

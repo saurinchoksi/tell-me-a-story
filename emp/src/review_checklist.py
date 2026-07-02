@@ -121,6 +121,15 @@ def artifact_progress() -> dict:
     if c: out["garbage-cards"] = f"{c[0]}/{c[1]} cards marked"
     c = count("emp/results/visuals/20260117-202237/namefix-spotcheck.json")
     if c: out["pandavas-spotcheck"] = f"{c[0]}/{c[1]} spots marked"
+    marks = []
+    for sid in ("20260211-210718", "20260414-213156"):
+        p = ROOT / f"emp/results/visuals/{sid}/name-truth.json"
+        if p.exists():
+            d = json.loads(p.read_text())
+            n = sum(1 for v in d.get("items", {}).values() if v.get("category"))
+            marks.append(f"{n}")
+    if marks:
+        out["rekey-heldouts"] = f"{' + '.join(marks)} names categorized"
     p = ROOT / "sessions/20260129-204404/pending-name-corrections.json"
     if p.exists():
         d = json.loads(p.read_text())
