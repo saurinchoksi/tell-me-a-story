@@ -1,0 +1,37 @@
+{
+  "_about": "Review-checklist verdicts + notes. Edited live via review_checklist.py --serve, or by hand. Regenerating the HTML never touches this file.",
+  "items": {
+    "missed-speech-cards": {
+      "status": "pending",
+      "notes": ""
+    },
+    "thomas-queue": {
+      "status": "pending",
+      "notes": ""
+    },
+    "garbage-cards": {
+      "status": "pending",
+      "notes": ""
+    },
+    "case-study-edit": {
+      "status": "pending",
+      "notes": ""
+    },
+    "site-panel-read": {
+      "status": "pending",
+      "notes": ""
+    },
+    "changelog-approve": {
+      "status": "pending",
+      "notes": ""
+    },
+    "rekey-heldouts": {
+      "status": "pending",
+      "notes": ""
+    },
+    "pandavas-spotcheck": {
+      "status": "pending",
+      "notes": ""
+    }
+  }
+}
