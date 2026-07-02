@@ -179,3 +179,21 @@ def test_write_pending_shape(tmp_path):
     assert data["pending"][0]["canonical"] == "Kauravas"
     assert data["config_fingerprint"] and data["transcript_fingerprint"]
     assert data["_rejected"] == []
+
+
+# ------------------------------ the frequency wordlist ------------------------------
+def test_commonwords_kills_the_websters_ghosts():
+    """The three Webster's-1934 failures, pinned against the new frequency list:
+    real words are common; archaic ghosts and canon names are not."""
+    from commonwords import is_common
+    for real in ("arrows", "beam", "father", "wars"):
+        assert is_common(real), f"{real} should be protected"
+    for ghost in ("bando", "jami", "kauravas", "bushma", "bandos", "bheem"):
+        assert not is_common(ghost), f"{ghost} must not be falsely protected"
+
+
+def test_gate_blind_bandos_now_autofixes_without_dictionary():
+    # Under Webster's, "Bandos" queued (bando ghost). Under the frequency list it
+    # auto-fixes on a sound/cast match — no blessing needed for the non-word garble.
+    d = namefix.gate_decision([("Pandavas", 1.5)], "Bandos", CAST_CLEAN, set(), {})
+    assert d["action"] == "auto" and d["canonical"] == "Pandavas"

@@ -34,8 +34,9 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from commonwords import is_common, wordlist_fingerprint
 from detectors.phonetics import clean, codes
-from detectors.story_names._audit import story_name_cards, _is_ordinary_word, _NCD
+from detectors.story_names._audit import story_name_cards
 from detectors.story_names._names import story_segments, proper_name_candidates
 from detectors.story_names._worker import build_regions
 
@@ -46,10 +47,11 @@ VERSION = "1.0.0"
 
 
 def config_fingerprint() -> str:
-    """Ties a pending file / processing entry to the exact chain config that produced it."""
+    """Ties a pending file / processing entry to the exact chain config that produced it —
+    incl. the common-words list, so a wordlist change invalidates cached decisions."""
     import worldcast
     blob = (worldcast.CHARACTERS_PROMPT + worldcast.GROUPS_PROMPT +
-            f"{MODEL}|{LEAD}|{WINDOW}|{TEMPORAL_TOL}|{VERSION}")
+            f"{MODEL}|{LEAD}|{WINDOW}|{TEMPORAL_TOL}|{VERSION}|{wordlist_fingerprint()}")
     return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
 
@@ -128,14 +130,15 @@ def gate_decision(near_words, blind: str, cast_clean: dict, singles: set,
     if blind_c in variant_map:
         return {"canonical": variant_map[blind_c], "redecoded": blind,
                 "how": "dictionary", "action": "auto"}
-    # Target = nearest re-decoded word that is either name-shaped (not an ordinary word) or
-    # an EXACT cast spelling. The cast exemption matters because Webster's-1934 contains some
-    # canon names verbatim ("Kauravas" is a real entry!) — an exact cast member is the very
-    # vocabulary we primed Whisper with, never "ordinary" here. Sound-alikes get no exemption,
-    # which keeps the father(FTR)->Vidura(FTR) leak closed.
+    # Target = nearest re-decoded word that is either name-shaped (not a common word, per the
+    # frequency list — see commonwords.py), capitalized-in-story (`singles`, the recall guard),
+    # or an EXACT cast spelling (the very vocabulary we primed Whisper with — belt-and-
+    # suspenders now that the frequency list contains no canon names, unlike Webster's-1934,
+    # which literally listed "Kauravas"). Sound-alikes get no exemption, which keeps the
+    # father(FTR)->Vidura(FTR) leak closed ("father" is common -> skipped).
     target = next(((w, off) for w, off in near_words
-                   if clean(w) and (clean(w) in cast_clean
-                                    or not _is_ordinary_word(clean(w), singles))), None)
+                   if clean(w) and (clean(w) in cast_clean or clean(w) in singles
+                                    or not is_common(clean(w)))), None)
     if target is None:
         return None
     wc = clean(target[0])
@@ -148,8 +151,11 @@ def gate_decision(near_words, blind: str, cast_clean: dict, singles: set,
         how = "dm"
         if canonical is None:
             return None
-    # Choksi's rule: a real dictionary word in the transcript is never auto-overwritten.
-    action = "queued" if _NCD._is_common(blind_c) else "auto"
+    # Choksi's rule: a real English word in the transcript is never auto-overwritten — it
+    # queues for his bless. "Real word" = the frequency list (exact membership, no plural
+    # stripping): "arrows"/"beam" queue; "bushma"/"bandos" auto-fix. (His follow-up call,
+    # 2026-07-02, replacing Webster's-1934 whose ghosts caused the Bandos/jami bumps.)
+    action = "queued" if is_common(blind_c) else "auto"
     return {"canonical": canonical, "redecoded": target[0], "how": how, "action": action}
 
 
