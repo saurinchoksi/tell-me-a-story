@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The fix that listens: replacing a name-corrector that guessed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,520;0,9..144,560;0,9..144,640;1,9..144,420;1,9..144,520&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --cream:#FBF8F3; --paper:#FFFFFF;
+    --maroon:#6A3843; --maroon-deep:#4f2932;
+    --gold:#BFA265; --gold-deep:#977c41;
+    --rose:#F2E6E8;
+    --ink:#352B2D; --read:#4A4042; --muted:#8C8081; --faint:#A99FA0;
+    --rule:#E9DFD9;
+    --serif:"Fraunces",Georgia,"Times New Roman",serif;
+    --sans:"DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;color:var(--read);background:var(--cream);
+    font-family:var(--sans);font-size:18px;line-height:1.68;font-weight:400;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    counter-reset:sec;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(1200px 600px at 78% -8%, rgba(191,162,101,.10), transparent 60%),
+      radial-gradient(900px 500px at 0% 4%, rgba(106,56,67,.05), transparent 55%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap{position:relative;z-index:1;max-width:716px;margin:0 auto;padding:5.5rem 1.4rem 7rem}
+
+  .eyebrow{
+    display:flex;align-items:center;gap:.7rem;
+    font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
+    color:var(--gold-deep);margin:0 0 1.4rem;
+  }
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--gold);display:inline-block}
+
+  h1{
+    font-family:var(--serif);font-weight:640;font-optical-sizing:auto;
+    font-variation-settings:"opsz" 120;
+    font-size:clamp(2.2rem,5.6vw,3.1rem);line-height:1.05;letter-spacing:-.018em;
+    color:var(--maroon);margin:0 0 1.4rem;
+  }
+  .dek{font-family:var(--serif);font-variation-settings:"opsz" 40;font-style:italic;
+    font-weight:420;font-size:1.22rem;line-height:1.5;color:var(--read);margin:0 0 2.2rem}
+
+  h2{
+    font-family:var(--sans);font-size:.76rem;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--maroon);
+    margin:3.4rem 0 .4rem;display:flex;align-items:baseline;gap:.7rem;
+  }
+  h2::before{
+    counter-increment:sec;content:counter(sec,decimal-leading-zero);
+    font-family:var(--serif);font-style:italic;font-weight:420;font-size:1.5rem;
+    letter-spacing:0;text-transform:none;color:var(--gold);line-height:1;
+  }
+
+  p{margin:1rem 0}
+  strong{font-weight:600;color:var(--ink)}
+  em{font-style:italic}
+  .nm{font-family:var(--mono);font-size:.92em;color:var(--maroon)}
+
+  a{color:var(--maroon);text-decoration:none;
+    background-image:linear-gradient(var(--gold),var(--gold));
+    background-size:100% 1px;background-repeat:no-repeat;background-position:0 95%;
+    padding-bottom:1px;transition:background-size .25s ease}
+  a:hover{background-size:100% 2px}
+
+  /* garble figure */
+  .namefig{display:flex;align-items:center;flex-wrap:wrap;gap:.85rem 1.15rem;
+    margin:1.5rem 0 .4rem;padding:1.15rem 1.3rem;background:var(--paper);
+    border:1px solid var(--rule);border-radius:10px}
+  .namefig .correct{display:flex;flex-direction:column;gap:.2rem}
+  .namefig .lab{font-size:.6rem;letter-spacing:.17em;text-transform:uppercase;color:var(--gold-deep);font-weight:600}
+  .namefig .val{font-family:var(--serif);font-weight:560;font-size:1.7rem;color:var(--maroon);line-height:1}
+  .namefig .arrow{font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);font-weight:600;white-space:nowrap}
+  .namefig .heard{display:flex;flex-wrap:wrap;gap:.45rem}
+  .namefig .chip{font-family:var(--mono);font-size:.82rem;color:var(--muted);
+    background:#FBF7F2;border:1px solid var(--rule);border-radius:5px;padding:.2em .55em}
+  .namefig .chip.worst{color:var(--maroon);border-color:var(--gold);background:rgba(191,162,101,.12)}
+
+  /* two-path compare (dead end vs the machine) */
+  .paths{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:1.6rem 0 .4rem}
+  .paths .p{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:.5rem}
+  .paths .lab{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+  .paths .deadend .lab{color:var(--faint)}
+  .paths .deadend{border-style:dashed}
+  .paths .built .lab{color:var(--gold-deep)}
+  .paths .name{font-family:var(--serif);font-weight:560;font-size:1.18rem;color:var(--maroon);line-height:1.15}
+  .paths .deadend .name{color:var(--muted)}
+  .paths .desc{font-size:.84rem;color:var(--read);line-height:1.5}
+  .paths .score{font-family:var(--mono);font-size:.82rem;color:var(--maroon-deep);margin-top:auto}
+  .paths .deadend .score{color:var(--muted)}
+  @media(max-width:560px){.paths{grid-template-columns:1fr}}
+
+  /* horizontal bar chart */
+  .bars{margin:1.7rem 0 .5rem;display:flex;flex-direction:column;gap:.65rem}
+  .bar{display:grid;grid-template-columns:10.5rem 1fr auto;align-items:center;gap:.85rem}
+  .bar .blab{font-size:.82rem;color:var(--read);text-align:right;line-height:1.25}
+  .bar .track{background:#F0E7DF;border-radius:6px;height:1.3rem;overflow:hidden}
+  .bar .fill{height:100%;border-radius:6px;min-width:2px;
+    animation:grow 1s cubic-bezier(.2,.7,.2,1) both}
+  .bar .bval{font-family:var(--mono);font-size:.79rem;color:var(--muted);white-space:nowrap}
+  .fill.hi{background:linear-gradient(90deg,var(--maroon-deep),var(--maroon))}
+  .fill.mid{background:linear-gradient(90deg,var(--gold-deep),var(--gold))}
+  .fill.lo{background:#D8C4C9}
+  @keyframes grow{from{transform:scaleX(.02);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
+  @media(prefers-reduced-motion:reduce){.bar .fill{animation:none}}
+  @media(max-width:560px){.bar{grid-template-columns:6.6rem 1fr auto;gap:.5rem}.bar .blab{font-size:.72rem}.bar .bval{font-size:.72rem}}
+
+  /* results table */
+  figure.tbl{margin:2.2rem 0 1.1rem;overflow-x:auto}
+  figcaption{font-size:.82rem;color:var(--muted);line-height:1.5;margin-top:1rem;max-width:64ch}
+  table.d{border-collapse:collapse;width:100%;min-width:34rem;background:var(--paper);
+    border:1px solid var(--rule);border-radius:10px;overflow:hidden;
+    box-shadow:0 1px 0 rgba(106,56,67,.04),0 18px 40px -28px rgba(106,56,67,.28)}
+  table.d thead th{
+    font-family:var(--sans);font-size:.64rem;font-weight:600;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--faint);text-align:left;
+    padding:.8rem .85rem;border-bottom:1px solid var(--rule);background:#FCFAF6}
+  table.d thead th.num{text-align:right}
+  table.d td{padding:.72rem .85rem;border-bottom:1px solid var(--rule);vertical-align:middle;font-size:.9rem}
+  table.d td.num{font-family:var(--mono);font-size:.84rem;text-align:right;white-space:nowrap}
+  table.d tbody tr:last-child td{border-bottom:none}
+  table.d td:first-child{color:var(--ink)}
+  table.d td .inp{display:block;font-size:.72rem;color:var(--faint);margin-top:.12rem}
+  table.d tr.win td{background:rgba(191,162,101,.13)}
+  table.d tr.win td:first-child{color:var(--maroon);font-weight:600;box-shadow:inset 3px 0 0 var(--gold)}
+  table.d .bad{color:var(--maroon-deep);font-weight:600}
+  table.d .good{color:var(--gold-deep)}
+  .tag{display:inline-block;font-family:var(--sans);font-size:.58rem;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--gold-deep);background:rgba(191,162,101,.16);
+    border-radius:4px;padding:.12em .45em;margin-left:.4em;vertical-align:.08em}
+
+  .pull{font-family:var(--serif);font-variation-settings:"opsz" 40;font-weight:520;
+    font-size:1.32rem;line-height:1.42;color:var(--maroon-deep);
+    border-left:2px solid var(--gold);padding-left:1.15rem;margin:2.2rem 0}
+
+  .find{margin:1.5rem 0;padding-left:1.15rem;border-left:1px solid var(--rule)}
+  .find .h{font-family:var(--sans);font-weight:600;color:var(--ink);font-size:.95rem;display:block;margin-bottom:.25rem}
+
+  .close{font-family:var(--serif);font-variation-settings:"opsz" 32;font-size:1.18rem;
+    line-height:1.5;color:var(--ink);margin-top:2.4rem}
+
+  hr{border:none;height:1px;background:var(--rule);margin:3rem 0 0}
+  .footnote{font-size:.82rem;color:var(--muted);line-height:1.6;margin-top:1.4rem}
+
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .reveal{opacity:0;animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .reveal:nth-child(1){animation-delay:.04s}
+  .reveal:nth-child(2){animation-delay:.12s}
+  .reveal:nth-child(3){animation-delay:.22s}
+  .reveal:nth-child(4){animation-delay:.32s}
+  .reveal:nth-child(5){animation-delay:.42s}
+  .reveal:nth-child(n+6){animation-delay:.5s}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;animation:none}}
+
+  @media (max-width:560px){
+    body{font-size:16px}
+    .wrap{padding:3.5rem 1.2rem 5rem}
+    figure.tbl{overflow-x:auto}
+    table.d{min-width:30rem;font-size:.8rem}
+    table.d th,table.d td{padding:.5rem .5rem}
+  }
+
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="eyebrow reveal">Evaluation &rarr; decision</p>
+  <h1 class="reveal">My pipeline renamed the heroes of my daughter's story.<br>The replacement listens instead of guessing.</h1>
+  <p class="dek reveal">An eval built on my own ears took a name-correction step from 13 confident wrong substitutions to zero, and caught two errors in my answer key along the way.</p>
+
+  <div class="reveal">
+    <h2>Problem</h2>
+    <p>My local <a href="https://saurinchoksi.com/tell-me-a-story">bedtime-story pipeline</a> transcribes the stories my daughter and I tell out loud. When the story is a known one, a night of the Mahabharata, the by-ear transcriber mangles the names: "Bhishma" comes out <span class="nm">Bushma</span>, "Pandavas" comes out <span class="nm">fondos</span>.</p>
+    <p>The pipeline had a step to fix those. It guessed from spelling, with no idea which story it was in, and on one recording it rewrote the child's word for the heroes as <span class="nm">Bhishma</span>, a character on the enemy's side, through the whole war. I only knew for sure by listening back to the audio myself. That listen produced two things: the decision to remove the step, and a 36-item answer key of what each garbled name really was, marked by ear against the recording.</p>
+    <p>The constraint that shapes everything: family recordings never leave the machine, so every model involved has to be small and local.</p>
+  </div>
+
+  <div class="reveal">
+    <h2>Action</h2>
+    <p>Instead of guessing better from spelling, I tested a different idea: tell Whisper which story it's in, and let it listen again. The experiments ran against the by-ear key, scored by audio timestamp so any re-transcription could be compared to what I actually heard.</p>
+    <p>The frontier, on 35 scoreable names: blind Whisper got 16. One context sentence at the start of the file got 18, and the fix decayed by minute nine; the bias only lives in the first window. Re-prompting a few seconds of audio around <em>each</em> suspect name, with the world's cast in the prompt, got 24. Two controls proved the gain was the cast and not the clipping: the same clips with a world-only prompt scored 15, and with no prompt 11.</p>
+    <p>Turning that into a correction stage meant an acceptance gate, and every rule in it was bought by a failure the eval caught:</p>
+    <p><strong>Match the word at the target position, not the loudest name in the clip.</strong> First version scored a re-heard "The Kauravas did die and the Pandavas did not" as a fix for the wrong word. <strong>An ordinary word never maps onto a name.</strong> "father" sound-matches a minor character, and one hallucinated cast entry nearly pulled a real word onto a fake name. <strong>A real English word in the transcript is never overwritten automatically.</strong> The system's two remaining wrong fixes were both the word "arrows," confirmed by my ear; that class now goes to a review queue instead of the transcript. <strong>Ask for the world's groups separately.</strong> Asked for "characters," every small model I tried drops collective names like "Pandavas," which is what a child says most; a second prompt for families and factions fixes it.</p>
+    <p>What the gate can't decide goes to a one-tap review screen, and an approved fix is written into that world's dictionary, so it applies automatically every night after.</p>
+  </div>
+
+  <div class="reveal">
+    <h2>Result</h2>
+    <p>On the held-out Mahabharata recording, the shipped stage made 43 corrections with 0 wrong against the by-ear key, where the removed step's 43 corrections had included 13 wrong ones. On 4 recordings it had never seen, spanning 6 stories, it correctly did nothing everywhere no world could be recognized, including telling apart, inside one recording, two invented stories from a real Thomas &amp; Friends story.</p>
+    <p>The eval also audited its own ruler. Scoring pressure surfaced 2 data-entry errors in my answer keys, about 5% of a 36-item key, and one "wrong" auto-fix turned out to be the key's mistake, not the system's. The queue absorbed it either way: the fix waited for my tap instead of writing itself, which is the design doing its job on a human error as well as a machine one.</p>
+    <p>The decisions this eval paid for, in order: remove a shipped component, choose audio-grounded re-decoding over better text guessing, set the auto-apply line at "sound-alike, in-cast, not a real word," and keep a human on everything else.</p>
+  </div>
+
+  <p class="reveal" style="font-size:.8rem;color:var(--muted);margin-top:3rem">Drafted by Claude Code from the project's eval logs; reviewed and edited by Saurin Choksi.</p>
+</main>
+</body>
+</html>

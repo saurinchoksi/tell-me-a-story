@@ -162,7 +162,13 @@ def _pop_group(data: dict, heard_cleaned: str) -> dict | None:
 
 @bp.route("/sessions/<session_id>/name-corrections/bless", methods=["POST"])
 def bless_name_correction(session_id):
-    """Human confirms a queued correction: apply it, remember it in the world dictionary."""
+    """Human confirms a queued correction: apply it, remember it in the world dictionary.
+
+    Optional body field `occurrences`: a list of {segment_id, word_index} pairs — bless
+    only THOSE spots (the same-sound-two-referents case, e.g. one "Bheem" meaning Bhima
+    and another meaning Arjuna). Unselected occurrences stay pending under the group.
+    A partial bless does NOT write the world dictionary (the spelling isn't a universal
+    rule for this world if its own occurrences disagree)."""
     if not validate_session_id(session_id):
         return jsonify({"error": "Invalid session ID"}), 400
     session_dir = get_session_dir(current_app.config["SESSIONS_DIR"], session_id)
@@ -181,9 +187,28 @@ def bless_name_correction(session_id):
     canonical = (body.get("canonical") or group["canonical"]).strip()
     group["canonical"] = canonical
 
+    # per-occurrence selection: split the group; the remainder goes back to pending
+    wanted = body.get("occurrences")
+    partial = False
+    if isinstance(wanted, list) and wanted:
+        keys = {(o.get("segment_id"), o.get("word_index")) for o in wanted}
+        selected = [o for o in group["occurrences"]
+                    if (o["segment_id"], o["word_index"]) in keys]
+        rest = [o for o in group["occurrences"]
+                if (o["segment_id"], o["word_index"]) not in keys]
+        if not selected:
+            data["pending"].append(group)  # nothing matched — put it back untouched
+            _write_pending(session_dir, data)
+            return jsonify({"error": "no matching occurrences"}), 400
+        if rest:
+            partial = True
+            data["pending"].append({**group, "canonical": group["canonical"],
+                                    "occurrences": rest})
+        group = {**group, "occurrences": selected}
+
     n = _apply_group(session_dir, group)
 
-    if group.get("world"):
+    if group.get("world") and not partial:
         import worlddict  # src/ on sys.path via api.app
         worlddict.bless(group["world"], group.get("heard") or heard_cleaned, canonical,
                         provenance=f"bless:{session_id}")

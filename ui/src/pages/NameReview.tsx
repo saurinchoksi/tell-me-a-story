@@ -5,6 +5,7 @@ import {
   blessNameCorrection,
   rejectNameCorrection,
 } from '../api/client';
+import type { NameCorrectionOccurrence } from '../types';
 import { formatTime } from '../utils/time';
 import type { NameCorrectionsRollup, NameCorrectionItem } from '../types';
 import './NameReview.css';
@@ -23,6 +24,11 @@ export default function NameReview() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null); // heard_cleaned being acted on
   const [overrides, setOverrides] = useState<Record<string, string>>({});
+  // occurrence keys the user un-checked (same-sound-two-referents: bless only some spots)
+  const [excluded, setExcluded] = useState<Record<string, boolean>>({});
+
+  const occKey = (sid: string, o: NameCorrectionOccurrence) =>
+    `${sid}|${o.segment_id}|${o.word_index}`;
 
   function refresh() {
     getNameCorrections()
@@ -34,15 +40,25 @@ export default function NameReview() {
 
   async function actOnAll(
     item: NameCorrectionItem,
-    act: (sessionId: string, heard: string, canonical?: string) => Promise<unknown>,
+    act: (
+      sessionId: string,
+      heard: string,
+      canonical?: string,
+      occurrences?: { segment_id: number | string; word_index: number }[],
+    ) => Promise<unknown>,
     canonical?: string,
   ) {
     setBusy(item.heard_cleaned);
     setError(null);
     try {
-      // one human decision covers every session holding this name
+      // one human decision covers every session holding this name; un-checked spots
+      // stay pending (partial bless — the API re-queues the remainder)
       for (const s of item.sessions) {
-        await act(s.session_id, item.heard_cleaned, canonical);
+        const kept = s.occurrences.filter((o) => !excluded[occKey(s.session_id, o)]);
+        if (kept.length === 0) continue;
+        const partial = kept.length < s.occurrences.length;
+        await act(s.session_id, item.heard_cleaned, canonical,
+          partial ? kept.map((o) => ({ segment_id: o.segment_id, word_index: o.word_index })) : undefined);
       }
       refresh();
     } catch (e) {
@@ -116,15 +132,27 @@ export default function NameReview() {
                 </div>
                 <ul className="name-occurrences">
                   {item.sessions.map((s) =>
-                    s.occurrences.map((o, i) => (
-                      <li key={`${s.session_id}-${o.segment_id}-${o.word_index}-${i}`}>
-                        <Link to={`/sessions/${s.session_id}/detections`}>
-                          {s.session_id}
-                        </Link>{' '}
-                        · seg {o.segment_id} · {formatTime(o.start)} ·{' '}
-                        <span className="name-token">“{o.token}”</span>
-                      </li>
-                    )),
+                    s.occurrences.map((o, i) => {
+                      const k = occKey(s.session_id, o);
+                      return (
+                        <li key={`${k}-${i}`}>
+                          <label className="name-occ-check">
+                            <input
+                              type="checkbox"
+                              checked={!excluded[k]}
+                              onChange={(e) =>
+                                setExcluded({ ...excluded, [k]: !e.target.checked })
+                              }
+                            />
+                          </label>{' '}
+                          <Link to={`/sessions/${s.session_id}/detections`}>
+                            {s.session_id}
+                          </Link>{' '}
+                          · seg {o.segment_id} · {formatTime(o.start)} ·{' '}
+                          <span className="name-token">“{o.token}”</span>
+                        </li>
+                      );
+                    }),
                   )}
                 </ul>
               </div>

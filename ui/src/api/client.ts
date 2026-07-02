@@ -265,11 +265,16 @@ export async function blessNameCorrection(
   sessionId: string,
   heardCleaned: string,
   canonical?: string,
+  occurrences?: { segment_id: number | string; word_index: number }[],
 ): Promise<{ status: string; applied_occurrences: number; n_pending: number }> {
   return fetchJSON(`/api/sessions/${sessionId}/name-corrections/bless`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ heard_cleaned: heardCleaned, ...(canonical ? { canonical } : {}) }),
+    body: JSON.stringify({
+      heard_cleaned: heardCleaned,
+      ...(canonical ? { canonical } : {}),
+      ...(occurrences ? { occurrences } : {}),
+    }),
   });
 }
 

@@ -127,3 +127,8 @@
 .name-token {
   font-family: var(--font-mono, ui-monospace, monospace);
 }
+
+.name-occ-check input {
+  vertical-align: middle;
+  accent-color: #2f9e44;
+}

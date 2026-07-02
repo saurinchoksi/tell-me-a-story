@@ -132,3 +132,37 @@ def test_bless_unknown_group_404(client, tmp_path):
     r = client.post(f"/api/sessions/{SID}/name-corrections/bless",
                     json={"heard_cleaned": "nope"})
     assert r.status_code == 404
+
+
+def test_bless_per_occurrence_split(client, tmp_path, monkeypatch):
+    """The same-sound-two-referents case: bless ONE spot with an override spelling; the
+    other stays pending; a partial bless does not write the world dictionary."""
+    sdir = make_session(tmp_path, pending_fixture())
+    import worlddict
+    dict_writes = []
+    monkeypatch.setattr(worlddict, "bless", lambda *a, **k: dict_writes.append(a))
+
+    r = client.post(f"/api/sessions/{SID}/name-corrections/bless",
+                    json={"heard_cleaned": "bandos", "canonical": "Arjuna",
+                          "occurrences": [{"segment_id": 0, "word_index": 1}]})
+    assert r.status_code == 200
+    assert r.get_json()["applied_occurrences"] == 1
+
+    t = json.loads((sdir / "transcript-rich.json").read_text())
+    assert t["segments"][0]["words"][1]["word"] == " Arjuna"      # selected spot applied
+    assert t["segments"][1]["words"][0]["word"] == " Bandos."     # other spot untouched
+    p = json.loads((sdir / "pending-name-corrections.json").read_text())
+    assert len(p["pending"]) == 1                                  # remainder re-queued
+    assert p["pending"][0]["occurrences"][0]["segment_id"] == 2
+    assert dict_writes == []                                       # no dict write on partial
+
+
+def test_bless_per_occurrence_no_match_400(client, tmp_path):
+    make_session(tmp_path, pending_fixture())
+    r = client.post(f"/api/sessions/{SID}/name-corrections/bless",
+                    json={"heard_cleaned": "bandos",
+                          "occurrences": [{"segment_id": 99, "word_index": 0}]})
+    assert r.status_code == 400
+    # group not lost — still pending
+    r2 = client.get(f"/api/sessions/{SID}/name-corrections")
+    assert len(r2.get_json()["pending"]) == 1
