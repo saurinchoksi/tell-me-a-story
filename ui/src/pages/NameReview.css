@@ -160,3 +160,19 @@
   color: var(--color-accent, #A86840);
   border-bottom-color: var(--color-accent, #A86840);
 }
+
+/* the occurrence's sentence, judged word highlighted */
+.name-occ-sentence {
+  margin: 0.2rem 0 0.35rem 3.4rem;
+  font-size: 0.86rem;
+  color: var(--color-text-muted, #5C5348);
+  line-height: 1.45;
+}
+
+.name-occ-target {
+  background: var(--color-accent-bg, rgba(168, 104, 64, 0.25));
+  color: var(--color-accent, #A86840);
+  font-weight: 700;
+  padding: 0 0.15em;
+  border-radius: 3px;
+}

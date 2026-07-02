@@ -12,6 +12,22 @@ import { formatTime } from '../utils/time';
 import type { NameCorrectionsRollup, NameCorrectionItem } from '../types';
 import './NameReview.css';
 
+/** The occurrence's sentence with the judged word highlighted — several names can fly
+ *  by in one span, and this is what tells the reviewer which word the verdict is about. */
+function OccurrenceSentence({ o }: { o: NameCorrectionOccurrence }) {
+  if (!o.segment_text || o.word_offset == null || o.word_len == null) return null;
+  const before = o.segment_text.slice(0, o.word_offset);
+  const word = o.segment_text.slice(o.word_offset, o.word_offset + o.word_len);
+  const after = o.segment_text.slice(o.word_offset + o.word_len);
+  return (
+    <div className="name-occ-sentence">
+      “{before}
+      <mark className="name-occ-target">{word}</mark>
+      {after}”
+    </div>
+  );
+}
+
 /**
  * The name-review queue — the human half of the namefix stage.
  *
@@ -204,6 +220,7 @@ export default function NameReview() {
                           </Link>{' '}
                           · seg {o.segment_id} · {formatTime(o.start)} ·{' '}
                           <span className="name-token">“{o.token}”</span>
+                          <OccurrenceSentence o={o} />
                         </li>
                       );
                     }),

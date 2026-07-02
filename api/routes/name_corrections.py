@@ -32,6 +32,35 @@ bp = Blueprint("name_corrections", __name__)
 PENDING_FILE = "pending-name-corrections.json"
 
 
+def _enrich_occurrences(session_dir: Path, groups: list) -> None:
+    """Join each occurrence to its segment's CURRENT sentence (built from words, the source
+    of truth) so the reviewer sees the word in context — several names can fly by in one
+    span, and a bare token + play button isn't enough to know what's being judged. Adds
+    `segment_text`, `word_offset`/`word_len` (char span of the judged word inside it)."""
+    rich_path = session_dir / "transcript-rich.json"
+    if not rich_path.exists():
+        return
+    transcript = json.loads(rich_path.read_text())
+    seg_by_id = {s["id"]: s for s in transcript.get("segments", [])}
+    for g in groups:
+        for o in g.get("occurrences", []):
+            seg = seg_by_id.get(o.get("segment_id"))
+            words = (seg or {}).get("words") or []
+            wi = o.get("word_index")
+            if seg is None or wi is None or wi >= len(words):
+                continue
+            parts = [w["word"] for w in words]
+            text = "".join(parts)
+            off = len("".join(parts[:wi]))
+            tok = parts[wi]
+            lead_ws = len(tok) - len(tok.lstrip())
+            o["segment_text"] = text.strip()
+            # offset within the STRIPPED text: subtract the segment's own leading whitespace
+            seg_lead = len(text) - len(text.lstrip())
+            o["word_offset"] = off + lead_ws - seg_lead
+            o["word_len"] = len(tok.strip())
+
+
 def _read_pending(session_dir: Path) -> dict | None:
     path = session_dir / PENDING_FILE
     if not path.exists():
@@ -61,6 +90,7 @@ def name_corrections_rollup():
             data = _read_pending(entry)
             if not data:
                 continue
+            _enrich_occurrences(entry, data.get("pending", []))
             for g in data.get("pending", []):
                 n_pending += 1
                 wkey = g.get("world") or "(unrecognized)"
@@ -98,6 +128,7 @@ def session_name_corrections(session_id):
     data = _read_pending(session_dir)
     if data is None:
         return jsonify({"error": "No pending name corrections"}), 404
+    _enrich_occurrences(session_dir, data.get("pending", []))
     return jsonify(data)
 
 

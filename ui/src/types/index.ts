@@ -435,6 +435,12 @@ export interface NameCorrectionOccurrence {
   word_index: number;
   start: number;
   token: string;
+  /** The occurrence's full sentence + the judged word's char span within it —
+   *  joined server-side so the reviewer knows WHICH of several nearby names
+   *  they're judging. Absent on pending files older than the enrichment. */
+  segment_text?: string;
+  word_offset?: number;
+  word_len?: number;
 }
 
 export interface NameCorrectionSessionEntry {
