@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Review checklist — 3/9 done</title><style>
+<title>Review checklist — 4/9 done</title><style>
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:760px;margin:0 auto;padding:18px;background:#faf8f5;color:#1a1a1a;line-height:1.5}
 h1{font-size:1.3rem;margin:.2em 0}
 .sub{color:#666;font-size:.88rem;margin-bottom:1em}
@@ -26,7 +26,7 @@ h1{font-size:1.3rem;margin:.2em 0}
 </style></head><body>
 <h1>What's waiting on you</h1>
 <p class="sub">The human-verdict queue from the name-fixer arc, roughly in leverage order. Statuses and notes save to <code>review-checklist-notes.json</code> when served (<code>python emp/src/review_checklist.py --serve</code>); Claude reads the same file, so your notes are the handoff.</p>
-<div class="progress" id="prog">3/9 done</div>
+<div class="progress" id="prog">4/9 done</div>
 
 <div class="card k-ear s-done" id="card-missed-speech-cards">
   <div class="head">
@@ -41,23 +41,23 @@ h1{font-size:1.3rem;margin:.2em 0}
   <textarea class="note" data-id="missed-speech-cards" placeholder="your notes / verdicts (auto-saves when served)">Choksi&#x27;s verdicts 2026-07-02: 17 of 19 &#x27;really said&#x27;, 1 &#x27;partly right&#x27; (65.9s — heard &quot;Bhishma&#x27;s father was the king&quot;, re-decode had the name garbled), 1 can&#x27;t-tell (449.9s). ZERO &#x27;not said&#x27;. Technique human-confirmed.</textarea>
   <div class="stat" data-id="missed-speech-cards"></div>
 </div>
-<div class="card k-decide s-pending" id="card-recovery-arc-decision">
+<div class="card k-decide s-skipped" id="card-recovery-arc-decision">
   <div class="head">
     <span class="kind">🧭 decide</span>
     <span class="mins">~2 min</span>
-    <div class="btns"><button class="st st-pending on" data-id="recovery-arc-decision" data-status="pending">pending</button><button class="st st-done" data-id="recovery-arc-decision" data-status="done">done</button><button class="st st-skipped" data-id="recovery-arc-decision" data-status="skipped">skipped</button></div>
+    <div class="btns"><button class="st st-pending" data-id="recovery-arc-decision" data-status="pending">pending</button><button class="st st-done" data-id="recovery-arc-decision" data-status="done">done</button><button class="st st-skipped on" data-id="recovery-arc-decision" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">Green-light the missed-speech recovery arc?</div>
   <div class="what">Your own verdicts settled the evidence: 17 of 19 recovered stretches are really said, 0 forced. The candidate next arc: a recovery stage that re-listens at every no-trace gap, inserts the recovered text clearly marked (never silently), gated like namefix, with your review queue for the residue.</div>
   <div class="why"><b>Why:</b> First working treatment for the mode that survived 8 failed recovery attempts. Your call on go / not-yet and any constraints (e.g. how recovered text is marked in the transcript).</div>
   <div class="where"><code>just tell Claude — or drop a note here</code></div>
-  <textarea class="note" data-id="recovery-arc-decision" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <textarea class="note" data-id="recovery-arc-decision" placeholder="your notes / verdicts (auto-saves when served)">Choksi 2026-07-02: NOT YET — tie up the name-fix arc first. All context saved for a later effort (probe scripts, 17/19 verdicts, hearings sidecar, emp.md record).</textarea>
   <div class="stat" data-id="recovery-arc-decision"></div>
 </div>
 <div class="card k-tap s-pending" id="card-thomas-queue">
   <div class="head">
     <span class="kind">👆 taps</span>
-    <span class="mins">~3 min</span><span class="live">6 awaiting taps · 0 decided</span>
+    <span class="mins">~3 min</span><span class="live">5 awaiting taps · 1 decided</span>
     <div class="btns"><button class="st st-pending on" data-id="thomas-queue" data-status="pending">pending</button><button class="st st-done" data-id="thomas-queue" data-status="done">done</button><button class="st st-skipped" data-id="thomas-queue" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">The Thomas night&#x27;s 6 queued names (incl. the invented engines)</div>
@@ -80,56 +80,56 @@ h1{font-size:1.3rem;margin:.2em 0}
   <textarea class="note" data-id="garbage-cards" placeholder="your notes / verdicts (auto-saves when served)">Choksi 2026-07-02: 15/15 marked — 14 &#x27;real speech, wrong token&#x27; (the 314–324s zero-confidence cluster is real Bhima/Arjuna talk) + 1 &#x27;junk (nothing said)&#x27;. Hearings captured per card.</textarea>
   <div class="stat" data-id="garbage-cards"></div>
 </div>
-<div class="card k-edit s-pending" id="card-case-study-edit">
+<div class="card k-edit s-skipped" id="card-case-study-edit">
   <div class="head">
     <span class="kind">✍️ edit</span>
     <span class="mins">~20 min</span>
-    <div class="btns"><button class="st st-pending on" data-id="case-study-edit" data-status="pending">pending</button><button class="st st-done" data-id="case-study-edit" data-status="done">done</button><button class="st st-skipped" data-id="case-study-edit" data-status="skipped">skipped</button></div>
+    <div class="btns"><button class="st st-pending" data-id="case-study-edit" data-status="pending">pending</button><button class="st st-done" data-id="case-study-edit" data-status="done">done</button><button class="st st-skipped on" data-id="case-study-edit" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">Case-study draft: your edit pass</div>
   <div class="what">The namefix eval story (Problem → Action → Result) drafted for the portfolio. My genuine first draft — cut and reshape freely; the before/after pair is already banked for the voice bible.</div>
   <div class="why"><b>Why:</b> This is the EMP&#x27;s Sierra deliverable — the eval-frameworks evidence, ready when you are.</div>
   <div class="where"><code>open emp/writeup/namefix-eval.html</code></div>
-  <textarea class="note" data-id="case-study-edit" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <textarea class="note" data-id="case-study-edit" placeholder="your notes / verdicts (auto-saves when served)">Choksi 2026-07-02: edit pass deferred — later task. Draft stays at emp/writeup/namefix-eval.html.</textarea>
   <div class="stat" data-id="case-study-edit"></div>
 </div>
-<div class="card k-eye s-pending" id="card-site-panel-read">
+<div class="card k-eye s-skipped" id="card-site-panel-read">
   <div class="head">
     <span class="kind">👀 read</span>
     <span class="mins">~3 min</span>
-    <div class="btns"><button class="st st-pending on" data-id="site-panel-read" data-status="pending">pending</button><button class="st st-done" data-id="site-panel-read" data-status="done">done</button><button class="st st-skipped" data-id="site-panel-read" data-status="skipped">skipped</button></div>
+    <div class="btns"><button class="st st-pending" data-id="site-panel-read" data-status="pending">pending</button><button class="st st-done" data-id="site-panel-read" data-status="done">done</button><button class="st st-skipped on" data-id="site-panel-read" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">Read the live “Fix names” panel</div>
   <div class="what">The rewritten stage description on the TMAS page (present-tense, your voice rules, clean-room numbers in the lanes). Does it land as you?</div>
   <div class="why"><b>Why:</b> It&#x27;s live on saurinchoksi.com; your final wording also completes the before/after voice pair.</div>
   <div class="where"><code>https://saurinchoksi.com/portfolio/tell-me-a-story.html — Fix names stage</code></div>
-  <textarea class="note" data-id="site-panel-read" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <textarea class="note" data-id="site-panel-read" placeholder="your notes / verdicts (auto-saves when served)">Choksi 2026-07-02: website work happens in a separate effort — parked as a TBD task (review the rewritten &#x27;Fix names&#x27; panel + the rest of the TMAS page then).</textarea>
   <div class="stat" data-id="site-panel-read"></div>
 </div>
-<div class="card k-eye s-pending" id="card-changelog-approve">
+<div class="card k-eye s-skipped" id="card-changelog-approve">
   <div class="head">
     <span class="kind">👀 read</span>
     <span class="mins">~1 min</span>
-    <div class="btns"><button class="st st-pending on" data-id="changelog-approve" data-status="pending">pending</button><button class="st st-done" data-id="changelog-approve" data-status="done">done</button><button class="st st-skipped" data-id="changelog-approve" data-status="skipped">skipped</button></div>
+    <div class="btns"><button class="st st-pending" data-id="changelog-approve" data-status="pending">pending</button><button class="st st-done" data-id="changelog-approve" data-status="done">done</button><button class="st st-skipped on" data-id="changelog-approve" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">Changelog entry: “The new name-fixer listens instead of guessing”</div>
   <div class="what">One entry covering the namefix arc, in the work-log voice.</div>
   <div class="why"><b>Why:</b> The changelog header says you review and approve; it&#x27;s already live via the site&#x27;s changelog page.</div>
   <div class="where"><code>changelog.md (top entry)</code></div>
-  <textarea class="note" data-id="changelog-approve" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <textarea class="note" data-id="changelog-approve" placeholder="your notes / verdicts (auto-saves when served)">Choksi 2026-07-02: will work the changelog broadly in a separate effort — later task.</textarea>
   <div class="stat" data-id="changelog-approve"></div>
 </div>
-<div class="card k-ear s-pending" id="card-rekey-heldouts">
+<div class="card k-ear s-done" id="card-rekey-heldouts">
   <div class="head">
     <span class="kind">🎧 listen</span>
-    <span class="mins">~30–45 min</span>
-    <div class="btns"><button class="st st-pending on" data-id="rekey-heldouts" data-status="pending">pending</button><button class="st st-done" data-id="rekey-heldouts" data-status="done">done</button><button class="st st-skipped" data-id="rekey-heldouts" data-status="skipped">skipped</button></div>
+    <span class="mins">~30–45 min</span><span class="live">28 + 26 names categorized</span>
+    <div class="btns"><button class="st st-pending" data-id="rekey-heldouts" data-status="pending">pending</button><button class="st st-done on" data-id="rekey-heldouts" data-status="done">done</button><button class="st st-skipped" data-id="rekey-heldouts" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">Re-mark the name-truth keys for both held-out sessions</div>
   <div class="what">Fresh marking pages generated over the corrected/honest transcripts. Your by-ear pass rebuilds the answer keys the June scoring can no longer use.</div>
   <div class="why"><b>Why:</b> Unblocks the deferred detector-dictionary migration (its ship-gate needs valid keys) and restores trustworthy precision numbers for M9c.</div>
   <div class="where"><code>python emp/src/name_truth.py 20260211-210718 --serve  (then the same for 20260414-213156)</code></div>
-  <textarea class="note" data-id="rekey-heldouts" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <textarea class="note" data-id="rekey-heldouts" placeholder="your notes / verdicts (auto-saves when served)">Choksi re-marked BOTH held-outs the morning of 2026-07-02 (28 + 26 names categorized; sidecars saved 08:42/08:55) — the checklist failed to notice (fixed with a live chip). His key unblocked: fresh M9c scoring + 10 residual garbles turned into world-dictionary blessings + the key-driven corrective pass.</textarea>
   <div class="stat" data-id="rekey-heldouts"></div>
 </div>
 <div class="card k-ear s-done" id="card-pandavas-spotcheck">

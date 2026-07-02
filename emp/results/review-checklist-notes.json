@@ -14,28 +14,28 @@
       "notes": "Choksi 2026-07-02: 15/15 marked — 14 'real speech, wrong token' (the 314–324s zero-confidence cluster is real Bhima/Arjuna talk) + 1 'junk (nothing said)'. Hearings captured per card."
     },
     "case-study-edit": {
-      "status": "pending",
-      "notes": ""
+      "status": "skipped",
+      "notes": "Choksi 2026-07-02: edit pass deferred — later task. Draft stays at emp/writeup/namefix-eval.html."
     },
     "site-panel-read": {
-      "status": "pending",
-      "notes": ""
+      "status": "skipped",
+      "notes": "Choksi 2026-07-02: website work happens in a separate effort — parked as a TBD task (review the rewritten 'Fix names' panel + the rest of the TMAS page then)."
     },
     "changelog-approve": {
-      "status": "pending",
-      "notes": ""
+      "status": "skipped",
+      "notes": "Choksi 2026-07-02: will work the changelog broadly in a separate effort — later task."
     },
     "rekey-heldouts": {
-      "status": "pending",
-      "notes": ""
+      "status": "done",
+      "notes": "Choksi re-marked BOTH held-outs the morning of 2026-07-02 (28 + 26 names categorized; sidecars saved 08:42/08:55) — the checklist failed to notice (fixed with a live chip). His key unblocked: fresh M9c scoring + 10 residual garbles turned into world-dictionary blessings + the key-driven corrective pass."
     },
     "pandavas-spotcheck": {
       "status": "done",
       "notes": "7/7 'fix is right' — the rollout write fully verified per spot."
     },
     "recovery-arc-decision": {
-      "status": "pending",
-      "notes": ""
+      "status": "skipped",
+      "notes": "Choksi 2026-07-02: NOT YET — tie up the name-fix arc first. All context saved for a later effort (probe scripts, 17/19 verdicts, hearings sidecar, emp.md record)."
     }
   }
 }
