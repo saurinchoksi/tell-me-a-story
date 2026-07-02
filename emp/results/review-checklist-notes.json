@@ -32,6 +32,10 @@
     "pandavas-spotcheck": {
       "status": "done",
       "notes": "7/7 'fix is right' — the rollout write fully verified per spot."
+    },
+    "recovery-arc-decision": {
+      "status": "pending",
+      "notes": ""
     }
   }
 }

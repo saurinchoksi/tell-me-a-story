@@ -1,12 +1,13 @@
 <!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Review checklist — 2/8 done</title><style>
+<title>Review checklist — 2/9 done</title><style>
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:760px;margin:0 auto;padding:18px;background:#faf8f5;color:#1a1a1a;line-height:1.5}
 h1{font-size:1.3rem;margin:.2em 0}
 .sub{color:#666;font-size:.88rem;margin-bottom:1em}
 .card{background:#fff;border-radius:12px;padding:14px 16px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.07);border-left:5px solid #ccc}
 .card.k-ear{border-left-color:#4a90d9}.card.k-tap{border-left-color:#2f9e44}
 .card.k-eye{border-left-color:#a67c00}.card.k-edit{border-left-color:#8a5a3a}
+.card.k-decide{border-left-color:#6a3843}
 .card.s-done{opacity:.55}.card.s-skipped{opacity:.4}
 .head{display:flex;align-items:center;gap:.7rem}
 .kind{font-size:.78rem}.mins{font-size:.75rem;color:#888}
@@ -24,7 +25,7 @@ h1{font-size:1.3rem;margin:.2em 0}
 </style></head><body>
 <h1>What's waiting on you</h1>
 <p class="sub">The human-verdict queue from the name-fixer arc, roughly in leverage order. Statuses and notes save to <code>review-checklist-notes.json</code> when served (<code>python emp/src/review_checklist.py --serve</code>); Claude reads the same file, so your notes are the handoff.</p>
-<div class="progress" id="prog">2/8 done</div>
+<div class="progress" id="prog">2/9 done</div>
 
 <div class="card k-ear s-done" id="card-missed-speech-cards">
   <div class="head">
@@ -38,6 +39,19 @@ h1{font-size:1.3rem;margin:.2em 0}
   <div class="where"><code>python emp/src/missed_speech_probe.py --serve  →  localhost:8769  (type what you hear per card; it saves)</code></div>
   <textarea class="note" data-id="missed-speech-cards" placeholder="your notes / verdicts (auto-saves when served)">Choksi&#x27;s verdicts 2026-07-02: 17 of 19 &#x27;really said&#x27;, 1 &#x27;partly right&#x27; (65.9s — heard &quot;Bhishma&#x27;s father was the king&quot;, re-decode had the name garbled), 1 can&#x27;t-tell (449.9s). ZERO &#x27;not said&#x27;. Technique human-confirmed.</textarea>
   <div class="stat" data-id="missed-speech-cards"></div>
+</div>
+<div class="card k-decide s-pending" id="card-recovery-arc-decision">
+  <div class="head">
+    <span class="kind">🧭 decide</span>
+    <span class="mins">~2 min</span>
+    <div class="btns"><button class="st st-pending on" data-id="recovery-arc-decision" data-status="pending">pending</button><button class="st st-done" data-id="recovery-arc-decision" data-status="done">done</button><button class="st st-skipped" data-id="recovery-arc-decision" data-status="skipped">skipped</button></div>
+  </div>
+  <div class="title">Green-light the missed-speech recovery arc?</div>
+  <div class="what">Your own verdicts settled the evidence: 17 of 19 recovered stretches are really said, 0 forced. The candidate next arc: a recovery stage that re-listens at every no-trace gap, inserts the recovered text clearly marked (never silently), gated like namefix, with your review queue for the residue.</div>
+  <div class="why"><b>Why:</b> First working treatment for the mode that survived 8 failed recovery attempts. Your call on go / not-yet and any constraints (e.g. how recovered text is marked in the transcript).</div>
+  <div class="where"><code>just tell Claude — or drop a note here</code></div>
+  <textarea class="note" data-id="recovery-arc-decision" placeholder="your notes / verdicts (auto-saves when served)"></textarea>
+  <div class="stat" data-id="recovery-arc-decision"></div>
 </div>
 <div class="card k-tap s-pending" id="card-thomas-queue">
   <div class="head">
@@ -145,7 +159,7 @@ document.querySelectorAll('.st').forEach(b=>b.addEventListener('click',()=>{
   card.className=card.className.replace(/s-(pending|done|skipped)/,'s-'+status);
   card.querySelectorAll('.st').forEach(x=>x.classList.toggle('on',x===b));
   const done=document.querySelectorAll('.card.s-done').length;
-  document.getElementById('prog').textContent=done+'/8 done';
+  document.getElementById('prog').textContent=done+'/9 done';
   post({id:id, field:'status', value:status}, card.querySelector('.stat'));
 }));
 let timers={};

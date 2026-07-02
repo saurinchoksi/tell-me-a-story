@@ -36,6 +36,16 @@ ITEMS = [
      "why": "If even half are real, this is the first traction ever on the dropped-speech "
             "problem (8 prior approaches recovered nothing) and becomes its own arc.",
      "where": "python emp/src/missed_speech_probe.py --serve  →  localhost:8769  (type what you hear per card; it saves)"},
+    {"id": "recovery-arc-decision", "kind": "decide", "mins": "~2 min",
+     "title": "Green-light the missed-speech recovery arc?",
+     "what": "Your own verdicts settled the evidence: 17 of 19 recovered stretches are "
+             "really said, 0 forced. The candidate next arc: a recovery stage that re-listens "
+             "at every no-trace gap, inserts the recovered text clearly marked (never "
+             "silently), gated like namefix, with your review queue for the residue.",
+     "why": "First working treatment for the mode that survived 8 failed recovery attempts. "
+            "Your call on go / not-yet and any constraints (e.g. how recovered text is "
+            "marked in the transcript).",
+     "where": "just tell Claude — or drop a note here"},
     {"id": "thomas-queue", "kind": "tap", "mins": "~3 min",
      "title": "The Thomas night's 6 queued names (incl. the invented engines)",
      "what": "The gate wanted to write Jammus→Thomas and Jameis→Thomas; it was stopped and "
@@ -119,7 +129,8 @@ def esc(x):
     return html.escape(str(x))
 
 
-KIND_LABEL = {"ear": "🎧 listen", "tap": "👆 taps", "eye": "👀 read", "edit": "✍️ edit"}
+KIND_LABEL = {"ear": "🎧 listen", "tap": "👆 taps", "eye": "👀 read", "edit": "✍️ edit",
+              "decide": "🧭 decide"}
 
 
 def render_html(notes: dict) -> str:
@@ -155,6 +166,7 @@ h1{{font-size:1.3rem;margin:.2em 0}}
 .card{{background:#fff;border-radius:12px;padding:14px 16px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.07);border-left:5px solid #ccc}}
 .card.k-ear{{border-left-color:#4a90d9}}.card.k-tap{{border-left-color:#2f9e44}}
 .card.k-eye{{border-left-color:#a67c00}}.card.k-edit{{border-left-color:#8a5a3a}}
+.card.k-decide{{border-left-color:#6a3843}}
 .card.s-done{{opacity:.55}}.card.s-skipped{{opacity:.4}}
 .head{{display:flex;align-items:center;gap:.7rem}}
 .kind{{font-size:.78rem}}.mins{{font-size:.75rem;color:#888}}
