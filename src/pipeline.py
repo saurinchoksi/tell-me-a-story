@@ -38,12 +38,14 @@ def enrich_transcript(
     library_path: str = None,
     verbose: bool = True,
     cache_dir=None,
+    audio_path: str = None,
 ) -> tuple[dict, list[dict], dict]:
     """Run all enrichment stages on a transcript.
 
-    Runs diarization enrichment, gap detection, and dictionary
-    normalization in sequence. Each stage is wrapped in
-    try/except so failures are recorded but don't block subsequent stages.
+    Runs diarization enrichment, gap detection, story segmentation, name
+    fixing (namefix — needs the audio), and dictionary normalization in
+    sequence. Each stage is wrapped in try/except so failures are recorded
+    but don't block subsequent stages.
 
     Does NOT set _processing on the transcript — the caller assembles that.
 
@@ -53,14 +55,20 @@ def enrich_transcript(
         library_path: Path to dictionary library JSON. When None (default),
             dictionary normalization is skipped.
         verbose: Log progress messages.
+        cache_dir: Session dir for the segmentation/namefix caches and the
+            pending-name-corrections file. None skips both stages (tests).
+        audio_path: The session audio — namefix re-decodes short clips from
+            it. None skips namefix with a "skipped" processing entry.
 
     Returns:
         Tuple of (enriched_transcript, processing_entries, counts_dict).
         processing_entries: list of stage dicts for _processing.
-        counts_dict: {"dict_count": M}.
+        counts_dict: {"dict_count": M, "namefix_auto": N, "namefix_pending": P}.
     """
     processing = []
     dict_count = 0
+    namefix_auto = 0
+    namefix_pending = 0
 
     # Word realignment (transcript repair) now runs in run_pipeline BEFORE the raw
     # snapshot — see realign_words() — so enrich_transcript holds only interpretive
@@ -106,55 +114,12 @@ def enrich_transcript(
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
-    # (Removed 2026-07-01) The world-blind LLM normalizer (Qwen3-8B) used to run here as
-    # Pass 3. Confirmed by ear to substitute wrong names — it mapped the child's "Fondos"
-    # (the Pandavas) onto "Bhishma" (a different, enemy-side character) — so it was removed;
-    # the transcript now carries the honest Whisper words. Its world-grounded replacement
-    # (segment -> recognize world -> correct only within that world's cast, on Qwen3.5-4B)
-    # slots in AFTER story segmentation and is tracked in the plan. Dropping this pass also
-    # drops the 8B model, making the pipeline single-model on Qwen3.5-4B (8GB-machine safe).
-
-    # Pass 4: Dictionary normalization
-    lib_path = library_path or _DEFAULT_LIBRARY_PATH
-    if lib_path is None:
-        if verbose:
-            logger.info("Dictionary normalization: skipped (no library path)")
-        processing.append({
-            "stage": "dictionary_normalization",
-            "status": "skipped",
-            "reason": "no_library_path",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
-    else:
-        try:
-            started_at = datetime.now(timezone.utc).isoformat()
-            t0 = time.monotonic()
-            library = load_library(lib_path)
-            variant_map = build_variant_map(library)
-            text = extract_text(transcript)
-            dict_corrections = normalize_variants(text, variant_map)
-            transcript, dict_count = apply_corrections(transcript, dict_corrections, "dictionary")
-            dict_entry = make_dictionary_entry(lib_path, dict_count)
-            dict_entry["started_at"] = started_at
-            dict_entry["duration_seconds"] = round(time.monotonic() - t0, 2)
-            processing.append(dict_entry)
-            if verbose:
-                logger.info(f"Dictionary normalization: {dict_count} corrections applied")
-        except Exception as e:
-            logger.warning(f"Dictionary normalization failed: {e}")
-            processing.append({
-                "stage": "dictionary_normalization",
-                "library": lib_path,
-                "status": "error",
-                "error": str(e),
-                "started_at": started_at,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
-
-    # Pass 5: Story segmentation (cached — re-enrich reuses stories when the segment
-    # structure/text and the segmenter config are unchanged). Runs only when a session
-    # dir to cache into is given; production (run_pipeline + --re-enrich) always provides
-    # one. Degrade-safe — a failure here must not sink the saved transcript.
+    # Pass 3: Story segmentation (cached — re-enrich reuses stories when the segment
+    # structure/text and the segmenter config are unchanged). Moved BEFORE name fixing
+    # (2026-07-01): namefix corrects per story, so it needs _stories first — and the
+    # segmenter reads boundary cues, not name spellings, so running it on un-corrected
+    # text is safe (verified by the tmas-segment-truth ground-truth check design).
+    # Runs only when a session dir to cache into is given. Degrade-safe.
     if cache_dir is not None:
         try:
             started_at = datetime.now(timezone.utc).isoformat()
@@ -191,7 +156,105 @@ def enrich_transcript(
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             })
 
-    return transcript, processing, {"dict_count": dict_count}
+    # Pass 4: Name fixing (namefix) — the world-blind LLM normalizer's replacement
+    # (2026-07-01). The old pass guessed spellings from garbled text and rewrote the
+    # child's word for the Pandavas as "Bhishma"; this one re-decodes the AUDIO around
+    # each suspected name with the story's world+cast in Whisper's ear and auto-applies
+    # only bulletproof matches — everything else queues for the human bless. Validated:
+    # 32 auto / 0 wrong / 4 queued on the held-out Mahabharata (emp/emp.md 2026-07-01).
+    # Needs _stories + the audio; skips cleanly without them. Cached like segmentation.
+    if cache_dir is not None and audio_path is not None and transcript.get("_stories"):
+        try:
+            started_at = datetime.now(timezone.utc).isoformat()
+            t0 = time.monotonic()
+            import namefix as _namefix
+            nf_input = _namefix.transcript_fingerprint(transcript)
+            result, was_cached = cached_or_run(
+                cache_dir, "namefix",
+                fingerprint(nf_input), fingerprint(_namefix.config_fingerprint()),
+                lambda: _namefix.run_namefix(transcript, str(audio_path)))
+            corrections = _namefix.auto_to_corrections(result["auto"])
+            transcript, namefix_auto = apply_corrections(transcript, corrections, "namefix")
+            namefix_pending = len(result["pending"])
+            _namefix.write_pending(Path(cache_dir), result, transcript)
+            processing.append({
+                "stage": "namefix",
+                "model": _namefix.MODEL,
+                "status": "success",
+                "namefix_version": _namefix.VERSION,
+                "auto_applied": namefix_auto,
+                "pending": namefix_pending,
+                "worlds": [w["recognized_world"] for w in result["worlds"]],
+                "from_cache": was_cached,
+                "started_at": started_at,
+                "duration_seconds": round(time.monotonic() - t0, 2),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+            if verbose:
+                logger.info(f"Namefix: {namefix_auto} auto-corrections, "
+                            f"{namefix_pending} queued for review"
+                            + (" (cached)" if was_cached else ""))
+        except Exception as e:
+            logger.warning(f"Namefix failed: {e}")
+            processing.append({
+                "stage": "namefix",
+                "status": "error",
+                "error": str(e),
+                "started_at": started_at,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+    else:
+        reason = ("no_audio_path" if audio_path is None else
+                  "no_stories" if cache_dir is not None else "no_cache_dir")
+        if verbose:
+            logger.info(f"Namefix: skipped ({reason})")
+        processing.append({
+            "stage": "namefix",
+            "status": "skipped",
+            "reason": reason,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+
+    # Pass 5: Dictionary normalization
+    lib_path = library_path or _DEFAULT_LIBRARY_PATH
+    if lib_path is None:
+        if verbose:
+            logger.info("Dictionary normalization: skipped (no library path)")
+        processing.append({
+            "stage": "dictionary_normalization",
+            "status": "skipped",
+            "reason": "no_library_path",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+    else:
+        try:
+            started_at = datetime.now(timezone.utc).isoformat()
+            t0 = time.monotonic()
+            library = load_library(lib_path)
+            variant_map = build_variant_map(library)
+            text = extract_text(transcript)
+            dict_corrections = normalize_variants(text, variant_map)
+            transcript, dict_count = apply_corrections(transcript, dict_corrections, "dictionary")
+            dict_entry = make_dictionary_entry(lib_path, dict_count)
+            dict_entry["started_at"] = started_at
+            dict_entry["duration_seconds"] = round(time.monotonic() - t0, 2)
+            processing.append(dict_entry)
+            if verbose:
+                logger.info(f"Dictionary normalization: {dict_count} corrections applied")
+        except Exception as e:
+            logger.warning(f"Dictionary normalization failed: {e}")
+            processing.append({
+                "stage": "dictionary_normalization",
+                "library": lib_path,
+                "status": "error",
+                "error": str(e),
+                "started_at": started_at,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+
+    return transcript, processing, {"dict_count": dict_count,
+                                    "namefix_auto": namefix_auto,
+                                    "namefix_pending": namefix_pending}
 
 
 def get_audio_info(filepath: str) -> dict | None:
@@ -429,10 +492,10 @@ def run_pipeline(audio_path: str, verbose: bool = True, library_path: str = None
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    # Enrichment (normalization + diarization)
+    # Enrichment (diarization labels, gaps, stories, namefix, dictionary)
     transcript, enrichment_processing, _ = enrich_transcript(
         transcript, diarization, library_path=library_path, verbose=verbose,
-        cache_dir=Path(audio_path).parent,
+        cache_dir=Path(audio_path).parent, audio_path=audio_path,
     )
 
     # Fold audio info into enriched transcript
@@ -564,11 +627,16 @@ if __name__ == "__main__":
         # Deep-copy raw so enrichment doesn't mutate it
         transcript = copy.deepcopy(transcript_raw)
 
+        # Find the session audio first — namefix re-decodes clips from it
+        audio_matches = glob.glob(os.path.join(session_dir, "audio.*"))
+        audio_path = audio_matches[0] if audio_matches else None
+
         print("Running enrichment stages...")
         enrich_started_at = datetime.now(timezone.utc).isoformat()
         enrich_start = time.monotonic()
         transcript, enrichment_processing, counts = enrich_transcript(
-            transcript, diarization, library_path=args.library, cache_dir=session_dir
+            transcript, diarization, library_path=args.library, cache_dir=session_dir,
+            audio_path=audio_path,
         )
         enrich_duration = round(time.monotonic() - enrich_start, 2)
 
@@ -578,10 +646,6 @@ if __name__ == "__main__":
             "model": transcript_raw.get("_generator_version", "unknown"),
             "status": "prior_run",
         }
-
-        # Fold audio info if audio file exists
-        audio_matches = glob.glob(os.path.join(session_dir, "audio.*"))
-        audio_path = audio_matches[0] if audio_matches else None
         if audio_path:
             audio_info = get_audio_info(audio_path)
             transcript["audio"] = audio_info
