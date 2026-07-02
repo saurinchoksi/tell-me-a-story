@@ -102,6 +102,33 @@ ITEMS = [
 
 STATUSES = ["pending", "done", "skipped"]
 
+# Live progress derived from each artifact's OWN sidecar — the checklist reflects work
+# done anywhere (artifact pages, hand edits), so nothing ever LOOKS lost here. The manual
+# status stays Choksi's call; the chip is evidence.
+def artifact_progress() -> dict:
+    out = {}
+    def count(path, total_from_items=True):
+        p = ROOT / path
+        if not p.exists():
+            return None
+        d = json.loads(p.read_text())
+        items = d.get("items", {})
+        marked = sum(1 for v in items.values() if v.get("verdict") or v.get("heard"))
+        return marked, len(items)
+    c = count("emp/results/visuals/missed-speech-hearings.json")
+    if c: out["missed-speech-cards"] = f"{c[0]}/{c[1]} cards marked"
+    c = count("emp/results/visuals/garbage-hearings.json")
+    if c: out["garbage-cards"] = f"{c[0]}/{c[1]} cards marked"
+    c = count("emp/results/visuals/20260117-202237/namefix-spotcheck.json")
+    if c: out["pandavas-spotcheck"] = f"{c[0]}/{c[1]} spots marked"
+    p = ROOT / "sessions/20260129-204404/pending-name-corrections.json"
+    if p.exists():
+        d = json.loads(p.read_text())
+        n = len(d.get("pending", []))
+        done = len(d.get("_blessed", [])) + len(d.get("_rejected", []))
+        out["thomas-queue"] = f"{n} awaiting taps · {done} decided"
+    return out
+
 
 def load_notes() -> dict:
     """Sidecar: {\"items\": {id: {status, notes}}, _*: preserved}. Missing file -> fresh."""
@@ -120,6 +147,8 @@ def load_notes() -> dict:
 
 def save_notes(data: dict) -> None:
     NOTES_PATH.parent.mkdir(parents=True, exist_ok=True)
+    if NOTES_PATH.exists():  # rolling one-deep backup: any accidental overwrite is recoverable
+        NOTES_PATH.with_suffix(".json.bak").write_text(NOTES_PATH.read_text())
     tmp = NOTES_PATH.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False))
     tmp.replace(NOTES_PATH)
@@ -135,9 +164,12 @@ KIND_LABEL = {"ear": "🎧 listen", "tap": "👆 taps", "eye": "👀 read", "edi
 
 def render_html(notes: dict) -> str:
     cards = ""
+    progress = artifact_progress()
     n_done = sum(1 for it in ITEMS if notes["items"][it["id"]]["status"] == "done")
     for it in ITEMS:
         st = notes["items"][it["id"]]
+        chip = (f'<span class="live">{esc(progress[it["id"]])}</span>'
+                if it["id"] in progress else "")
         btns = "".join(
             f'<button class="st st-{s}{" on" if st["status"] == s else ""}" '
             f'data-id="{it["id"]}" data-status="{s}">{s}</button>'
@@ -146,7 +178,7 @@ def render_html(notes: dict) -> str:
 <div class="card k-{it['kind']} s-{esc(st['status'])}" id="card-{it['id']}">
   <div class="head">
     <span class="kind">{KIND_LABEL[it['kind']]}</span>
-    <span class="mins">{esc(it['mins'])}</span>
+    <span class="mins">{esc(it['mins'])}</span>{chip}
     <div class="btns">{btns}</div>
   </div>
   <div class="title">{esc(it['title'])}</div>
@@ -170,6 +202,7 @@ h1{{font-size:1.3rem;margin:.2em 0}}
 .card.s-done{{opacity:.55}}.card.s-skipped{{opacity:.4}}
 .head{{display:flex;align-items:center;gap:.7rem}}
 .kind{{font-size:.78rem}}.mins{{font-size:.75rem;color:#888}}
+.live{{font-size:.72rem;background:#eef6ee;color:#2f6b38;border-radius:10px;padding:.1rem .55rem;font-weight:600}}
 .btns{{margin-left:auto;display:flex;gap:.3rem}}
 .st{{font-size:.72rem;border:1px solid #ccc;background:#fff;border-radius:6px;padding:.15rem .5rem;cursor:pointer}}
 .st.on.st-done{{background:#2f9e44;color:#fff;border-color:#2f9e44}}

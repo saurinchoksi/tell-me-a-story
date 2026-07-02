@@ -11,6 +11,7 @@ h1{font-size:1.3rem;margin:.2em 0}
 .card.s-done{opacity:.55}.card.s-skipped{opacity:.4}
 .head{display:flex;align-items:center;gap:.7rem}
 .kind{font-size:.78rem}.mins{font-size:.75rem;color:#888}
+.live{font-size:.72rem;background:#eef6ee;color:#2f6b38;border-radius:10px;padding:.1rem .55rem;font-weight:600}
 .btns{margin-left:auto;display:flex;gap:.3rem}
 .st{font-size:.72rem;border:1px solid #ccc;background:#fff;border-radius:6px;padding:.15rem .5rem;cursor:pointer}
 .st.on.st-done{background:#2f9e44;color:#fff;border-color:#2f9e44}
@@ -30,7 +31,7 @@ h1{font-size:1.3rem;margin:.2em 0}
 <div class="card k-ear s-done" id="card-missed-speech-cards">
   <div class="head">
     <span class="kind">🎧 listen</span>
-    <span class="mins">~10 min</span>
+    <span class="mins">~10 min</span><span class="live">19/19 cards marked</span>
     <div class="btns"><button class="st st-pending" data-id="missed-speech-cards" data-status="pending">pending</button><button class="st st-done on" data-id="missed-speech-cards" data-status="done">done</button><button class="st st-skipped" data-id="missed-speech-cards" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">The 19 missed-speech recovery cards</div>
@@ -56,7 +57,7 @@ h1{font-size:1.3rem;margin:.2em 0}
 <div class="card k-tap s-pending" id="card-thomas-queue">
   <div class="head">
     <span class="kind">👆 taps</span>
-    <span class="mins">~3 min</span>
+    <span class="mins">~3 min</span><span class="live">6 awaiting taps · 0 decided</span>
     <div class="btns"><button class="st st-pending on" data-id="thomas-queue" data-status="pending">pending</button><button class="st st-done" data-id="thomas-queue" data-status="done">done</button><button class="st st-skipped" data-id="thomas-queue" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">The Thomas night&#x27;s 6 queued names (incl. the invented engines)</div>
@@ -69,7 +70,7 @@ h1{font-size:1.3rem;margin:.2em 0}
 <div class="card k-ear s-pending" id="card-garbage-cards">
   <div class="head">
     <span class="kind">🎧 listen</span>
-    <span class="mins">~8 min</span>
+    <span class="mins">~8 min</span><span class="live">5/15 cards marked</span>
     <div class="btns"><button class="st st-pending on" data-id="garbage-cards" data-status="pending">pending</button><button class="st st-done" data-id="garbage-cards" data-status="done">done</button><button class="st st-skipped" data-id="garbage-cards" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">The 15 worst garbage-census finds</div>
@@ -134,7 +135,7 @@ h1{font-size:1.3rem;margin:.2em 0}
 <div class="card k-ear s-done" id="card-pandavas-spotcheck">
   <div class="head">
     <span class="kind">🎧 listen</span>
-    <span class="mins">~3 min (optional)</span>
+    <span class="mins">~3 min (optional)</span><span class="live">7/7 spots marked</span>
     <div class="btns"><button class="st st-pending" data-id="pandavas-spotcheck" data-status="pending">pending</button><button class="st st-done on" data-id="pandavas-spotcheck" data-status="done">done</button><button class="st st-skipped" data-id="pandavas-spotcheck" data-status="skipped">skipped</button></div>
   </div>
   <div class="title">Spot-check the 7 applied fixes on the Pandavas night</div>

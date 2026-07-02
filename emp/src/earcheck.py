@@ -59,6 +59,8 @@ def load_sidecar(path: Path, ids) -> dict:
 
 def save_sidecar(path: Path, data: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():  # rolling one-deep backup: hearings are ground truth, never lose them
+        path.with_suffix(".json.bak").write_text(path.read_text())
     tmp = path.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False))
     tmp.replace(path)
